@@ -50,6 +50,27 @@ double compound_model(Double_t *x,Double_t *par) {
     return fitval;
 }
 
+// The two modeling functions used in this program: the first for the entire data, second for the peak alone
+TF1 *func = new TF1("fit", compound_model,0.05,0.5,8);
+TF1 *peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2]))", 0.08, 0.26);
+
+// Takes the seven parameters that would be passed to func, along with the number of sigmas away from the mean ("x"), and returns the ratio of the integral of
+// peak within the interval that is within x sigmas from the mean and the integral of peak over the same integral
+double signal_over_total(Double_t *x, Double_t *par) {
+    // Extract the parameters
+    func->SetParameters(par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7]);
+    peak->SetParameters(par[0], par[1], par[2]);
+    double Nsigma = x[0];
+    double mean = par[1];
+    double sigma = par[2];
+    
+    // Evaluate the integrals and return their quotient
+    double signal = peak->Integral(mean-Nsigma*sigma, mean+Nsigma*sigma);
+    double total = func->Integral(mean-Nsigma*sigma, mean+Nsigma*sigma);
+    
+    return signal/total;
+}
+
 void my_code(){
     //Open the file
     TFile* fIn = new TFile("Ntuple.root","READ"); //get file
@@ -65,7 +86,6 @@ void my_code(){
     const double MASSWIDTH = hMass->GetBinWidth(1);
     TCanvas* canvas = new TCanvas();
     hMass->Draw();
-    TF1 *func = new TF1("fit", compound_model,0.05,0.5,8);
     
     //Restrict the parameters to reasonable ranges, insert guess values, and give understandable names
     func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
@@ -84,7 +104,6 @@ void my_code(){
     // Plot the fit for the mass and (separately) the Gaussian component of it; save as a PDF
     hMass->Fit(func);
     func->Draw("same");
-    TF1* peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2]))", 0.08, 0.26);
     for(int i = 0; i < 3; i++) {
          peak->SetParameter(i, func->GetParameter(i));
     }
@@ -99,6 +118,9 @@ void my_code(){
     
     // A collection of variables that is needed for the next steps
     const int num_of_intervals = 7;
+    TMultiGraph* peaks_over_totals = new TMultiGraph();
+    Color_t graph_colors[num_of_intervals] = {kRed, kBlue, kGreen, kYellow, kCyan, kMagenta, kBlack};
+    
     double intervals[num_of_intervals][2] = {{5.0, 7.5}, {7.5, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}, {15.0, 18.0}};
     double means[num_of_intervals];
     double mean_errors[num_of_intervals];
@@ -133,25 +155,44 @@ void my_code(){
         
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
-        // and integral_errors, and the center point of the interval into center (and its error into widths), print out
-        // the mean, standard deviation, and their corresponding errors, and save the graph in a new file
+        // and integral_errors, the center point of the interval into center (and its error into widths)
         means[i] = func->GetParameter(1);
         mean_errors[i] = func->GetParError(1);
         sigmas[i] = func->GetParameter(2) * 1000;
         sigma_errors[i] = func->GetParError(2) * 1000;
         
-        center[i] = (ptmin+ptmax)/2.0;
-        widths[i] = ptmax - center[i];
-        
         gaussian_integrals[i] = (func->GetParameter(0))/MASSWIDTH;
         integral_errors[i] = (func->GetParError(0))/MASSWIDTH;
         
+        center[i] = (ptmin+ptmax)/2.0;
+        widths[i] = ptmax - center[i];
+        
+        // print out the mean, standard deviation, and their corresponding errors; and save the graph in a new file
         std::cout << "Mean: " << means[i] << std::endl << "Standard Deviation: " << sigmas[i] << std::endl;
         canvas->SaveAs(Form("MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png", ptmin, ptmax));
+        
+        //Now use the signal_over_total function to get a graph of sigma vs. signal/total
+        TF1* sig_over_tot_funct = new TF1("Signal over Total", signal_over_total, 0, 4, 7);
+        sig_over_tot_funct->SetParameters(func->GetParameters());
+        canvas->Clear();
+        
+        sig_over_tot_funct->SetTitle(Form("Signal over Total vs Distance From Mean: %2.2f to %2.2f GeV; Num of Standard Deviations From Mean; Signal to Total Ratio", ptmin, ptmax));
+        sig_over_tot_funct->Draw();
+        TGraph* g_sig_over_tot = new TGraph(sig_over_tot_funct);
+        g_sig_over_tot->SetLineColor(graph_colors[i]);
+        peaks_over_totals->Add(g_sig_over_tot);
+        canvas->SaveAs(Form("Signal_Over_Total_Ptmin_%2.2f_Ptmax_%2.2f.png", ptmin, ptmax));
+        
     }
     
+    // Graph the signal/total curves for each momentum increment
+    // Red = 5-7.5, Blue = 7.5-10, Green = 10-11, Yellow = 11-12, Cyan = 12-13, Magenta = 13-15, Black = 15-18
     canvas->Clear();
-    
+    peaks_over_totals->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
+    peaks_over_totals->Draw("Al");
+    canvas->SaveAs("Overall_Signal_Over_Total.png");
+    canvas->Clear();
+
     // Add a constant "expected mass" function to be graphed alongside the mean mass data
     TF1* mass_pdg = new TF1("mass_pdg", "[0]", 0, 20);
     mass_pdg->SetParameter(0, 0.13498);
