@@ -10,6 +10,7 @@ const int axis_pion_Cen  = 0;
 const int axis_pion_Zvtx = 1;
 const int axis_pionMass  = 2;
 const int axis_pionPt    = 3;
+const int axis_asymmetry = 9;
 
 // The cutting function
 void SetCut(THnSparse* h, const int axis, double min, double max){
@@ -58,8 +59,8 @@ TF1 *peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMa
 // peak within the interval that is within x sigmas from the mean and the integral of peak over the same integral
 double signal_over_total(Double_t *x, Double_t *par) {
     // Extract the parameters
-    func->SetParameters(par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7]);
-    peak->SetParameters(par[0], par[1], par[2]);
+    //func->SetParameters(par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7]);
+    //peak->SetParameters(par[0], par[1], par[2]);
     double Nsigma = x[0];
     double mean = par[1];
     double sigma = par[2];
@@ -116,12 +117,18 @@ void my_code(){
     hPt->Draw();
     canvas->SaveAs("momentum_pion_plot.png");
     
+    // Plot the data for the asymmetry
+    TH1D* hAsymmetry = h_Pion->Projection(axis_asymmetry);
+    hAsymmetry->Draw();
+    canvas->SaveAs("asymmetry_pion_plot.png");
+    
     // A collection of variables that is needed for the next steps
     const int num_of_intervals = 7;
     TMultiGraph* peaks_over_totals = new TMultiGraph();
     Color_t graph_colors[num_of_intervals] = {kRed, kBlue, kGreen, kYellow, kCyan, kMagenta, kBlack};
     
     double intervals[num_of_intervals][2] = {{5.0, 7.5}, {7.5, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}, {15.0, 18.0}};
+    double chisquares[num_of_intervals];
     double means[num_of_intervals];
     double mean_errors[num_of_intervals];
     double sigmas[num_of_intervals];
@@ -140,12 +147,15 @@ void my_code(){
         
         // Plot the data
         SetCut(h_Pion, axis_pionPt, ptmin, ptmax);
+        
         hMass = h_Pion->Projection(axis_pionMass);
         hMass->Draw();
         
         // Find a fit just as you did for the entire data set
         // Graph the fit and (separately) the Gaussian component of it
         hMass->Fit(func);
+        chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
+        std::cout << Form("Chi Square: %2.2f", chisquares[i]) << std::endl;
         func->Draw("same");
         for(int i = 0; i < 3; i++) {
             peak->SetParameter(i, func->GetParameter(i));
@@ -155,7 +165,7 @@ void my_code(){
         
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
-        // and integral_errors, the center point of the interval into center (and its error into widths)
+        // and integral_errors, the center point of the interval into center (and its error into widths), and chi square of the fit into its respective array
         means[i] = func->GetParameter(1);
         mean_errors[i] = func->GetParError(1);
         sigmas[i] = func->GetParameter(2) * 1000;
@@ -220,11 +230,21 @@ void my_code(){
     g_sigma->Draw("AP");
     canvas->SaveAs("massWidths_v_pT.png");
     
+    // Graph reduced chi squares over the momentum interval
+    canvas->Clear();
+    TGraph* g_chisquare = new TGraphErrors(num_of_intervals, center, chisquares);
+    g_chisquare->Print();
+    g_chisquare->SetTitle("ReducedChi-Squares for Various Momenta; Momentum (GeV); Reduced Chi-Squares");
+    g_chisquare->SetMarkerSize(2);
+    g_chisquare->SetMarkerStyle(20);
+    g_chisquare->Draw("AP");
+    canvas->SaveAs("reduced_chisquare_v_pT.png");
+    
     // Graph the Gaussian distribution integrals over momentum
     canvas->Clear();
     TGraphErrors* g_integral = new TGraphErrors(num_of_intervals, center, gaussian_integrals, widths, integral_errors);
     g_integral->Print();
-    g_integral->SetTitle("Gaussian Peak integrals for Various Momenta; Momentum (GeV); Gaussian Peak Integral");
+    g_integral->SetTitle("Gaussian Peak integrals for Various Momenta; Momentum (GeV); Number of Pions");
     g_integral->Draw("AP");
     canvas->SaveAs("peakIntegrals_v_pT.png");
 

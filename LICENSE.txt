@@ -3,11 +3,11 @@ Copyright (c) 2017 Ivan Chernyshev
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, and/or sublicense
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The terms governing all copies or substantial portions of this software are  
+The terms governing all copies or substantial portions of the Software are  
 subject to change without notice by Ivan Chernyshev until the notice in the 
 README of the master copy ("master copy" means the copy of the software that 
 is located in the master branch of the Github repository 
