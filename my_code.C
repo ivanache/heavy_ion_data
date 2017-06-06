@@ -92,7 +92,7 @@ void my_code(){
     func->SetParLimits(0, 1, 10000.0);//integral
     func->SetParLimits(1, 0.1, 0.2); //mean
     func->SetParLimits(2, 0.01, 0.05); // width
-    func->SetParLimits(3, -10000.0, 0.0); // Quadric and quadratic factors
+    func->SetParLimits(3, -100000.0, 0.0); // Quadric and quadratic factors
     func->SetParLimits(5, -100000.0, 0.0);
     //func->SetParLimits(7, 0.0, 0.1);
     //func->SetParLimits(3, 100.0, 5000.0);
