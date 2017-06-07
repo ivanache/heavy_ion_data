@@ -1,3 +1,8 @@
+/**
+ my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses.root
+ the macro must be called with two bools, the first to tell if the lambda must be cut, the second to tell if asymmetry must be cut
+ */
+
 #include "TFile.h"
 #include "TF1.h"
 #include "TH1F.h"
@@ -5,12 +10,36 @@
 #include <TGraphErrors.h>
 #include <iostream>
 
+// The general filepath string
+string directory_name;
+
 //variables of hPion
-const int axis_pion_Cen  = 0;
-const int axis_pion_Zvtx = 1;
-const int axis_pionMass  = 2;
-const int axis_pionPt    = 3;
-const int axis_asymmetry = 9;
+const int axis_pion_Cen    = 0;
+const int axis_pion_Zvtx   = 1;
+const int axis_pionMass    = 2;
+const int axis_pionPt      = 3;
+const int axis_asymmetry   = 9;
+const int axis_pionLambda1 = 17;
+const int axis_pionLambda2 = 18;
+
+/**
+// Concatenates two C-strings without changing the contents of the input parameters
+char* output_strcat(char* input1, char* input2){
+    char *sumstring = new char[strlen(input1) + strlen(input2)];
+    strcpy(sumstring, input1);
+    strcat(sumstring, input2);
+    
+    return sumstring;
+}
+*/
+
+// Concatenates two strings and gives a char array
+char* str_concat_converter(string str1, string str2){
+    string sumstring = str1 + str2;
+    char* output = new char[sumstring.length() + 1];
+    strcpy(output, sumstring.c_str());
+    return output;
+}
 
 // The cutting function
 void SetCut(THnSparse* h, const int axis, double min, double max){
@@ -72,20 +101,62 @@ double signal_over_total(Double_t *x, Double_t *par) {
     return signal/total;
 }
 
-void my_code(){
+// Takes a THnSparse pointer (almost always h_Pion), an hPion variable number, a Canvas object pointer, and a file name
+// Graphs the data under the hPion variable number and saves the graph as a .png
+// SetCuts done to the THnSparse object before the function call do apply
+// Not advisable if you want to save any variable from the data or the TH1D object used to graph it
+void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* filename){
+    TH1D* data_subset = data->Projection(hPion_var);
+    data_subset->Draw();
+    
+    can->SaveAs(filename);
+}
+
+/**
+ Main function
+ */
+void my_code(bool cut_lambda, bool cut_asymmetry){
+    // Generate the directory name to store files in
+    
+    if (cut_lambda){
+        directory_name = "yes";
+    }
+    else {
+        directory_name = "no";
+    }
+    directory_name += "_lambda_cut_";
+    
+    if (cut_asymmetry) {
+        directory_name += "yes";
+    }
+    else {
+        directory_name += "no";
+    }
+    directory_name += "_asymmetry_cut/";
+    std::cout << "Directory chosen: " << directory_name << std::endl;
+    
     //Open the file
-    TFile* fIn = new TFile("Ntuple.root","READ"); //get file
+    TFile* fIn = new TFile("THnSparses.root","READ"); //get file
     fIn->Print(); //print file content
     
     // Get the data
     THnSparse* h_Pion = 0;
     fIn->GetObject("h_Pion",h_Pion); //get array
     
-    //For the mass plot, restrict to mass between 0.08 and 0.25, plot data, and set up the fit function
+    //For the mass plot, restrict to mass between 0.08 and 0.25, define the Canvas,
+    //plot the data for the asymmetry and both lambdas, restrict asymmetry to below 0.7, restrict lambda2 to below 0.4, plot mass data, and set up the fit function
     SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
+    TCanvas* canvas = new TCanvas();
+    
+    graph_raw_data(h_Pion, axis_asymmetry, canvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"));
+    graph_raw_data(h_Pion, axis_pionLambda1, canvas, str_concat_converter(directory_name, "lambda1_pion_plot.png"));
+    graph_raw_data(h_Pion, axis_pionLambda2, canvas, str_concat_converter(directory_name, "lambda2_pion_plot.png"));
+    
+    
+    SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+    SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
     const double MASSWIDTH = hMass->GetBinWidth(1);
-    TCanvas* canvas = new TCanvas();
     hMass->Draw();
     
     //Restrict the parameters to reasonable ranges, insert guess values, and give understandable names
@@ -95,9 +166,6 @@ void my_code(){
     func->SetParLimits(2, 0.01, 0.05); // width
     func->SetParLimits(3, -100000.0, 0.0); // Quadric and quadratic factors
     func->SetParLimits(5, -100000.0, 0.0);
-    //func->SetParLimits(7, 0.0, 0.1);
-    //func->SetParLimits(3, 100.0, 5000.0);
-    //func->SetParLimits(6, 100.0, 5000.0);
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Damped Sine coeff", "Shift", "Period Factor", "Damping Exponent", "Constant");
     func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
@@ -105,22 +173,18 @@ void my_code(){
     // Plot the fit for the mass and (separately) the Gaussian component of it; save as a PDF
     hMass->Fit(func);
     func->Draw("same");
+    std::cout << "Reduced Chi Square " << (func->GetChisquare())/10 << std::endl; //Reduced Chi Square of the mass vs entries curve (function has 18 degrees of freedom, 7 parameters)
     for(int i = 0; i < 3; i++) {
          peak->SetParameter(i, func->GetParameter(i));
     }
     peak->SetLineColor(kBlue);
     peak->Draw("same");
-    canvas->SaveAs("mass_pion_plot.png");
+    canvas->SaveAs(str_concat_converter(directory_name, "mass_pion_plot.png"));
     
     // Plot the data for the momentum
     TH1D* hPt = h_Pion->Projection(axis_pionPt);
     hPt->Draw();
-    canvas->SaveAs("momentum_pion_plot.png");
-    
-    // Plot the data for the asymmetry
-    TH1D* hAsymmetry = h_Pion->Projection(axis_asymmetry);
-    hAsymmetry->Draw();
-    canvas->SaveAs("asymmetry_pion_plot.png");
+    canvas->SaveAs(str_concat_converter(directory_name, "momentum_pion_plot.png"));
     
     // A collection of variables that is needed for the next steps
     const int num_of_intervals = 7;
@@ -155,7 +219,7 @@ void my_code(){
         // Graph the fit and (separately) the Gaussian component of it
         hMass->Fit(func);
         chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
-        std::cout << Form("Chi Square: %2.2f", chisquares[i]) << std::endl;
+        std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         func->Draw("same");
         for(int i = 0; i < 3; i++) {
             peak->SetParameter(i, func->GetParameter(i));
@@ -179,7 +243,7 @@ void my_code(){
         
         // print out the mean, standard deviation, and their corresponding errors; and save the graph in a new file
         std::cout << "Mean: " << means[i] << std::endl << "Standard Deviation: " << sigmas[i] << std::endl;
-        canvas->SaveAs(Form("MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png", ptmin, ptmax));
+        canvas->SaveAs(Form(str_concat_converter(directory_name, "MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png"), ptmin, ptmax));
         
         //Now use the signal_over_total function to get a graph of sigma vs. signal/total
         TF1* sig_over_tot_funct = new TF1("Signal over Total", signal_over_total, 0, 4, 7);
@@ -187,11 +251,11 @@ void my_code(){
         canvas->Clear();
         
         sig_over_tot_funct->SetTitle(Form("Signal over Total vs Distance From Mean: %2.2f to %2.2f GeV; Num of Standard Deviations From Mean; Signal to Total Ratio", ptmin, ptmax));
-        sig_over_tot_funct->Draw();
+        ///sig_over_tot_funct->Draw();
         TGraph* g_sig_over_tot = new TGraph(sig_over_tot_funct);
         g_sig_over_tot->SetLineColor(graph_colors[i]);
         peaks_over_totals->Add(g_sig_over_tot);
-        canvas->SaveAs(Form("Signal_Over_Total_Ptmin_%2.2f_Ptmax_%2.2f.png", ptmin, ptmax));
+        //canvas->SaveAs(Form(str_concat_converter(directory_name, "Signal_Over_Total_Ptmin_%2.2f_Ptmax_%2.2f.png"), ptmin, ptmax));
         
     }
     
@@ -200,7 +264,7 @@ void my_code(){
     canvas->Clear();
     peaks_over_totals->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
     peaks_over_totals->Draw("Al");
-    canvas->SaveAs("Overall_Signal_Over_Total.png");
+    canvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     canvas->Clear();
 
     // Add a constant "expected mass" function to be graphed alongside the mean mass data
@@ -218,7 +282,7 @@ void my_code(){
     //g_mean->SetMarkerStyle(20);
     g_mean->Draw("AP");
     mass_pdg->Draw("same");
-    canvas->SaveAs("meanMass_v_pT.png");
+    canvas->SaveAs(str_concat_converter(directory_name, "meanMass_v_pT.png"));
     
     // Graph mass standard deviations with error bars
     canvas->Clear();
@@ -228,7 +292,7 @@ void my_code(){
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Draw("AP");
-    canvas->SaveAs("massWidths_v_pT.png");
+    canvas->SaveAs(str_concat_converter(directory_name, "massWidths_v_pT.png"));
     
     // Graph reduced chi squares over the momentum interval
     canvas->Clear();
@@ -238,7 +302,7 @@ void my_code(){
     g_chisquare->SetMarkerSize(2);
     g_chisquare->SetMarkerStyle(20);
     g_chisquare->Draw("AP");
-    canvas->SaveAs("reduced_chisquare_v_pT.png");
+    canvas->SaveAs(str_concat_converter(directory_name, "reduced_chisquare_v_pT.png"));
     
     // Graph the Gaussian distribution integrals over momentum
     canvas->Clear();
@@ -246,7 +310,7 @@ void my_code(){
     g_integral->Print();
     g_integral->SetTitle("Gaussian Peak integrals for Various Momenta; Momentum (GeV); Number of Pions");
     g_integral->Draw("AP");
-    canvas->SaveAs("peakIntegrals_v_pT.png");
+    canvas->SaveAs(str_concat_converter(directory_name, "peakIntegrals_v_pT.png"));
 
 
     canvas->Close();
