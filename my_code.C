@@ -19,6 +19,7 @@ const int axis_pion_Zvtx   = 1;
 const int axis_pionMass    = 2;
 const int axis_pionPt      = 3;
 const int axis_asymmetry   = 9;
+const int axis_pionAngle   = 16;
 const int axis_pionLambda1 = 17;
 const int axis_pionLambda2 = 18;
 
@@ -115,7 +116,7 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-void my_code(bool cut_lambda, bool cut_asymmetry){
+void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
     // Generate the directory name to store files in
     
     if (cut_lambda){
@@ -132,7 +133,16 @@ void my_code(bool cut_lambda, bool cut_asymmetry){
     else {
         directory_name += "no";
     }
-    directory_name += "_asymmetry_cut/";
+    directory_name += "_asymmetry_cut_";
+    
+    if (cut_angle) {
+        directory_name += "yes";
+    }
+    else {
+        directory_name += "no";
+    }
+    directory_name += "_angle_cut/";
+    
     std::cout << "Directory chosen: " << directory_name << std::endl;
     
     //Open the file
@@ -151,10 +161,14 @@ void my_code(bool cut_lambda, bool cut_asymmetry){
     graph_raw_data(h_Pion, axis_asymmetry, canvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"));
     graph_raw_data(h_Pion, axis_pionLambda1, canvas, str_concat_converter(directory_name, "lambda1_pion_plot.png"));
     graph_raw_data(h_Pion, axis_pionLambda2, canvas, str_concat_converter(directory_name, "lambda2_pion_plot.png"));
+    graph_raw_data(h_Pion, axis_pionAngle, canvas, str_concat_converter(directory_name, "angle_pion_plot.png"));
     
-    
-    SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-    SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+    if(cut_asymmetry)
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+    if(cut_lambda)
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+    if(cut_angle)
+        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
     const double MASSWIDTH = hMass->GetBinWidth(1);
     hMass->Draw();
@@ -163,8 +177,9 @@ void my_code(bool cut_lambda, bool cut_asymmetry){
     func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
     func->SetParLimits(0, 1, 10000.0);//integral
     func->SetParLimits(1, 0.1, 0.2); //mean
-    func->SetParLimits(2, 0.01, 0.05); // width
+    func->SetParLimits(2, 0.01, 0.03); // width
     func->SetParLimits(3, -100000.0, 0.0); // Quadric and quadratic factors
+    func->SetParLimits(4, -100000.0, 30000.0);
     func->SetParLimits(5, -100000.0, 0.0);
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Damped Sine coeff", "Shift", "Period Factor", "Damping Exponent", "Constant");
     func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
