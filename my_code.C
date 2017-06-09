@@ -1,5 +1,5 @@
 /**
- my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses.root
+ my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses_060717.root
  the macro must be called with two bools, the first to tell if the lambda must be cut, the second to tell if asymmetry must be cut
  */
 
@@ -22,6 +22,8 @@ const int axis_asymmetry   = 9;
 const int axis_pionAngle   = 16;
 const int axis_pionLambda1 = 17;
 const int axis_pionLambda2 = 18;
+const int axis_pionNcells1 = 19;
+const int axis_pionNcells2 = 20;
 
 /**
 // Concatenates two C-strings without changing the contents of the input parameters
@@ -48,7 +50,7 @@ void SetCut(THnSparse* h, const int axis, double min, double max){
     double width = h->GetAxis(axis)->GetBinWidth(1);
     int binmin = h->GetAxis(axis)->FindBin(min);
     int binmax = h->GetAxis(axis)->FindBin(max);
-    h->GetAxis(axis)->SetRange(binmin, binmax);
+    h->GetAxis(axis)->SetRange(binmin, binmax - 1);
     return;
 }
 
@@ -116,37 +118,36 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
-    // Generate the directory name to store files in
+void my_code(int num_of_cuts){
+    // Generate the directory name to store files in, using the given int
+    // num_of_cuts = 0 means no cuts, 1 means only lambda_2 is cut, 2 means lambda_2 and asymmetry are cut,
+    // 3 means lambda_2, asymmetry, and angle are cut, 4 means lambda_2, asymmetry, angle, and ncells are cut
+    // Throw an exception if any other int is given, and re-request cut input
+    const int int_out_of_bounds_exception = 100;
+    bool all_clear;
+    do {
+        try {
+            if (num_of_cuts < 0 || num_of_cuts > 4)
+                throw int_out_of_bounds_exception;
+            else
+                all_clear = true;
+        }
     
-    if (cut_lambda){
-        directory_name = "yes";
+        catch (int exc) {
+            if (exc == int_out_of_bounds_exception){
+                cout << "ERROR: only acceptable numbers of cuts are 0, 1, 2, 3, and 4. Please enter another number of cuts below:\n";
+                cin >> num_of_cuts;
+                all_clear = false;
+            }
+        }
     }
-    else {
-        directory_name = "no";
-    }
-    directory_name += "_lambda_cut_";
-    
-    if (cut_asymmetry) {
-        directory_name += "yes";
-    }
-    else {
-        directory_name += "no";
-    }
-    directory_name += "_asymmetry_cut_";
-    
-    if (cut_angle) {
-        directory_name += "yes";
-    }
-    else {
-        directory_name += "no";
-    }
-    directory_name += "_angle_cut/";
+    while(!all_clear);
+    directory_name = std::to_string(num_of_cuts) + "cuts/";
     
     std::cout << "Directory chosen: " << directory_name << std::endl;
     
     //Open the file
-    TFile* fIn = new TFile("THnSparses.root","READ"); //get file
+    TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
     fIn->Print(); //print file content
     
     // Get the data
@@ -154,7 +155,7 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
     fIn->GetObject("h_Pion",h_Pion); //get array
     
     //For the mass plot, restrict to mass between 0.08 and 0.25, define the Canvas,
-    //plot the data for the asymmetry and both lambdas, restrict asymmetry to below 0.7, restrict lambda2 to below 0.4, plot mass data, and set up the fit function
+    //plot the data for the asymmetry, both lambdas, the angle, and number of cells
     SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
     TCanvas* canvas = new TCanvas();
     
@@ -162,25 +163,63 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
     graph_raw_data(h_Pion, axis_pionLambda1, canvas, str_concat_converter(directory_name, "lambda1_pion_plot.png"));
     graph_raw_data(h_Pion, axis_pionLambda2, canvas, str_concat_converter(directory_name, "lambda2_pion_plot.png"));
     graph_raw_data(h_Pion, axis_pionAngle, canvas, str_concat_converter(directory_name, "angle_pion_plot.png"));
+    graph_raw_data(h_Pion, axis_pionNcells1, canvas, str_concat_converter(directory_name, "Ncells1_pion_plot.png"));
+    graph_raw_data(h_Pion, axis_pionNcells2, canvas, str_concat_converter(directory_name, "Ncells2_pion_plot.png"));
     
-    if(cut_asymmetry)
-        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-    if(cut_lambda)
+    // restrict asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value to above 0.015, and Ncells 1 and 2 to above 1.5
+    // as requested by num_of_cuts according to the first block of comments in this function
+    if(num_of_cuts == 0) {
+        cout << "No cuts done\n\n";
+    }
+    else if(num_of_cuts == 1) {
         SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-    if(cut_angle)
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        cout << "Cuts: lambda02\n\n";
+    }
+    else if(num_of_cuts == 2) {
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+        cout << "Cuts: lambda02 and asymmetry\n\n";
+    }
+    else if(num_of_cuts == 3) {
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+        cout << "Cuts: lambda02, asymmetry, and angle\n\n";
+    }
+    else if(num_of_cuts == 4) {
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+        SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
+        SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
+        cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
+
+    }
+    
+    // plot mass data and set up the fit function
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
     const double MASSWIDTH = hMass->GetBinWidth(1);
+    hMass->SetAxisRange(0., 7000., "Y");
     hMass->Draw();
     
     //Restrict the parameters to reasonable ranges, insert guess values, and give understandable names
     func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
     func->SetParLimits(0, 1, 10000.0);//integral
     func->SetParLimits(1, 0.1, 0.2); //mean
-    func->SetParLimits(2, 0.01, 0.03); // width
+    func->SetParLimits(2, 0.01, 0.05); // width
     func->SetParLimits(3, -100000.0, 0.0); // Quadric and quadratic factors
-    func->SetParLimits(4, -100000.0, 30000.0);
     func->SetParLimits(5, -100000.0, 0.0);
+    //func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
+    //func->SetParLimits(0, 1, 10000.0);//integral
+    //func->SetParLimits(1, 0.1, 0.16); //mean
+    //func->SetParLimits(2, 0.005, 0.03); // width
+    //func->SetParLimits(3, -10000000.0, 0.0); // Quadric and quadratic factors
+    //func->SetParLimits(4, -100000.0, 1000000.0);
+    //func->SetParLimits(5, -1000000.0, 0.0);
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Damped Sine coeff", "Shift", "Period Factor", "Damping Exponent", "Constant");
     func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
@@ -204,7 +243,7 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
     // A collection of variables that is needed for the next steps
     const int num_of_intervals = 7;
     TMultiGraph* peaks_over_totals = new TMultiGraph();
-    Color_t graph_colors[num_of_intervals] = {kRed, kBlue, kGreen, kYellow, kCyan, kMagenta, kBlack};
+    Color_t graph_colors[num_of_intervals] = {kRed, kBlue, 8, kYellow, kCyan, kMagenta, kBlack};
     
     double intervals[num_of_intervals][2] = {{5.0, 7.5}, {7.5, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}, {15.0, 18.0}};
     double chisquares[num_of_intervals];
@@ -228,6 +267,7 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
         SetCut(h_Pion, axis_pionPt, ptmin, ptmax);
         
         hMass = h_Pion->Projection(axis_pionMass);
+        hMass->SetAxisRange(0.0, 1600.0, "Y");
         hMass->Draw();
         
         // Find a fit just as you did for the entire data set
@@ -269,15 +309,19 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
         ///sig_over_tot_funct->Draw();
         TGraph* g_sig_over_tot = new TGraph(sig_over_tot_funct);
         g_sig_over_tot->SetLineColor(graph_colors[i]);
+        //g_sig_over_tot->GetYaxis()->SetRangeUser(0.4, 1.0);
         peaks_over_totals->Add(g_sig_over_tot);
         //canvas->SaveAs(Form(str_concat_converter(directory_name, "Signal_Over_Total_Ptmin_%2.2f_Ptmax_%2.2f.png"), ptmin, ptmax));
         
     }
     
     // Graph the signal/total curves for each momentum increment
-    // Red = 5-7.5, Blue = 7.5-10, Green = 10-11, Yellow = 11-12, Cyan = 12-13, Magenta = 13-15, Black = 15-18
+    // Red = 5-7.5, Blue = 7.5-10, Green = 10-11, Yellow = 11-12, Brown = 12-13, Magenta = 13-15, Black = 15-18
     canvas->Clear();
     peaks_over_totals->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
+    //peaks_over_totals->GetYaxis()->SetRangeUser(0.4, 1.0);
+    peaks_over_totals->SetMaximum(1.0);
+    peaks_over_totals->SetMinimum(0.4);
     peaks_over_totals->Draw("Al");
     canvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     canvas->Clear();
@@ -293,6 +337,7 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
     canvas->Clear();
     g_mean->Print();
     g_mean->SetTitle("Mean Masses for Various Momenta; Momentum (GeV); Mass (GeV/c^2)");
+    g_mean->GetYaxis()->SetRangeUser(0.133, 0.156);
     //g_mean->SetMarkerSize(2);
     //g_mean->SetMarkerStyle(20);
     g_mean->Draw("AP");
@@ -304,6 +349,7 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass (MeV/c^2)");
+    g_sigma->GetYaxis()->SetRangeUser(8.5, 16.5);
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Draw("AP");
@@ -316,6 +362,7 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
     g_chisquare->SetTitle("ReducedChi-Squares for Various Momenta; Momentum (GeV); Reduced Chi-Squares");
     g_chisquare->SetMarkerSize(2);
     g_chisquare->SetMarkerStyle(20);
+    g_chisquare->GetYaxis()->SetRangeUser(2.0, 20.0);
     g_chisquare->Draw("AP");
     canvas->SaveAs(str_concat_converter(directory_name, "reduced_chisquare_v_pT.png"));
     
@@ -324,6 +371,7 @@ void my_code(bool cut_lambda, bool cut_asymmetry, bool cut_angle){
     TGraphErrors* g_integral = new TGraphErrors(num_of_intervals, center, gaussian_integrals, widths, integral_errors);
     g_integral->Print();
     g_integral->SetTitle("Gaussian Peak integrals for Various Momenta; Momentum (GeV); Number of Pions");
+    g_integral->GetYaxis()->SetRangeUser(0.0, 6000.0);
     g_integral->Draw("AP");
     canvas->SaveAs(str_concat_converter(directory_name, "peakIntegrals_v_pT.png"));
 
