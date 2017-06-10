@@ -25,6 +25,14 @@ const int axis_pionLambda2 = 18;
 const int axis_pionNcells1 = 19;
 const int axis_pionNcells2 = 20;
 
+// Enums representing the modelling method to be used
+enum Models{Quadric, Power, Damped_Sinusoid, Logarithmic, Logistic};
+
+//The TCanvas and TPads (for sub-canvassing)
+TCanvas* canvas = new TCanvas();
+TPad *pad[2] = {new TPad("pad0","",0,0.25,1,1), new TPad("pad1","",0,0,1,0.25)};
+
+
 /**
 // Concatenates two C-strings without changing the contents of the input parameters
 char* output_strcat(char* input1, char* input2){
@@ -54,14 +62,33 @@ void SetCut(THnSparse* h, const int axis, double min, double max){
     return;
 }
 
-// The fitting function
-// Fitting models: Ae^(x-mean)^2/(2*sigma^2) + B*sin((x-C)/D)/x^E + F
+// The fitting functions
+// Fitting models:
+// Primary one: Ae^(x-mean)^2/(2*sigma^2) + B*x^4 + C*x^3 + D*x^2 + E*x + F
+//Ae^(x-mean)^2/(2*sigma^2) + B*sin((x-C)/D)/x^E + F
 // Ae^(x-mean)^2/(2*sigma^2) + B*(x - C)^D + E
-// Currently chosen one: Ae^(x-mean)^2/(2*sigma^2) + B*x^4 + C*x^3 + D*x^2 + E*x + F
 // Ae^(x-mean)^2/(2*sigma^2) + B/(1 + Ce^D(x-E)) + F
 double compound_model(Double_t *x,Double_t *par) {
     double arg = 0;
 
+    double A = par[0];
+    double mean = par[1];
+    double sigma = par[2];
+    double B = par[3];
+    double C = par[4];
+    double D = par[5];
+    double E = par[6];
+    double F = par[7];
+        
+    if (sigma != 0)
+        arg = (x[0] - mean)/sigma;
+        
+    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
+    return fitval;
+}
+
+double sin_model(Double_t *x,Double_t *par) {
+    double arg = 0;
     
     double A = par[0];
     double mean = par[1];
@@ -74,13 +101,29 @@ double compound_model(Double_t *x,Double_t *par) {
     
     if (sigma != 0)
         arg = (x[0] - mean)/sigma;
-
     
-    //double fitval = A*TMath::Exp(-0.5*arg*arg) + B*TMath::Sin((x[0] - C)/D)/TMath::Power(x[0], E) + F;
-    //double fitval = A*TMath::Exp(-0.5*arg*arg) + B*TMath::Power((x[0] - C), D) + E;
-    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
-    //double fitval = A*TMath::Exp(-0.5*arg*arg) + B/(1 + C*TMath::Exp(D*(x[0]-E))) + F;
+    double fitval = A*TMath::Exp(-0.5*arg*arg) + B*TMath::Sin((x[0] - C)/D)/TMath::Power(x[0], E) + F;
     return fitval;
+}
+
+double logistic_model(Double_t *x,Double_t *par){
+    double arg = 0;
+    
+    double A = par[0];
+    double mean = par[1];
+    double sigma = par[2];
+    double B = par[3];
+    double C = par[4];
+    double D = par[5];
+    double E = par[6];
+    double F = par[7];
+    
+    if (sigma != 0)
+        arg = (x[0] - mean)/sigma;
+    
+    double fitval = A*TMath::Exp(-0.5*arg*arg) + B/(1 + C*TMath::Exp(D*(x[0]-E))) + F;
+    return fitval;
+    
 }
 
 // The two modeling functions used in this program: the first for the entire data, second for the peak alone
@@ -118,7 +161,7 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-void my_code(int num_of_cuts){
+void my_code(int num_of_cuts, string model_name) {
     // Generate the directory name to store files in, using the given int
     // num_of_cuts = 0 means no cuts, 1 means only lambda_2 is cut, 2 means lambda_2 and asymmetry are cut,
     // 3 means lambda_2, asymmetry, and angle are cut, 4 means lambda_2, asymmetry, angle, and ncells are cut
@@ -154,10 +197,9 @@ void my_code(int num_of_cuts){
     THnSparse* h_Pion = 0;
     fIn->GetObject("h_Pion",h_Pion); //get array
     
-    //For the mass plot, restrict to mass between 0.08 and 0.25, define the Canvas,
+    //For the mass plot, restrict to mass between 0.08 and 0.25,
     //plot the data for the asymmetry, both lambdas, the angle, and number of cells
     SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
-    TCanvas* canvas = new TCanvas();
     
     graph_raw_data(h_Pion, axis_asymmetry, canvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"));
     graph_raw_data(h_Pion, axis_pionLambda1, canvas, str_concat_converter(directory_name, "lambda1_pion_plot.png"));
@@ -168,19 +210,24 @@ void my_code(int num_of_cuts){
     
     // restrict asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value to above 0.015, and Ncells 1 and 2 to above 1.5
     // as requested by num_of_cuts according to the first block of comments in this function
+    // Also, based on the number of cuts, set the maximum y value of the pion entries vs mass for various momenta
+    double fit_y_max;
     if(num_of_cuts == 0) {
         cout << "No cuts done\n\n";
+        fit_y_max = 1600.0;
     }
     else if(num_of_cuts == 1) {
         SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
         SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
         cout << "Cuts: lambda02\n\n";
+        fit_y_max = 1000.0;
     }
     else if(num_of_cuts == 2) {
         SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
         SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         cout << "Cuts: lambda02 and asymmetry\n\n";
+        fit_y_max = 1000.0;
     }
     else if(num_of_cuts == 3) {
         SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
@@ -188,6 +235,7 @@ void my_code(int num_of_cuts){
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
         cout << "Cuts: lambda02, asymmetry, and angle\n\n";
+        fit_y_max = 600.0;
     }
     else if(num_of_cuts == 4) {
         SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
@@ -197,20 +245,24 @@ void my_code(int num_of_cuts){
         SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
         SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
         cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
-
+        fit_y_max = 600.0;
     }
     
     // plot mass data and set up the fit function
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
     const double MASSWIDTH = hMass->GetBinWidth(1);
     hMass->SetAxisRange(0., 7000., "Y");
+    canvas->cd();
+    pad[0]->Draw();
+    pad[0]->cd();
     hMass->Draw();
     
     //Restrict the parameters to reasonable ranges, insert guess values, and give understandable names
-    func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
+    func->SetParameters(60,  0.14, 0.3,  -100000, 30000, -60000, 0, 10000);
+    
     func->SetParLimits(0, 1, 10000.0);//integral
     func->SetParLimits(1, 0.1, 0.2); //mean
-    func->SetParLimits(2, 0.01, 0.05); // width
+    func->SetParLimits(2, 0.005, 0.05); // width
     func->SetParLimits(3, -100000.0, 0.0); // Quadric and quadratic factors
     func->SetParLimits(5, -100000.0, 0.0);
     //func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
@@ -224,7 +276,7 @@ void my_code(int num_of_cuts){
     func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
     
-    // Plot the fit for the mass and (separately) the Gaussian component of it; save as a PDF
+    // Plot the fit for the mass and (separately) the Gaussian component of it
     hMass->Fit(func);
     func->Draw("same");
     std::cout << "Reduced Chi Square " << (func->GetChisquare())/10 << std::endl; //Reduced Chi Square of the mass vs entries curve (function has 18 degrees of freedom, 7 parameters)
@@ -233,6 +285,17 @@ void my_code(int num_of_cuts){
     }
     peak->SetLineColor(kBlue);
     peak->Draw("same");
+    
+    // Plot the residual; save as a PDF
+    TH1D* residual = (TH1D*)hMass->Clone("residual");
+    for (int i = 0; i < hMass->GetSize(); i++) {
+        residual->SetBinContent(i, (hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i));
+    }
+    cout << std::endl;
+    canvas->cd();
+    pad[1]->Draw();
+    pad[1]->cd();
+    residual->Draw();
     canvas->SaveAs(str_concat_converter(directory_name, "mass_pion_plot.png"));
     
     // Plot the data for the momentum
@@ -267,7 +330,7 @@ void my_code(int num_of_cuts){
         SetCut(h_Pion, axis_pionPt, ptmin, ptmax);
         
         hMass = h_Pion->Projection(axis_pionMass);
-        hMass->SetAxisRange(0.0, 1600.0, "Y");
+        hMass->SetAxisRange(0.0, fit_y_max, "Y");
         hMass->Draw();
         
         // Find a fit just as you did for the entire data set
@@ -349,7 +412,7 @@ void my_code(int num_of_cuts){
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass (MeV/c^2)");
-    g_sigma->GetYaxis()->SetRangeUser(8.5, 16.5);
+    g_sigma->GetYaxis()->SetRangeUser(7.5, 16.0);
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Draw("AP");
@@ -378,3 +441,4 @@ void my_code(int num_of_cuts){
 
     canvas->Close();
 }
+
