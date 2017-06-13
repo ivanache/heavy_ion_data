@@ -28,21 +28,17 @@ const int axis_pionNcells2 = 20;
 // Enums representing the modelling method to be used
 enum Models{Quadric, Power, Damped_Sinusoid, Logarithmic, Logistic};
 
-//The TCanvas and TPads (for sub-canvassing)
-TCanvas* canvas = new TCanvas();
-TPad *pad[2] = {new TPad("pad0","",0,0.25,1,1), new TPad("pad1","",0,0,1,0.25)};
-
 
 /**
-// Concatenates two C-strings without changing the contents of the input parameters
-char* output_strcat(char* input1, char* input2){
-    char *sumstring = new char[strlen(input1) + strlen(input2)];
-    strcpy(sumstring, input1);
-    strcat(sumstring, input2);
-    
-    return sumstring;
-}
-*/
+ // Concatenates two C-strings without changing the contents of the input parameters
+ char* output_strcat(char* input1, char* input2){
+ char *sumstring = new char[strlen(input1) + strlen(input2)];
+ strcpy(sumstring, input1);
+ strcat(sumstring, input2);
+ 
+ return sumstring;
+ }
+ */
 
 // Concatenates two strings and gives a char array
 char* str_concat_converter(string str1, string str2){
@@ -70,7 +66,7 @@ void SetCut(THnSparse* h, const int axis, double min, double max){
 // Ae^(x-mean)^2/(2*sigma^2) + B/(1 + Ce^D(x-E)) + F
 double compound_model(Double_t *x,Double_t *par) {
     double arg = 0;
-
+    
     double A = par[0];
     double mean = par[1];
     double sigma = par[2];
@@ -79,10 +75,10 @@ double compound_model(Double_t *x,Double_t *par) {
     double D = par[5];
     double E = par[6];
     double F = par[7];
-        
+    
     if (sigma != 0)
         arg = (x[0] - mean)/sigma;
-        
+    
     double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
     return fitval;
 }
@@ -161,44 +157,26 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-void my_code(int num_of_cuts, string model_name) {
-    // Generate the directory name to store files in, using the given int
-    // num_of_cuts = 0 means no cuts, 1 means only lambda_2 is cut, 2 means lambda_2 and asymmetry are cut,
-    // 3 means lambda_2, asymmetry, and angle are cut, 4 means lambda_2, asymmetry, angle, and ncells are cut
-    // Throw an exception if any other int is given, and re-request cut input
-    const int int_out_of_bounds_exception = 100;
-    bool all_clear;
-    do {
-        try {
-            if (num_of_cuts < 0 || num_of_cuts > 4)
-                throw int_out_of_bounds_exception;
-            else
-                all_clear = true;
-        }
+void my_code(string model_name) {
+    directory_name = "data/" + model_name + "/";
     
-        catch (int exc) {
-            if (exc == int_out_of_bounds_exception){
-                cout << "ERROR: only acceptable numbers of cuts are 0, 1, 2, 3, and 4. Please enter another number of cuts below:\n";
-                cin >> num_of_cuts;
-                all_clear = false;
-            }
-        }
-    }
-    while(!all_clear);
-    directory_name = std::to_string(num_of_cuts) + "cuts/";
-    
-    std::cout << "Directory chosen: " << directory_name << std::endl;
-    
-    //Open the file
+    //Open the files
     TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
+    TFile* fOut = new TFile("PionSparsesOutput.root", "RECREATE"); // Create an output file
     fIn->Print(); //print file content
     
     // Get the data
     THnSparse* h_Pion = 0;
     fIn->GetObject("h_Pion",h_Pion); //get array
     
-    //For the mass plot, restrict to mass between 0.08 and 0.25,
+    //The TCanvas and TPads (for sub-canvassing)
+    TCanvas* canvas = new TCanvas();
+    TPad *pad[2] = {new TPad("pad0","",0,0.42,1,1), new TPad("pad1","",0,0,1,0.42)};
+    
+    //For the mass plot, restrict to mass between 0.08 and 0.25 and the momentum to between 5 GeV and 18 GeV
     //plot the data for the asymmetry, both lambdas, the angle, and number of cells
+    SetCut(h_Pion, axis_pionPt, 8.0, 15.0);
+    //SetCut(h_Pion, axis_pionPt, 5.0, 18.0);
     SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
     
     graph_raw_data(h_Pion, axis_asymmetry, canvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"));
@@ -209,49 +187,24 @@ void my_code(int num_of_cuts, string model_name) {
     graph_raw_data(h_Pion, axis_pionNcells2, canvas, str_concat_converter(directory_name, "Ncells2_pion_plot.png"));
     
     // restrict asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value to above 0.015, and Ncells 1 and 2 to above 1.5
-    // as requested by num_of_cuts according to the first block of comments in this function
-    // Also, based on the number of cuts, set the maximum y value of the pion entries vs mass for various momenta
-    double fit_y_max;
-    if(num_of_cuts == 0) {
-        cout << "No cuts done\n\n";
-        fit_y_max = 1600.0;
-    }
-    else if(num_of_cuts == 1) {
-        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
-        cout << "Cuts: lambda02\n\n";
-        fit_y_max = 1000.0;
-    }
-    else if(num_of_cuts == 2) {
-        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
-        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-        cout << "Cuts: lambda02 and asymmetry\n\n";
-        fit_y_max = 1000.0;
-    }
-    else if(num_of_cuts == 3) {
-        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
-        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
-        cout << "Cuts: lambda02, asymmetry, and angle\n\n";
-        fit_y_max = 600.0;
-    }
-    else if(num_of_cuts == 4) {
-        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
-        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
-        SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
-        SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
-        cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
-        fit_y_max = 600.0;
-    }
+    // Also set the maximum y value of the pion entries vs mass to 600
+    SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+    SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+    SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+    SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+    SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
+    SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
+    cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
+    double fit_y_max = 600.0;
     
     // plot mass data and set up the fit function
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
+    TH1D* residual = (TH1D*)hMass->Clone("residual");
     const double MASSWIDTH = hMass->GetBinWidth(1);
-    hMass->SetAxisRange(0., 7000., "Y");
+    hMass->SetAxisRange(0., 2500., "Y");
+    hMass->GetYaxis()->SetTitle("Number of Entries");
+    hMass->GetYaxis()->SetTitleSize(.05);
+    hMass->GetYaxis()->SetTitleOffset(0.5);
     canvas->cd();
     pad[0]->Draw();
     pad[0]->cd();
@@ -260,11 +213,13 @@ void my_code(int num_of_cuts, string model_name) {
     //Restrict the parameters to reasonable ranges, insert guess values, and give understandable names
     func->SetParameters(60,  0.14, 0.3,  -100000, 30000, -60000, 0, 10000);
     
-    func->SetParLimits(0, 1, 10000.0);//integral
-    func->SetParLimits(1, 0.1, 0.2); //mean
-    func->SetParLimits(2, 0.005, 0.05); // width
-    func->SetParLimits(3, -100000.0, 0.0); // Quadric and quadratic factors
-    func->SetParLimits(5, -100000.0, 0.0);
+    if (model_name == "Quadric") {
+        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(1, 0.1, 0.2); //mean
+        func->SetParLimits(2, 0.005, 0.05); // width
+        func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
+        func->SetParLimits(5, -100000.0, 0.0);
+    }
     //func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
     //func->SetParLimits(0, 1, 10000.0);//integral
     //func->SetParLimits(1, 0.1, 0.16); //mean
@@ -281,34 +236,48 @@ void my_code(int num_of_cuts, string model_name) {
     func->Draw("same");
     std::cout << "Reduced Chi Square " << (func->GetChisquare())/10 << std::endl; //Reduced Chi Square of the mass vs entries curve (function has 18 degrees of freedom, 7 parameters)
     for(int i = 0; i < 3; i++) {
-         peak->SetParameter(i, func->GetParameter(i));
+        peak->SetParameter(i, func->GetParameter(i));
     }
     peak->SetLineColor(kBlue);
     peak->Draw("same");
+    hMass->Write("mass-pion");// Load into the ROOT file
     
     // Plot the residual; save as a PDF
-    TH1D* residual = (TH1D*)hMass->Clone("residual");
     for (int i = 0; i < hMass->GetSize(); i++) {
-        residual->SetBinContent(i, (hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i));
+        if (hMass->GetBinError(i))
+            residual->SetBinContent(i, ((hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i)));
+        residual->SetBinError(i, 0); //Residuals don't have errors
+        //std::cout<< "Bin: " << i << std::endl;
+        //std::cout<< (hMass->GetBinContent(i)) << std::endl;
+        //std::cout<< (func->Eval(hMass->GetBinCenter(i))) << std::endl;
+        //std::cout<< (hMass->GetBinError(i)) << std::endl << std::endl;
     }
     cout << std::endl;
     canvas->cd();
-    pad[1]->Draw();
+    pad[1]->Draw("p");
     pad[1]->cd();
+    residual->SetTitle("; Pion Mass (GeV); Residuals");
+    residual->SetAxisRange(-4., 4., "Y");
+    residual->GetXaxis()->SetTitleSize(.06);
+    residual->GetYaxis()->SetTitleSize(.07);
+    residual->GetYaxis()->SetTitleOffset(0.3);
+    residual->GetXaxis()->SetTitleOffset(0.5);
     residual->Draw();
+    residual->Write("residual"); // Load into the ROOT file
     canvas->SaveAs(str_concat_converter(directory_name, "mass_pion_plot.png"));
     
     // Plot the data for the momentum
+    canvas->Clear();
     TH1D* hPt = h_Pion->Projection(axis_pionPt);
     hPt->Draw();
     canvas->SaveAs(str_concat_converter(directory_name, "momentum_pion_plot.png"));
     
     // A collection of variables that is needed for the next steps
-    const int num_of_intervals = 7;
+    const int num_of_intervals = 5;
     TMultiGraph* peaks_over_totals = new TMultiGraph();
-    Color_t graph_colors[num_of_intervals] = {kRed, kBlue, 8, kYellow, kCyan, kMagenta, kBlack};
+    Color_t graph_colors[num_of_intervals] = {kBlack, kRed, kBlue, kGreen, kYellow};
     
-    double intervals[num_of_intervals][2] = {{5.0, 7.5}, {7.5, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}, {15.0, 18.0}};
+    double intervals[num_of_intervals][2] = {{8.0, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}};
     double chisquares[num_of_intervals];
     double means[num_of_intervals];
     double mean_errors[num_of_intervals];
@@ -319,10 +288,13 @@ void my_code(int num_of_cuts, string model_name) {
     
     double center[num_of_intervals];
     double widths[num_of_intervals];
-
+    canvas->Clear();
+    
     // start cutting the data up; plot the mass data for momenta of 5-10, 10-15, 15-20, and so forth
     for(int i = 0; i < num_of_intervals; i++) {
-    //for(int i = 0; i < 1; i++) {
+        //for(int i = 0; i < 1; i++) {
+        pad[0] = new TPad("pad0","",0,0.42,1,1);
+        pad[1] = new TPad("pad1","",0,0.02,1,0.42);
         double ptmin = intervals[i][0];
         double ptmax = intervals[i][1]; // Interval bounds
         
@@ -331,6 +303,9 @@ void my_code(int num_of_cuts, string model_name) {
         
         hMass = h_Pion->Projection(axis_pionMass);
         hMass->SetAxisRange(0.0, fit_y_max, "Y");
+        canvas->cd();
+        pad[0]->Draw();
+        pad[0]->cd();
         hMass->Draw();
         
         // Find a fit just as you did for the entire data set
@@ -344,6 +319,27 @@ void my_code(int num_of_cuts, string model_name) {
         }
         peak->SetLineColor(kBlue);
         peak->Draw("same");
+        
+        // Now add the residuals
+        for (int i = 0; i < hMass->GetSize(); i++) {
+            if ((hMass->GetBinError(i)) != 0) {
+                residual->SetBinContent(i, (hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i));
+            }
+            else
+                residual->SetBinContent(i, 0);
+            residual->SetBinError(i, 0); //Residuals don't have errors
+            //std::cout<< "Bin: " << i << std::endl;
+            //std::cout<< (hMass->GetBinContent(i)) << std::endl;
+            //std::cout<< (func->Eval(hMass->GetBinCenter(i))) << std::endl;
+            //std::cout<< (hMass->GetBinError(i)) << std::endl << std::endl;
+
+        }
+        canvas->cd();
+        residual->SetAxisRange(-4., 4., "Y");
+        //residual->SetTitle("; Pion Mass (GeV); Residuals");
+        pad[1]->Draw("h");
+        pad[1]->cd();
+        residual->Draw();
         
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
@@ -376,19 +372,23 @@ void my_code(int num_of_cuts, string model_name) {
         peaks_over_totals->Add(g_sig_over_tot);
         //canvas->SaveAs(Form(str_concat_converter(directory_name, "Signal_Over_Total_Ptmin_%2.2f_Ptmax_%2.2f.png"), ptmin, ptmax));
         
+        //Load onto the ROOT file
+        hMass->Write(Form("mass-pion-%2.2fGeV-%2.2fGeV", ptmin, ptmax));
+        residual->Write(Form("residual-%2.2fGeV-%2.2fGeV", ptmin, ptmax));
     }
     
     // Graph the signal/total curves for each momentum increment
-    // Red = 5-7.5, Blue = 7.5-10, Green = 10-11, Yellow = 11-12, Brown = 12-13, Magenta = 13-15, Black = 15-18
+    // Black = 7.5-10, Red = 10-11, Blue = 11-12, Green = 12-13, Yellow = 13-15
     canvas->Clear();
     peaks_over_totals->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
     //peaks_over_totals->GetYaxis()->SetRangeUser(0.4, 1.0);
     peaks_over_totals->SetMaximum(1.0);
     peaks_over_totals->SetMinimum(0.4);
     peaks_over_totals->Draw("Al");
+    peaks_over_totals->Write("signal-over-total");
     canvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     canvas->Clear();
-
+    
     // Add a constant "expected mass" function to be graphed alongside the mean mass data
     TF1* mass_pdg = new TF1("mass_pdg", "[0]", 0, 20);
     mass_pdg->SetParameter(0, 0.13498);
@@ -405,6 +405,7 @@ void my_code(int num_of_cuts, string model_name) {
     //g_mean->SetMarkerStyle(20);
     g_mean->Draw("AP");
     mass_pdg->Draw("same");
+    g_mean->Write("mean-masses");
     canvas->SaveAs(str_concat_converter(directory_name, "meanMass_v_pT.png"));
     
     // Graph mass standard deviations with error bars
@@ -415,6 +416,7 @@ void my_code(int num_of_cuts, string model_name) {
     g_sigma->GetYaxis()->SetRangeUser(7.5, 16.0);
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
+    g_sigma->Write("standard-dev-masses");
     g_sigma->Draw("AP");
     canvas->SaveAs(str_concat_converter(directory_name, "massWidths_v_pT.png"));
     
@@ -426,6 +428,7 @@ void my_code(int num_of_cuts, string model_name) {
     g_chisquare->SetMarkerSize(2);
     g_chisquare->SetMarkerStyle(20);
     g_chisquare->GetYaxis()->SetRangeUser(2.0, 20.0);
+    g_chisquare->Write("chi-square");
     g_chisquare->Draw("AP");
     canvas->SaveAs(str_concat_converter(directory_name, "reduced_chisquare_v_pT.png"));
     
@@ -434,11 +437,11 @@ void my_code(int num_of_cuts, string model_name) {
     TGraphErrors* g_integral = new TGraphErrors(num_of_intervals, center, gaussian_integrals, widths, integral_errors);
     g_integral->Print();
     g_integral->SetTitle("Gaussian Peak integrals for Various Momenta; Momentum (GeV); Number of Pions");
-    g_integral->GetYaxis()->SetRangeUser(0.0, 6000.0);
+    //g_integral->GetYaxis()->SetRangeUser(0.0, 6000.0);
     g_integral->Draw("AP");
+    g_integral->Write("pion-integrals");
     canvas->SaveAs(str_concat_converter(directory_name, "peakIntegrals_v_pT.png"));
-
-
+    
+    
     canvas->Close();
 }
-
