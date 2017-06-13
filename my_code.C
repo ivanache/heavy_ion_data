@@ -10,6 +10,9 @@
 #include <TGraphErrors.h>
 #include <iostream>
 
+// The output file
+TFile* fOut;
+
 // The general filepath string
 string directory_name;
 
@@ -64,6 +67,7 @@ void SetCut(THnSparse* h, const int axis, double min, double max){
 //Ae^(x-mean)^2/(2*sigma^2) + B*sin((x-C)/D)/x^E + F
 // Ae^(x-mean)^2/(2*sigma^2) + B*(x - C)^D + E
 // Ae^(x-mean)^2/(2*sigma^2) + B/(1 + Ce^D(x-E)) + F
+// Ae^(x-mean)^2/(2*sigma^2) + B*ln(x[0])/ln(C) + E
 double compound_model(Double_t *x,Double_t *par) {
     double arg = 0;
     
@@ -98,11 +102,30 @@ double sin_model(Double_t *x,Double_t *par) {
     if (sigma != 0)
         arg = (x[0] - mean)/sigma;
     
-    double fitval = A*TMath::Exp(-0.5*arg*arg) + B*TMath::Sin((x[0] - C)/D)/TMath::Power(x[0], E) + F;
+    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Sin((x[0] - C)/D)/TMath::Power(x[0], E) + F;
     return fitval;
 }
 
 double logistic_model(Double_t *x,Double_t *par){
+    double arg = 0;
+    
+    double A = par[0];
+    double mean = par[1];
+    double sigma = par[2];
+    double B = par[3];
+    double C = par[4];
+    double D = par[5];
+    double E = par[6];
+    
+    if (sigma != 0)
+        arg = (x[0] - mean)/sigma;
+    
+    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Log(x[0] - C)/TMath::Log(D) + E;
+    return fitval;
+    
+}
+
+double logarithmic_model(Double_t *x,Double_t *par) {
     double arg = 0;
     
     double A = par[0];
@@ -117,14 +140,32 @@ double logistic_model(Double_t *x,Double_t *par){
     if (sigma != 0)
         arg = (x[0] - mean)/sigma;
     
-    double fitval = A*TMath::Exp(-0.5*arg*arg) + B/(1 + C*TMath::Exp(D*(x[0]-E))) + F;
+    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B/(1 + C*TMath::Exp(D*(x[0]-E))) + F;
     return fitval;
-    
 }
 
-// The two modeling functions used in this program: the first for the entire data, second for the peak alone
-TF1 *func = new TF1("fit", compound_model,0.05,0.5,8);
-TF1 *peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2]))", 0.08, 0.26);
+double power_model(Double_t *x,Double_t *par) {
+    double arg = 0;
+    
+    double A = par[0];
+    double mean = par[1];
+    double sigma = par[2];
+    double B = par[3];
+    double C = par[4];
+    double D = par[5];
+    double E = par[6];
+    
+    if (sigma != 0)
+        arg = (x[0] - mean)/sigma;
+    
+    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power((x[0] - C), D) + E;
+    return fitval;
+}
+
+// The three modeling functions used in this program: the first for the entire data, second for the peak alone, third for the background alone
+TF1 *func;
+TF1 *peak;
+TF1 *background;
 
 // Takes the seven parameters that would be passed to func, along with the number of sigmas away from the mean ("x"), and returns the ratio of the integral of
 // peak within the interval that is within x sigmas from the mean and the integral of peak over the same integral
@@ -147,22 +188,23 @@ double signal_over_total(Double_t *x, Double_t *par) {
 // Graphs the data under the hPion variable number and saves the graph as a .png
 // SetCuts done to the THnSparse object before the function call do apply
 // Not advisable if you want to save any variable from the data or the TH1D object used to graph it
-void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* filename){
+void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* filename, string rootname){
     TH1D* data_subset = data->Projection(hPion_var);
     data_subset->Draw();
-    
     can->SaveAs(filename);
+    data_subset->Write(rootname.c_str());
 }
 
 /**
  Main function
  */
+// Precondition: model_name is "Quadric", "Sine", "Logistic", "Logarithmic", or "Power"
 void my_code(string model_name) {
     directory_name = "data/" + model_name + "/";
     
     //Open the files
     TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
-    TFile* fOut = new TFile("PionSparsesOutput.root", "RECREATE"); // Create an output file
+    fOut = new TFile("PionSparsesOutput.root", "NEW"); // Create an output file
     fIn->Print(); //print file content
     
     // Get the data
@@ -179,12 +221,12 @@ void my_code(string model_name) {
     //SetCut(h_Pion, axis_pionPt, 5.0, 18.0);
     SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
     
-    graph_raw_data(h_Pion, axis_asymmetry, canvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"));
-    graph_raw_data(h_Pion, axis_pionLambda1, canvas, str_concat_converter(directory_name, "lambda1_pion_plot.png"));
-    graph_raw_data(h_Pion, axis_pionLambda2, canvas, str_concat_converter(directory_name, "lambda2_pion_plot.png"));
-    graph_raw_data(h_Pion, axis_pionAngle, canvas, str_concat_converter(directory_name, "angle_pion_plot.png"));
-    graph_raw_data(h_Pion, axis_pionNcells1, canvas, str_concat_converter(directory_name, "Ncells1_pion_plot.png"));
-    graph_raw_data(h_Pion, axis_pionNcells2, canvas, str_concat_converter(directory_name, "Ncells2_pion_plot.png"));
+    graph_raw_data(h_Pion, axis_asymmetry, canvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"), "asymmetry");
+    graph_raw_data(h_Pion, axis_pionLambda1, canvas, str_concat_converter(directory_name, "lambda1_pion_plot.png"), "lambda1");
+    graph_raw_data(h_Pion, axis_pionLambda2, canvas, str_concat_converter(directory_name, "lambda2_pion_plot.png"), "lambda2");
+    graph_raw_data(h_Pion, axis_pionAngle, canvas, str_concat_converter(directory_name, "angle_pion_plot.png"), "angle");
+    graph_raw_data(h_Pion, axis_pionNcells1, canvas, str_concat_converter(directory_name, "Ncells1_pion_plot.png"), "Ncells1");
+    graph_raw_data(h_Pion, axis_pionNcells2, canvas, str_concat_converter(directory_name, "Ncells2_pion_plot.png"), "Ncells2");
     
     // restrict asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value to above 0.015, and Ncells 1 and 2 to above 1.5
     // Also set the maximum y value of the pion entries vs mass to 600
@@ -210,7 +252,32 @@ void my_code(string model_name) {
     pad[0]->cd();
     hMass->Draw();
     
-    //Restrict the parameters to reasonable ranges, insert guess values, and give understandable names
+    
+    //Start making the fit, restrict the parameters to reasonable ranges, insert guess values, and give understandable names
+    int num_of_params = 8;
+    if (model_name == "Quadric") {
+        func = new TF1("fit", compound_model,0.05,0.5,num_of_params);
+        background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
+    }
+    if (model_name == "Logarithmic") {
+        func = new TF1("fit", logarithmic_model,0.05,0.5,num_of_params);
+        background = new TF1("background curve", "[0]/(1 + [1]*TMath::Exp([2]*(x-[3]))) + [4]", 0.08, 0.26);
+    }
+    if (model_name == "Sine") {
+        func = new TF1("fit", sin_model,0.05,0.5,num_of_params);
+        background = new TF1("background curve", "[0]*TMath::Sin((x - [1])/[2])/TMath::Power(x, [3]) + [4]", 0.08, 0.26);
+    }
+    if (model_name == "Logistic") {
+        num_of_params = 7;
+        func = new TF1("fit", logistic_model,0.05,0.5,num_of_params);
+        background = new TF1("background curve", "[0]*TMath::Log(x - [1])/TMath::Log([2]) + [3]", 0.08, 0.26);
+    }
+    if (model_name == "Power") {
+        num_of_params = 7;
+        func = new TF1("fit", power_model,0.05,0.5,num_of_params);
+        background = new TF1("background curve", "[0]*TMath::Power((x - [1]), [2]) + [3]", 0.08, 0.26);
+    }
+    peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2]))", 0.08, 0.26);
     func->SetParameters(60,  0.14, 0.3,  -100000, 30000, -60000, 0, 10000);
     
     if (model_name == "Quadric") {
@@ -231,16 +298,22 @@ void my_code(string model_name) {
     func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
     
-    // Plot the fit for the mass and (separately) the Gaussian component of it
+    // Plot the fit for the mass and (separately) the Gaussian and background components of it
     hMass->Fit(func);
     func->Draw("same");
     std::cout << "Reduced Chi Square " << (func->GetChisquare())/10 << std::endl; //Reduced Chi Square of the mass vs entries curve (function has 18 degrees of freedom, 7 parameters)
-    for(int i = 0; i < 3; i++) {
+    int i = 0;
+    for(; i < 3; i++)
         peak->SetParameter(i, func->GetParameter(i));
-    }
+    for(; i < num_of_params; i++)
+        background->SetParameter(i - 3, func->GetParameter(i));
     peak->SetLineColor(kBlue);
     peak->Draw("same");
-    hMass->Write("mass-pion");// Load into the ROOT file
+    background->SetLineColor(kGreen);
+    background->Draw("same");
+    hMass->GetListOfFunctions()->Add(peak);
+    hMass->GetListOfFunctions()->Add(background);
+    hMass->Write("mass_pion");// Load into the ROOT file
     
     // Plot the residual; save as a PDF
     for (int i = 0; i < hMass->GetSize(); i++) {
@@ -314,11 +387,15 @@ void my_code(string model_name) {
         chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         func->Draw("same");
-        for(int i = 0; i < 3; i++) {
-            peak->SetParameter(i, func->GetParameter(i));
-        }
+        int j = 0;
+        for(; j < 3; j++)
+            peak->SetParameter(j, func->GetParameter(j));
+        for(; j < num_of_params; j++)
+            background->SetParameter(j - 3, func->GetParameter(j));
         peak->SetLineColor(kBlue);
         peak->Draw("same");
+        background->SetLineColor(kGreen);
+        background->Draw("same");
         
         // Now add the residuals
         for (int i = 0; i < hMass->GetSize(); i++) {
@@ -373,6 +450,8 @@ void my_code(string model_name) {
         //canvas->SaveAs(Form(str_concat_converter(directory_name, "Signal_Over_Total_Ptmin_%2.2f_Ptmax_%2.2f.png"), ptmin, ptmax));
         
         //Load onto the ROOT file
+        hMass->GetListOfFunctions()->Add(peak);
+        hMass->GetListOfFunctions()->Add(background);
         hMass->Write(Form("mass-pion-%2.2fGeV-%2.2fGeV", ptmin, ptmax));
         residual->Write(Form("residual-%2.2fGeV-%2.2fGeV", ptmin, ptmax));
     }
