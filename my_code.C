@@ -198,13 +198,14 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-// Precondition: model_name is "Quadric", "Sine", "Logistic", "Logarithmic", or "Power"
+// Precondition: model_name is "Quadric", "Sine", "Logistic", or "Power"
 void my_code(string model_name) {
     directory_name = "data/" + model_name + "/";
     
     //Open the files
     TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
-    fOut = new TFile("PionSparsesOutput.root", "NEW"); // Create an output file
+    string rootfilename = "Pion" + model_name + "SparsesOutput.root";
+    fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
     fIn->Print(); //print file content
     
     // Get the data
@@ -259,17 +260,17 @@ void my_code(string model_name) {
         func = new TF1("fit", compound_model,0.05,0.5,num_of_params);
         background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
     }
-    if (model_name == "Logarithmic") {
-        func = new TF1("fit", logarithmic_model,0.05,0.5,num_of_params);
+    if (model_name == "Logistic") {
+        func = new TF1("fit", logistic_model,0.05,0.5,num_of_params);
         background = new TF1("background curve", "[0]/(1 + [1]*TMath::Exp([2]*(x-[3]))) + [4]", 0.08, 0.26);
     }
     if (model_name == "Sine") {
         func = new TF1("fit", sin_model,0.05,0.5,num_of_params);
         background = new TF1("background curve", "[0]*TMath::Sin((x - [1])/[2])/TMath::Power(x, [3]) + [4]", 0.08, 0.26);
     }
-    if (model_name == "Logistic") {
+    if (model_name == "Logarithmic") {
         num_of_params = 7;
-        func = new TF1("fit", logistic_model,0.05,0.5,num_of_params);
+        func = new TF1("fit", logarithmic_model,0.05,0.5,num_of_params);
         background = new TF1("background curve", "[0]*TMath::Log(x - [1])/TMath::Log([2]) + [3]", 0.08, 0.26);
     }
     if (model_name == "Power") {
@@ -278,15 +279,7 @@ void my_code(string model_name) {
         background = new TF1("background curve", "[0]*TMath::Power((x - [1]), [2]) + [3]", 0.08, 0.26);
     }
     peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2]))", 0.08, 0.26);
-    func->SetParameters(60,  0.14, 0.3,  -100000, 30000, -60000, 0, 10000);
     
-    if (model_name == "Quadric") {
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-        func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
-        func->SetParLimits(5, -100000.0, 0.0);
-    }
     //func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
     //func->SetParLimits(0, 1, 10000.0);//integral
     //func->SetParLimits(1, 0.1, 0.16); //mean
@@ -294,8 +287,43 @@ void my_code(string model_name) {
     //func->SetParLimits(3, -10000000.0, 0.0); // Quadric and quadratic factors
     //func->SetParLimits(4, -100000.0, 1000000.0);
     //func->SetParLimits(5, -1000000.0, 0.0);
-    //func->SetParNames("Amplitude", "Mean", "Sigma", "Damped Sine coeff", "Shift", "Period Factor", "Damping Exponent", "Constant");
-    func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+    if (model_name == "Quadric") {
+        func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+        func->SetParameters(60,  0.14, 0.3,  -100000, 30000, -60000, 0, 10000);
+        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(1, 0.1, 0.2); //mean
+        func->SetParLimits(2, 0.005, 0.05); // width
+        func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
+        func->SetParLimits(5, -100000.0, 0.0);
+    }
+    if (model_name == "Logarithmic")
+        func->SetParNames("Integral", "Mean", "Sigma", "Logarithmic coeff", "Horiz shift", "Base", "Constant");
+        func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
+        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(1, 0.1, 0.2); //mean
+        func->SetParLimits(2, 0.005, 0.05); // width
+
+    if (model_name == "Sine") {
+        func->SetParNames("Integral", "Mean", "Sigma", "Damped Sine coeff", "Shift", "Period Factor", "Damping Exponent", "Constant");
+        func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
+        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(1, 0.1, 0.2); //mean
+        func->SetParLimits(2, 0.005, 0.05); // width
+    }
+    if (model_name == "Logistic") {
+        func->SetParNames("Integral", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
+        func->SetParameters(6,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
+        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(1, 0.1, 0.2); //mean
+        func->SetParLimits(2, 0.005, 0.05); // width
+    }
+    if (model_name == "Power") {
+        func->SetParNames("Integral", "Mean", "Sigma", "Power Coeff", "Horiz shft", "Exponent", "Constant");
+        func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
+        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(1, 0.1, 0.2); //mean
+        func->SetParLimits(2, 0.005, 0.05); // width
+    }
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
     
     // Plot the fit for the mass and (separately) the Gaussian and background components of it
@@ -308,8 +336,10 @@ void my_code(string model_name) {
     for(; i < num_of_params; i++)
         background->SetParameter(i - 3, func->GetParameter(i));
     peak->SetLineColor(kBlue);
+    //peak->SetFillColor(kBlue);
     peak->Draw("same");
     background->SetLineColor(kGreen);
+    //background->SetFillColor(kGreen);
     background->Draw("same");
     hMass->GetListOfFunctions()->Add(peak);
     hMass->GetListOfFunctions()->Add(background);
@@ -335,7 +365,9 @@ void my_code(string model_name) {
     residual->GetYaxis()->SetTitleSize(.07);
     residual->GetYaxis()->SetTitleOffset(0.3);
     residual->GetXaxis()->SetTitleOffset(0.5);
-    residual->Draw();
+    residual->SetMarkerStyle(20);
+    residual->SetMarkerSize(1);
+    residual->Draw("p");
     residual->Write("residual"); // Load into the ROOT file
     canvas->SaveAs(str_concat_converter(directory_name, "mass_pion_plot.png"));
     
@@ -414,9 +446,9 @@ void my_code(string model_name) {
         canvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
         //residual->SetTitle("; Pion Mass (GeV); Residuals");
-        pad[1]->Draw("h");
+        pad[1]->Draw("p");
         pad[1]->cd();
-        residual->Draw();
+        residual->Draw("p");
         
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
