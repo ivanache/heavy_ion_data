@@ -1,0 +1,2 @@
+\beamer@sectionintoc {1}{Overview of the Data}{3}{0}{1}
+\beamer@subsectionintoc {1}{1}{First, I will present various graphs of pion-relevant events with respect to various variables. Then I will present graphs of various other data, such as signal-to-total reading, average mass over momentum, and number of pions over momentum. The graph of pion-relevant events with respect to measured mass, as well as the other data, will include a series of graphs to show how the relationships change as certain restrictions are added to the variables.}{3}{0}{1}

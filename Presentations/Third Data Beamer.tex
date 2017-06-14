@@ -1,0 +1,250 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+% \usepackage{beamerthemesplit} // Activate for custom appearance
+
+\title{Various Parameters for Pion Data}
+\author{Ivan Chernyshev}
+\date{\today}
+
+\begin{document}
+
+\frame{\titlepage}
+
+%\section[Outline]{}
+\frame{\tableofcontents}
+
+\section{Overview of the Data} % A brief overview of what I am doing
+\subsection{First, I will present various graphs of pion-relevant events with respect to various variables. Then I will present graphs of various other data, such as signal-to-total reading, average mass over momentum, and number of pions over momentum. 
+The graph of pion-relevant events with respect to measured mass, as well as the other data, will include a series of graphs to show how the relationships change as certain restrictions are added to the variables.}
+
+% Pion-relevant events with respect to various variables
+\frame
+{
+ 	\frametitle{Pion-relevant Events with respect to Momentum}
+	\includegraphics[width=1.0\textwidth]{0cuts/momentum_pion_plot.png}
+}
+
+\frame
+{
+ 	\frametitle{Pion-relevant Events with respect to Asymmetry}
+	\includegraphics[width=1.0\textwidth]{0cuts/asymmetry_pion_plot.png}
+}
+
+\frame
+{
+	\frametitle{Pion-relevant Events with respect to $\mid\alpha\mid$}
+	\includegraphics[width=1.0\textwidth]{0cuts/angle_pion_plot.png}
+}
+
+\frame
+{
+	\frametitle{Pion-relevant Events with respect to $\lambda_{01}$}
+	\includegraphics[width=1.0\textwidth]{0cuts/lambda1_pion_plot.png}
+}
+
+\frame
+{
+	\frametitle{Pion-relevant Events with respect to $\lambda_{02}$}
+	\includegraphics[width=1.0\textwidth]{0cuts/lambda2_pion_plot.png}
+}
+
+\frame
+{
+	\frametitle{Pion-relevant Events with respect to $Ncells_{01}$}
+	\includegraphics[width=1.0\textwidth]{0cuts/Ncells1_pion_plot.png}
+}
+
+\frame
+{
+	\frametitle{Pion-relevant Events with respect to $Ncells_{02}$}
+	\includegraphics[width=1.0\textwidth]{0cuts/Ncells2_pion_plot.png}
+}
+
+\frame{  % An introduction to how the restriction of data works
+\frametitle{Introduction to our data restrictions (or "Cuts")}
+Some of the pion entries are not actually from pions, but from the background. To minimize the background, I have adjusted the data by restricting some parameters shown above to certain value ranges.
+
+Namely, $\lambda_{01}$ and $\lambda_{02}$ have been restricted to less than 0.4, asymmetry to less than 0.7, angle $\mid\alpha\mid$ has been restricted to an absolute value of greater than 0.015, and Ncells 1 and 2 have been restricted to values greater than 1.
+
+All graphs below show not only the relationship between the variable on the x-axis and the variable on the y-axis, they also show how the relationship changes as the restrictions are added one-by-one.
+}
+
+\frame % Graphs for overall pion entries over mass for all quantities of cuts
+{
+\frametitle{Pion entries over mass, with a model (red) for the whole data and (blue) for just the peak}
+$\lambda$, asymmetry, $\mid\alpha\mid$, and Ncells cuts:
+$\lambda$, asymmetry, and $\mid\alpha\mid$ cuts:
+\includegraphics[width=0.35\textwidth]{4cuts/mass_pion_plot.png}
+\noindent\hspace{3 cm}\includegraphics[width=0.35\textwidth]{3cuts/mass_pion_plot.png}\\
+$\lambda_{02}$ and asymmetry cuts:
+$\lambda$ cuts:
+\noindent\hspace{2 cm} No cuts at all:\\
+\includegraphics[width=0.35\textwidth]{2cuts/mass_pion_plot.png}
+\includegraphics[width=0.35\textwidth]{1cuts/mass_pion_plot.png}
+\includegraphics[width=0.35\textwidth]{0cuts/mass_pion_plot.png}
+}
+
+\frame % A guide to the next 5 slides
+{
+\frametitle{Pion Entries over Mass, with a model (red) for the whole data and (blue) for just the peak, varied with Momentum}
+The pion entries-mass graphs on the next five slides are for the following momentum intervals, from left to right: 5-7.5 GeV, 7.5-10 GeV, 10-11 GeV, 11-12 GeV, 12-13 GeV, 13-15 GeV, 15-18 GeV
+}
+
+% Graphs for overall pion entries-mass relationship over momentum for all quantities of cuts
+\frame 
+{
+\frametitle{Pion Entries over Mass, with a model (red) for the whole data and (blue) for just the peak, varied with Momentum for $\lambda$, asymmetry, $\mid\alpha\mid$, and Ncells cuts}
+\includegraphics[width=0.3\textwidth]{{4cuts/MyFit_Ptmin_5.00_Ptmax_7.50}.png}
+\includegraphics[width=0.3\textwidth]{{4cuts/MyFit_Ptmin_7.50_Ptmax_10.00}.png}
+\includegraphics[width=0.3\textwidth]{{4cuts/MyFit_Ptmin_10.00_Ptmax_11.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{4cuts/MyFit_Ptmin_11.00_Ptmax_12.00}.png}
+\includegraphics[width=0.3\textwidth]{{4cuts/MyFit_Ptmin_12.00_Ptmax_13.00}.png}
+\includegraphics[width=0.3\textwidth]{{4cuts/MyFit_Ptmin_13.00_Ptmax_15.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{4cuts/MyFit_Ptmin_15.00_Ptmax_18.00}.png}
+}
+
+\frame 
+{
+\frametitle{Pion Entries over Mass, with a model (red) for the whole data and (blue) for just the peak, varied with Momentum for $\lambda$, asymmetry, and $\mid\alpha\mid$}
+\includegraphics[width=0.3\textwidth]{{3cuts/MyFit_Ptmin_5.00_Ptmax_7.50}.png}
+\includegraphics[width=0.3\textwidth]{{3cuts/MyFit_Ptmin_7.50_Ptmax_10.00}.png}
+\includegraphics[width=0.3\textwidth]{{3cuts/MyFit_Ptmin_10.00_Ptmax_11.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{3cuts/MyFit_Ptmin_11.00_Ptmax_12.00}.png}
+\includegraphics[width=0.3\textwidth]{{3cuts/MyFit_Ptmin_12.00_Ptmax_13.00}.png}
+\includegraphics[width=0.3\textwidth]{{3cuts/MyFit_Ptmin_13.00_Ptmax_15.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{3cuts/MyFit_Ptmin_15.00_Ptmax_18.00}.png}
+}
+
+\frame 
+{
+\frametitle{Pion Entries over Mass, with a model (red) for the whole data and (blue) for just the peak, varied with Momentum for $\lambda$ and asymmetry cuts}
+\includegraphics[width=0.3\textwidth]{{2cuts/MyFit_Ptmin_5.00_Ptmax_7.50}.png}
+\includegraphics[width=0.3\textwidth]{{2cuts/MyFit_Ptmin_7.50_Ptmax_10.00}.png}
+\includegraphics[width=0.3\textwidth]{{2cuts/MyFit_Ptmin_10.00_Ptmax_11.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{2cuts/MyFit_Ptmin_11.00_Ptmax_12.00}.png}
+\includegraphics[width=0.3\textwidth]{{2cuts/MyFit_Ptmin_12.00_Ptmax_13.00}.png}
+\includegraphics[width=0.3\textwidth]{{2cuts/MyFit_Ptmin_13.00_Ptmax_15.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{2cuts/MyFit_Ptmin_15.00_Ptmax_18.00}.png}
+}
+
+\frame 
+{
+\frametitle{Pion Entries over Mass, with a model (red) for the whole data and (blue) for just the peak, varied with Momentum for $\lambda$ cuts}
+\includegraphics[width=0.3\textwidth]{{1cuts/MyFit_Ptmin_5.00_Ptmax_7.50}.png}
+\includegraphics[width=0.3\textwidth]{{1cuts/MyFit_Ptmin_7.50_Ptmax_10.00}.png}
+\includegraphics[width=0.3\textwidth]{{1cuts/MyFit_Ptmin_10.00_Ptmax_11.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{1cuts/MyFit_Ptmin_11.00_Ptmax_12.00}.png}
+\includegraphics[width=0.3\textwidth]{{1cuts/MyFit_Ptmin_12.00_Ptmax_13.00}.png}
+\includegraphics[width=0.3\textwidth]{{1cuts/MyFit_Ptmin_13.00_Ptmax_15.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{1cuts/MyFit_Ptmin_15.00_Ptmax_18.00}.png}
+}
+
+\frame 
+{
+\frametitle{Pion Entries over Mass, with a model (red) for the whole data and (blue) for just the peak, varied with Momentum for no cuts}
+\includegraphics[width=0.3\textwidth]{{0cuts/MyFit_Ptmin_5.00_Ptmax_7.50}.png}
+\includegraphics[width=0.3\textwidth]{{0cuts/MyFit_Ptmin_7.50_Ptmax_10.00}.png}
+\includegraphics[width=0.3\textwidth]{{0cuts/MyFit_Ptmin_10.00_Ptmax_11.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{0cuts/MyFit_Ptmin_11.00_Ptmax_12.00}.png}
+\includegraphics[width=0.3\textwidth]{{0cuts/MyFit_Ptmin_12.00_Ptmax_13.00}.png}
+\includegraphics[width=0.3\textwidth]{{0cuts/MyFit_Ptmin_13.00_Ptmax_15.00}.png}\\
+\includegraphics[width=0.3\textwidth]{{0cuts/MyFit_Ptmin_15.00_Ptmax_18.00}.png}
+}
+
+\frame % Mean pion mass over momentum for all quantities of cuts
+{
+\frametitle{Mean Pion Mass over momentum}
+$\lambda$, asymmetry, $\mid\alpha\mid$, and Ncells cuts:
+$\lambda$, asymmetry, and $\mid\alpha\mid$ cuts:
+\includegraphics[width=0.35\textwidth]{4cuts/meanMass_v_pT.png}
+\noindent\hspace{3 cm}\includegraphics[width=0.35\textwidth]{3cuts/meanMass_v_pT.png}\\
+$\lambda_{02}$ and asymmetry cuts:
+$\lambda$ cuts:
+\noindent\hspace{2 cm} No cuts at all:\\
+\includegraphics[width=0.35\textwidth]{2cuts/meanMass_v_pT.png}
+\includegraphics[width=0.35\textwidth]{1cuts/meanMass_v_pT.png}
+\includegraphics[width=0.35\textwidth]{0cuts/meanMass_v_pT.png}
+}
+
+\frame % Width of the Gaussian peak used to find mean pion mass over momentum for all quantities of cuts
+{
+\frametitle{Width of the Gaussian "blue" model used to find the mean pion mass over momentum}
+$\lambda$, asymmetry, $\mid\alpha\mid$, and Ncells cuts:
+$\lambda$, asymmetry, and $\mid\alpha\mid$ cuts:
+\includegraphics[width=0.35\textwidth]{4cuts/massWidths_v_pT.png}
+\noindent\hspace{3 cm}\includegraphics[width=0.35\textwidth]{3cuts/massWidths_v_pT.png}\\
+$\lambda_{02}$ and asymmetry cuts:
+$\lambda$ cuts:
+\noindent\hspace{2 cm} No cuts at all:\\
+\includegraphics[width=0.35\textwidth]{2cuts/massWidths_v_pT.png}
+\includegraphics[width=0.35\textwidth]{1cuts/massWidths_v_pT.png}
+\includegraphics[width=0.35\textwidth]{0cuts/massWidths_v_pT.png}
+}
+
+
+% Graphs of chi-square of the fits used above over momentum for all quantities of cuts
+\frame
+{
+\frametitle{Reduced Chi-square of data fits over momentum}
+$\lambda$, asymmetry, $\mid\alpha\mid$, and Ncells cuts:
+$\lambda$, asymmetry, and $\mid\alpha\mid$ cuts:
+\includegraphics[width=0.35\textwidth]{4cuts/reduced_chisquare_v_pT.png}
+\noindent\hspace{3 cm}\includegraphics[width=0.35\textwidth]{3cuts/reduced_chisquare_v_pT.png}\\
+$\lambda_{02}$ and asymmetry cuts:
+$\lambda$ cuts:
+\noindent\hspace{2 cm} No cuts at all:\\
+\includegraphics[width=0.35\textwidth]{2cuts/reduced_chisquare_v_pT.png}
+\includegraphics[width=0.35\textwidth]{1cuts/reduced_chisquare_v_pT.png}
+\includegraphics[width=0.35\textwidth]{0cuts/reduced_chisquare_v_pT.png}
+}
+
+\frame % Graphs of signal-to-noise ratio for all quantities of cuts
+{
+Red: Momentum 5-7.5 GeV, Blue: 7.5- 10.0 GeV, Green: 10-11 GeV, Yellow: 11-12 GeV, Cyan: 12-13 GeV, Magenta 13-15 GeV, Black: 15-18 GeV\\
+\frametitle{Signal-to-Noise ratio over momentum}
+$\lambda$, asymmetry, $\mid\alpha\mid$, and Ncells cuts:
+$\lambda$, asymmetry, and $\mid\alpha\mid$ cuts:
+\includegraphics[width=0.35\textwidth]{4cuts/Overall_Signal_Over_Total.png}
+\noindent\hspace{3 cm}\includegraphics[width=0.35\textwidth]{3cuts/Overall_Signal_Over_Total.png}\\
+$\lambda_{02}$ and asymmetry cuts:
+$\lambda$ cuts:
+\noindent\hspace{2 cm} No cuts at all:\\
+\includegraphics[width=0.35\textwidth]{2cuts/Overall_Signal_Over_Total.png}
+\includegraphics[width=0.35\textwidth]{1cuts/Overall_Signal_Over_Total.png}
+\includegraphics[width=0.35\textwidth]{0cuts/Overall_Signal_Over_Total.png}
+}
+
+\frame %Graphs of the numbers of pions over momentum for all quantities of cuts
+{
+\frametitle{Number of pions over momentum}
+$\lambda$, asymmetry, $\mid\alpha\mid$, and Ncells cuts:
+$\lambda$, asymmetry, and $\mid\alpha\mid$ cuts:
+\includegraphics[width=0.35\textwidth]{4cuts/peakIntegrals_v_pT.png}
+\noindent\hspace{3 cm}\includegraphics[width=0.35\textwidth]{3cuts/peakIntegrals_v_pT.png}\\
+$\lambda_{02}$ and asymmetry cuts:
+$\lambda$ cuts:
+\noindent\hspace{2 cm} No cuts at all:\\
+\includegraphics[width=0.35\textwidth]{2cuts/peakIntegrals_v_pT.png}
+\includegraphics[width=0.35\textwidth]{1cuts/peakIntegrals_v_pT.png}
+\includegraphics[width=0.35\textwidth]{0cuts/peakIntegrals_v_pT.png}
+}
+
+\frame % Potential future work
+{
+\frametitle{Potential future work}
+\begin{itemize}
+\item<1->Analysis of the background\\
+
+\item<2>Trying out other modelling algorithms (logarithmic background, power function background, etc.)\\
+
+\item<3>Placing some of the graphs on top of each other\\
+
+\item<4>Minimizing some of the errors\\
+
+\item<5>Adjusting the cuts and seeing what happens
+\end{itemize}
+}
+
+\end{document}
+
+

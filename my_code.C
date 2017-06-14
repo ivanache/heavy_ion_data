@@ -86,7 +86,7 @@ double compound_model(Double_t *x,Double_t *par) {
     double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
     return fitval;
 }
-
+/**
 double sin_model(Double_t *x,Double_t *par) {
     double arg = 0;
     
@@ -161,8 +161,31 @@ double power_model(Double_t *x,Double_t *par) {
     double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power((x[0] - C), D) + E;
     return fitval;
 }
+*/
 
-// The three modeling functions used in this program: the first for the entire data, second for the peak alone, third for the background alone
+// Non-bell curve peaks
+// Gaussian plus exponential
+double exp_gaussian_model(Double_t *x, Double_t* par) {
+    double arg = 0;
+    
+    double A = par[0];
+    double mean = par[1];
+    double sigma = par[2];
+    double lambda = par[3];
+    double B = par[4];
+    double C = par[5];
+    double D = par[6];
+    double E = par[7];
+    double F = par[8];
+    double G = par[9];
+    
+    if (sigma != 0)
+        arg = (x[0] - mean)/sigma;
+    
+    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Exp(lambda*x[0]) + C*TMath::Power(x[0], 4.0) + D*TMath::Power(x[0], 3.0) + E*x[0]*x[0] + F*x[0] + G;
+    return fitval;
+}
+// The three functions used in this program: the first for the entire data, second for the peak alone, third for the background alone
 TF1 *func;
 TF1 *peak;
 TF1 *background;
@@ -173,7 +196,7 @@ double signal_over_total(Double_t *x, Double_t *par) {
     // Extract the parameters
     //func->SetParameters(par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7]);
     //peak->SetParameters(par[0], par[1], par[2]);
-    double Nsigma = x[0];
+    /**double Nsigma = x[0];
     double mean = par[1];
     double sigma = par[2];
     
@@ -181,7 +204,8 @@ double signal_over_total(Double_t *x, Double_t *par) {
     double signal = peak->Integral(mean-Nsigma*sigma, mean+Nsigma*sigma);
     double total = func->Integral(mean-Nsigma*sigma, mean+Nsigma*sigma);
     
-    return signal/total;
+    return signal/total;*/
+    return 0.0;
 }
 
 // Takes a THnSparse pointer (almost always h_Pion), an hPion variable number, a Canvas object pointer, and a file name
@@ -198,13 +222,13 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-// Precondition: model_name is "Quadric", "Sine", "Logistic", or "Power"
+// Precondition: model_name is "Gaussian", "Exponential_Gaussian",
 void my_code(string model_name) {
     directory_name = "data/" + model_name + "/";
     
     //Open the files
     TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
-    string rootfilename = "Pion" + model_name + "SparsesOutput.root";
+    string rootfilename = "data/Pion" + model_name + "SparsesOutput.root";
     fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
     fIn->Print(); //print file content
     
@@ -256,10 +280,36 @@ void my_code(string model_name) {
     
     //Start making the fit, restrict the parameters to reasonable ranges, insert guess values, and give understandable names
     int num_of_params = 8;
-    if (model_name == "Quadric") {
+    int num_of_peak_params = 3;
+    background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
+    if (model_name == "Gaussian") {
         func = new TF1("fit", compound_model,0.05,0.5,num_of_params);
-        background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
+        peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2]))", 0.08, 0.26);
+        func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+        func->SetParameters(60,  0.14, 0.3,  -100000, 30000, -60000, 0, 10000);
+        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(1, 0.1, 0.2); //mean
+        func->SetParLimits(2, 0.005, 0.05); // width
+        func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
+        func->SetParLimits(5, -100000.0, 0.0);
+
     }
+    if (model_name == "Exponential_Gaussian") {
+        num_of_params = 10;
+        num_of_peak_params = 5;
+        func = new TF1("fit", exp_gaussian_model,0.05,0.5,num_of_params);
+        peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2])) + [4]*TMath::Exp([3]*x)", 0.08, 0.26);
+        func->SetParNames("Integral", "Mean", "Sigma", "Lambda", "Exp_coeff", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+        func->SetParameters(60,  0.14, 0.3, -100, 30, -100000, 30000, -60000, 10, 10000);
+        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(1, 0.08, 0.2); //mean
+        func->SetParLimits(2, 0.005, 0.05); // width
+        func->SetParLimits(3, -1000000000.0, -1.0); //lambda
+        func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
+        func->SetParLimits(7, -100000.0, 0.0);
+    }
+
+    /**
     if (model_name == "Logistic") {
         func = new TF1("fit", logistic_model,0.05,0.5,num_of_params);
         background = new TF1("background curve", "[0]/(1 + [1]*TMath::Exp([2]*(x-[3]))) + [4]", 0.08, 0.26);
@@ -277,24 +327,6 @@ void my_code(string model_name) {
         num_of_params = 7;
         func = new TF1("fit", power_model,0.05,0.5,num_of_params);
         background = new TF1("background curve", "[0]*TMath::Power((x - [1]), [2]) + [3]", 0.08, 0.26);
-    }
-    peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2]))", 0.08, 0.26);
-    
-    //func->SetParameters(600,  0.14, 0.3,  1, 0.03, 0.6, 0.1, 1);
-    //func->SetParLimits(0, 1, 10000.0);//integral
-    //func->SetParLimits(1, 0.1, 0.16); //mean
-    //func->SetParLimits(2, 0.005, 0.03); // width
-    //func->SetParLimits(3, -10000000.0, 0.0); // Quadric and quadratic factors
-    //func->SetParLimits(4, -100000.0, 1000000.0);
-    //func->SetParLimits(5, -1000000.0, 0.0);
-    if (model_name == "Quadric") {
-        func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-        func->SetParameters(60,  0.14, 0.3,  -100000, 30000, -60000, 0, 10000);
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-        func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
-        func->SetParLimits(5, -100000.0, 0.0);
     }
     if (model_name == "Logarithmic")
         func->SetParNames("Integral", "Mean", "Sigma", "Logarithmic coeff", "Horiz shift", "Base", "Constant");
@@ -324,6 +356,7 @@ void my_code(string model_name) {
         func->SetParLimits(1, 0.1, 0.2); //mean
         func->SetParLimits(2, 0.005, 0.05); // width
     }
+     */
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
     
     // Plot the fit for the mass and (separately) the Gaussian and background components of it
@@ -331,10 +364,10 @@ void my_code(string model_name) {
     func->Draw("same");
     std::cout << "Reduced Chi Square " << (func->GetChisquare())/10 << std::endl; //Reduced Chi Square of the mass vs entries curve (function has 18 degrees of freedom, 7 parameters)
     int i = 0;
-    for(; i < 3; i++)
+    for(; i < num_of_peak_params; i++)
         peak->SetParameter(i, func->GetParameter(i));
     for(; i < num_of_params; i++)
-        background->SetParameter(i - 3, func->GetParameter(i));
+        background->SetParameter(i - num_of_peak_params, func->GetParameter(i));
     peak->SetLineColor(kBlue);
     //peak->SetFillColor(kBlue);
     peak->Draw("same");
@@ -420,10 +453,10 @@ void my_code(string model_name) {
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         func->Draw("same");
         int j = 0;
-        for(; j < 3; j++)
+        for(; j < num_of_peak_params; j++)
             peak->SetParameter(j, func->GetParameter(j));
         for(; j < num_of_params; j++)
-            background->SetParameter(j - 3, func->GetParameter(j));
+            background->SetParameter(j - num_of_peak_params, func->GetParameter(j));
         peak->SetLineColor(kBlue);
         peak->Draw("same");
         background->SetLineColor(kGreen);
@@ -453,10 +486,26 @@ void my_code(string model_name) {
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
         // and integral_errors, the center point of the interval into center (and its error into widths), and chi square of the fit into its respective array
-        means[i] = func->GetParameter(1);
-        mean_errors[i] = func->GetParError(1);
-        sigmas[i] = func->GetParameter(2) * 1000;
-        sigma_errors[i] = func->GetParError(2) * 1000;
+        if (model_name == "Gaussian") {
+            means[i] = func->GetParameter(1);
+            mean_errors[i] = func->GetParError(1);
+            sigmas[i] = func->GetParameter(2) * 1000;
+            sigma_errors[i] = func->GetParError(2) * 1000;
+        }
+        if (model_name == "Exponential_Gaussian") {
+            double mu = func->GetParameter(1);
+            double mu_error = func->GetParError(1);
+            double lambda = func->GetParameter(3);
+            double lambda_error = func->GetParError(3);
+            double sigma = func->GetParameter(2);
+            double sigma_error = func->GetParError(2);
+            
+            means[i] = mu - (1.0/lambda);
+            mean_errors[i] = TMath::Sqrt((mu_error*mu_error) + (lambda_error*lambda_error)/(lambda*lambda*lambda*lambda));
+            sigmas[i] = 1000 * TMath::Sqrt((sigma*sigma) + (1.0/(lambda*lambda))) * 1000;
+            sigma_errors[i] = 1000 * 0.5 * TMath::Sqrt((4.0 * sigma * sigma * sigma_error*sigma_error) + (4.0*lambda_error*lambda_error/TMath::Power(lambda, 6.0)))/sigmas[i];
+        }
+        
         
         gaussian_integrals[i] = (func->GetParameter(0))/MASSWIDTH;
         integral_errors[i] = (func->GetParError(0))/MASSWIDTH;
@@ -469,7 +518,7 @@ void my_code(string model_name) {
         canvas->SaveAs(Form(str_concat_converter(directory_name, "MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png"), ptmin, ptmax));
         
         //Now use the signal_over_total function to get a graph of sigma vs. signal/total
-        TF1* sig_over_tot_funct = new TF1("Signal over Total", signal_over_total, 0, 4, 7);
+        TF1* sig_over_tot_funct = new TF1("Signal over Total", signal_over_total, 0, 4, num_of_params);
         sig_over_tot_funct->SetParameters(func->GetParameters());
         canvas->Clear();
         
