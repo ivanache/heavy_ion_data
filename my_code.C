@@ -86,6 +86,73 @@ double compound_model(Double_t *x,Double_t *par) {
     double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
     return fitval;
 }
+// Non-bell curve peaks
+// Gaussian plus exponential
+double exp_gaussian_model(Double_t *x, Double_t* par) {
+    double arg = 0;
+    
+    double A = par[0];
+    double mean = par[1];
+    double sigma = par[2];
+    double lambda = par[3];
+    double B = par[4];
+    double C = par[5];
+    double D = par[6];
+    double E = par[7];
+    double F = par[8];
+    
+    if (sigma != 0)
+        arg = (mean + lambda*sigma*sigma - x[0])/(TMath::Sqrt(2)*sigma);
+    
+    double lambda_over_two = lambda/2.0;
+    
+    double fitval = A*lambda_over_two*TMath::Exp(lambda_over_two*(2*mean + lambda*sigma*sigma - 2*x[0]))*TMath::Erfc(arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
+    return fitval;
+}
+
+// Modified Rayleigh distribution
+double modified_rayleigh_model(Double_t *x, Double_t* par) {
+    double arg = 0;
+    
+    double A = par[0];
+    double sigma = par[1];
+    double horizontal_shift = par[2];
+    double B = par[3];
+    double C = par[4];
+    double D = par[5];
+    double E = par[6];
+    double F = par[7];
+    
+    double modified_x = x[0] - horizontal_shift;
+    if (sigma != 0)
+        arg = modified_x/sigma;
+    
+    double fitval = A*(modified_x*TMath::Exp(-0.5*arg*arg))/(sigma*sigma) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
+    return fitval;
+}
+
+double skew_normal_dist(Double_t *x, Double_t* par) {
+    double arg = 0;
+    
+    double A = par[0];
+    double position = par[1];
+    double scale = par[2];
+    double shape = par[3];
+    double B = par[4];
+    double C = par[5];
+    double D = par[6];
+    double E = par[7];
+    double F = par[8];
+    
+    if (scale != 0)
+        arg = ((x[0] - position)/scale);
+    
+    double sqrt_pi_2 = TMath::Sqrt(TMath::Pi())/TMath::Sqrt(2);
+    
+    double fitval = (A/(scale*TMath::Pi()))*TMath::Exp(-0.5*arg*arg)*sqrt_pi_2*(TMath::Erf(shape*(x[0] - position)/(scale*TMath::Sqrt(2))) + 1.0) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
+    return fitval;
+}
+
 /**
 double sin_model(Double_t *x,Double_t *par) {
     double arg = 0;
@@ -163,28 +230,6 @@ double power_model(Double_t *x,Double_t *par) {
 }
 */
 
-// Non-bell curve peaks
-// Gaussian plus exponential
-double exp_gaussian_model(Double_t *x, Double_t* par) {
-    double arg = 0;
-    
-    double A = par[0];
-    double mean = par[1];
-    double sigma = par[2];
-    double lambda = par[3];
-    double B = par[4];
-    double C = par[5];
-    double D = par[6];
-    double E = par[7];
-    double F = par[8];
-    double G = par[9];
-    
-    if (sigma != 0)
-        arg = (x[0] - mean)/sigma;
-    
-    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Exp(lambda*x[0]) + C*TMath::Power(x[0], 4.0) + D*TMath::Power(x[0], 3.0) + E*x[0]*x[0] + F*x[0] + G;
-    return fitval;
-}
 // The three functions used in this program: the first for the entire data, second for the peak alone, third for the background alone
 TF1 *func;
 TF1 *peak;
@@ -222,7 +267,7 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-// Precondition: model_name is "Gaussian", "Exponential_Gaussian",
+// Precondition: model_name is "Gaussian", "Exponential_Gaussian", "Modified_Rayleigh", "Skew_Normal"
 void my_code(string model_name) {
     directory_name = "data/" + model_name + "/";
     
@@ -291,22 +336,47 @@ void my_code(string model_name) {
         func->SetParLimits(1, 0.1, 0.2); //mean
         func->SetParLimits(2, 0.005, 0.05); // width
         func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
-        func->SetParLimits(5, -100000.0, 0.0);
+        func->SetParLimits(5, -1000000.0, 0.0);
 
     }
     if (model_name == "Exponential_Gaussian") {
-        num_of_params = 10;
-        num_of_peak_params = 5;
+        num_of_params = 9;
+        num_of_peak_params = 4;
         func = new TF1("fit", exp_gaussian_model,0.05,0.5,num_of_params);
-        peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2])) + [4]*TMath::Exp([3]*x)", 0.08, 0.26);
-        func->SetParNames("Integral", "Mean", "Sigma", "Lambda", "Exp_coeff", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-        func->SetParameters(60,  0.14, 0.3, -100, 30, -100000, 30000, -60000, 10, 10000);
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.08, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-        func->SetParLimits(3, -1000000000.0, -1.0); //lambda
-        func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
-        func->SetParLimits(7, -100000.0, 0.0);
+        peak = new TF1("mass peak", "[0]*([3]/2.0)*TMath::Exp(([3]/2.0)*(2*[1] + [3]*[2]*[2] - 2*x[0]))*TMath::Erfc(([1] + [3]*[2]*[2] - x[0])/(TMath::Sqrt(2)*[2]))", 0.08, 0.26);
+        func->SetParNames("Integral", "Mean", "Sigma", "Lambda", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+        func->SetParameters(60,  0.14, 0.3, 100, -100000, 1000000, -60000, 10, 10000);
+        func->SetParLimits(0, 1.0, 100.0);//integral
+        func->SetParLimits(1, 0.05, 0.3); //Mean
+        //func->SetParLimits(2, 0.005, 0.08); // width
+        func->SetParLimits(3, 0.0, 10000000.0); //lambda
+        func->SetParLimits(4, -1000000.0, 0.0); // Quadric factor
+        //func->SetParLimits(5, -1000000.0, 1000000.0);//Cubic Factor
+        func->SetParLimits(6, -1000000.0, 0.0); // Quadratic factor
+    }
+    if (model_name == "Modified_Rayleigh") {
+        func = new TF1("fit", modified_rayleigh_model,0.05,0.5,num_of_params);
+        peak = new TF1("mass peak", "[0]*((x-[2])*TMath::Exp(-0.5*((x - [2])/[1])*((x - [2])/[1])))/(sigma*sigma)");
+        func->SetParNames("Peak Coefficient", "Sigma", "Horizontal Shift", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+        func->SetParameters(60,  0.05, 0.1,  -100000, 30000, -60000, 0, 10000);
+        func->SetParLimits(0, 1, 10000.0);
+        func->SetParLimits(1, 0.0, 1000000.0);
+        func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
+        func->SetParLimits(5, -100000.0, 0.0);
+    }
+    if (model_name == "Skew_Normal") {
+        num_of_params = 9;
+        num_of_peak_params = 4;
+        func = new TF1("fit", skew_normal_dist,0.05,0.5,num_of_params);
+        peak = new TF1("mass peak", "([0]/([2]*TMath::Pi()))*TMath::Exp(-0.5*((x[0] - [1])/[2])*((x - [1])/[2]))*TMath::Sqrt(TMath::Pi())/TMath::Sqrt(2)*(TMath::Erf([3]*(x - [1])/([2]*TMath::Sqrt(2))) + 1.0)");
+        func->SetParNames("Integral", "Location", "Scale", "Shape", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+        func->SetParameters(60,  0.14, 0.3, 100, -100000, 1000000, -60000, 10, 10000);
+        func->SetParLimits(0, 1.0, 100.0); // Integral
+        func->SetParLimits(1, 0, 0.3); // Position
+        func->SetParLimits(2, 0, 100.0); // Scale
+        func->SetParLimits(3, -10, 10); //Shape
+        func->SetParLimits(4, -1000000.0, 0.0); // Quadric and quadratic factors
+        func->SetParLimits(6, -1000000.0, 0.0);
     }
 
     /**
@@ -500,12 +570,31 @@ void my_code(string model_name) {
             double sigma = func->GetParameter(2);
             double sigma_error = func->GetParError(2);
             
-            means[i] = mu - (1.0/lambda);
+            means[i] = mu + (1.0/lambda);
             mean_errors[i] = TMath::Sqrt((mu_error*mu_error) + (lambda_error*lambda_error)/(lambda*lambda*lambda*lambda));
             sigmas[i] = 1000 * TMath::Sqrt((sigma*sigma) + (1.0/(lambda*lambda))) * 1000;
-            sigma_errors[i] = 1000 * 0.5 * TMath::Sqrt((4.0 * sigma * sigma * sigma_error*sigma_error) + (4.0*lambda_error*lambda_error/TMath::Power(lambda, 6.0)))/sigmas[i];
+            sigma_errors[i] = 1000 * 0.5 * TMath::Sqrt((4.0 * sigma * sigma * sigma_error*sigma_error) + (4.0*lambda_error*lambda_error/TMath::Power(lambda, 6.0)))/TMath::Sqrt(sigmas[i]);
+        }
+        if (model_name == "Modified_Rayleigh") {
+            double mean_coeff = TMath::Sqrt(TMath::Pi()/2.0);
+            
+            means[i] = mean_coeff*(func->GetParameter(1)) + (func->GetParameter(2));
+            mean_errors[i] = TMath::Sqrt((mean_coeff*mean_coeff*(func->GetParError(1))*(func->GetParError(1))) + ((func->GetParError(2))*(func->GetParError(2))));
+            sigmas[i] = TMath::Sqrt(((func->GetParameter(1))*(func->GetParameter(1)))*(4.0 - TMath::Pi())/2.0);
+            sigma_errors[i] = (2*(func->GetParameter(2))*(func->GetParError(2)))/((4.0 - TMath::Pi())*sigmas[i]);
         }
         
+        if (model_name == "Skew_Normal") {
+            double delta = (func->GetParameter(3))/TMath::Sqrt(1 + (func->GetParameter(3))*(func->GetParameter(3)));
+            double delta_error = (func->GetParError(3))/TMath::Power((1 + (func->GetParameter(3))*(func->GetParameter(3))), 1.5);
+            double sigma_coeff = 1 - 2*delta*delta/TMath::Pi();
+            double sigma_coeff_error = (4.0/TMath::Pi())*delta*delta_error;
+            
+            means[i] = (func->GetParameter(1)) + (func->GetParameter(2))*delta*TMath::Sqrt(2.0/TMath::Pi());
+            mean_errors[i] = TMath::Sqrt((func->GetParError(1))*(func->GetParError(1)) + (2*(func->GetParameter(2))*(func->GetParameter(2))*delta*delta/TMath::Pi())*(((func->GetParError(2))/(func->GetParameter(2)))*((func->GetParError(2))/(func->GetParameter(2))) + (delta_error/delta)*(delta_error/delta)));
+            sigmas[i] = (func->GetParameter(2))*TMath::Sqrt(sigma_coeff);
+            sigma_errors[i] = TMath::Sqrt(4*(func->GetParError(2))*(func->GetParError(2))/((func->GetParameter(2))*(func->GetParameter(2))) + (sigma_coeff_error*sigma_coeff_error)/(sigma_coeff*sigma_coeff))/(2*TMath::Power(sigmas[i], 1.5));
+        }
         
         gaussian_integrals[i] = (func->GetParameter(0))/MASSWIDTH;
         integral_errors[i] = (func->GetParError(0))/MASSWIDTH;
