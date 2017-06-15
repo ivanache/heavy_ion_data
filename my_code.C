@@ -241,7 +241,7 @@ double signal_over_total(Double_t *x, Double_t *par) {
     // Extract the parameters
     //func->SetParameters(par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7]);
     //peak->SetParameters(par[0], par[1], par[2]);
-    /**double Nsigma = x[0];
+    double Nsigma = x[0];
     double mean = par[1];
     double sigma = par[2];
     
@@ -249,8 +249,8 @@ double signal_over_total(Double_t *x, Double_t *par) {
     double signal = peak->Integral(mean-Nsigma*sigma, mean+Nsigma*sigma);
     double total = func->Integral(mean-Nsigma*sigma, mean+Nsigma*sigma);
     
-    return signal/total;*/
-    return 0.0;
+    return signal/total;
+    //return 0.0;
 }
 
 // Takes a THnSparse pointer (almost always h_Pion), an hPion variable number, a Canvas object pointer, and a file name
@@ -306,7 +306,7 @@ void my_code(string model_name) {
     SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
     SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
     SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
-    cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
+    std::cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
     double fit_y_max = 600.0;
     
     // plot mass data and set up the fit function
@@ -346,13 +346,15 @@ void my_code(string model_name) {
         peak = new TF1("mass peak", "[0]*([3]/2.0)*TMath::Exp(([3]/2.0)*(2*[1] + [3]*[2]*[2] - 2*x[0]))*TMath::Erfc(([1] + [3]*[2]*[2] - x[0])/(TMath::Sqrt(2)*[2]))", 0.08, 0.26);
         func->SetParNames("Integral", "Mean", "Sigma", "Lambda", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
         func->SetParameters(60,  0.14, 0.3, 100, -100000, 1000000, -60000, 10, 10000);
-        func->SetParLimits(0, 1.0, 100.0);//integral
-        func->SetParLimits(1, 0.05, 0.3); //Mean
-        //func->SetParLimits(2, 0.005, 0.08); // width
-        func->SetParLimits(3, 0.0, 10000000.0); //lambda
+        func->SetParLimits(0, 1.0, 50.0);//integral
+        func->SetParLimits(1, 0.1, 0.2); //Mean
+        func->SetParLimits(2, 0.00005, 0.02); // width
+        func->SetParLimits(3, 0.0, 1000.0); //lambda
         func->SetParLimits(4, -1000000.0, 0.0); // Quadric factor
-        //func->SetParLimits(5, -1000000.0, 1000000.0);//Cubic Factor
+        func->SetParLimits(5, 0.0, 1000000.0); // Cubic factor
         func->SetParLimits(6, -1000000.0, 0.0); // Quadratic factor
+        func->SetParLimits(7, 0.0, 10000000.0); // Linear factor
+        func->SetParLimits(8, -10000000.0, 0.0); // Constant
     }
     if (model_name == "Modified_Rayleigh") {
         func = new TF1("fit", modified_rayleigh_model,0.05,0.5,num_of_params);
@@ -361,8 +363,9 @@ void my_code(string model_name) {
         func->SetParameters(60,  0.05, 0.1,  -100000, 30000, -60000, 0, 10000);
         func->SetParLimits(0, 1, 10000.0);
         func->SetParLimits(1, 0.0, 1000000.0);
-        func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
-        func->SetParLimits(5, -100000.0, 0.0);
+        func->SetParLimits(3, -1000000.0, 0.0); // Quadric factor
+        func->SetParLimits(5, -100000.0, 0.0); // Quadratic factor
+        
     }
     if (model_name == "Skew_Normal") {
         num_of_params = 9;
@@ -572,7 +575,7 @@ void my_code(string model_name) {
             
             means[i] = mu + (1.0/lambda);
             mean_errors[i] = TMath::Sqrt((mu_error*mu_error) + (lambda_error*lambda_error)/(lambda*lambda*lambda*lambda));
-            sigmas[i] = 1000 * TMath::Sqrt((sigma*sigma) + (1.0/(lambda*lambda))) * 1000;
+            sigmas[i] = 1000 * TMath::Sqrt((sigma*sigma) + (1.0/(lambda*lambda)));
             sigma_errors[i] = 1000 * 0.5 * TMath::Sqrt((4.0 * sigma * sigma * sigma_error*sigma_error) + (4.0*lambda_error*lambda_error/TMath::Power(lambda, 6.0)))/TMath::Sqrt(sigmas[i]);
         }
         if (model_name == "Modified_Rayleigh") {
@@ -693,4 +696,5 @@ void my_code(string model_name) {
     
     
     canvas->Close();
+    return;
 }
