@@ -16,6 +16,9 @@ TFile* fOut;
 // The general filepath string
 string directory_name;
 
+// The string with the model name
+string model;
+
 //variables of hPion
 const int axis_pion_Cen    = 0;
 const int axis_pion_Zvtx   = 1;
@@ -27,10 +30,6 @@ const int axis_pionLambda1 = 17;
 const int axis_pionLambda2 = 18;
 const int axis_pionNcells1 = 19;
 const int axis_pionNcells2 = 20;
-
-// Enums representing the modelling method to be used
-enum Models{Quadric, Power, Damped_Sinusoid, Logarithmic, Logistic};
-
 
 /**
  // Concatenates two C-strings without changing the contents of the input parameters
@@ -111,7 +110,7 @@ double exp_gaussian_model(Double_t *x, Double_t* par) {
 }
 
 // Modified Rayleigh distribution
-double modified_rayleigh_model(Double_t *x, Double_t* par) {
+/**double modified_rayleigh_model(Double_t *x, Double_t* par) {
     double arg = 0;
     
     double A = par[0];
@@ -129,7 +128,7 @@ double modified_rayleigh_model(Double_t *x, Double_t* par) {
     
     double fitval = A*(modified_x*TMath::Exp(-0.5*arg*arg))/(sigma*sigma) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
     return fitval;
-}
+} */
 
 double skew_normal_dist(Double_t *x, Double_t* par) {
     double arg = 0;
@@ -234,13 +233,28 @@ TF1 *background;
 
 // Takes the seven parameters that would be passed to func, along with the number of sigmas away from the mean ("x"), and returns the ratio of the integral of
 // peak within the interval that is within x sigmas from the mean and the integral of peak over the same integral
+// Needs to be modernized for the new plots
 double signal_over_total(Double_t *x, Double_t *par) {
     // Extract the parameters
     //func->SetParameters(par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7]);
     //peak->SetParameters(par[0], par[1], par[2]);
     double Nsigma = x[0];
-    double mean = par[1];
-    double sigma = par[2];
+    // Based on the peak model, derive the mean and sigma
+    double mean;
+    double sigma;
+    if (model == "Gaussian"){
+        mean = par[1];
+        sigma = par[2];
+    }
+    if (model == "Exponential_Gaussian") {
+        mean = par[1] + (1.0/par[3]);
+        sigma = TMath::Sqrt((par[2]*par[2]) + (1.0/(par[3]*par[3])));
+    }
+    if (model == "Skew_Normal") {
+        double delta = par[3]/TMath::Sqrt(1 + par[3]*par[3]);
+        mean = par[1] + (par[2]*delta*TMath::Sqrt(2.0/TMath::Pi()));
+        sigma = par[2]*TMath::Sqrt(1 - (2.0*delta*delta/TMath::Pi()));
+    }
     
     // Evaluate the integrals and return their quotient
     double signal = peak->Integral(mean-Nsigma*sigma, mean+Nsigma*sigma);
@@ -264,14 +278,15 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-// Precondition: model_name is "Gaussian", "Exponential_Gaussian", "Modified_Rayleigh", "Skew_Normal"
+// Precondition: model_name is "Gaussian", "Exponential_Gaussian", "Skew_Normal"
 void my_code(string model_name) {
+    model = model_name;
     directory_name = "data/" + model_name + "/";
     
     //Open the files
     TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
     string rootfilename = "data/Pion" + model_name + "SparsesOutput.root";
-    fOut = new TFile(rootfilename.c_str(), "NEW"); // Create an output file
+    fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
     fIn->Print(); //print file content
     
     // Get the data
@@ -353,18 +368,7 @@ void my_code(string model_name) {
         func->SetParLimits(7, 0.0, 10000000.0); // Linear factor
         func->SetParLimits(8, -10000000.0, 0.0); // Constant
     }
-    if (model_name == "Modified_Rayleigh") {
-        func = new TF1("fit", modified_rayleigh_model,0.05,0.5,num_of_params);
-        peak = new TF1("mass peak", "[0]*((x-[2])*TMath::Exp(-0.5*((x - [2])/[1])*((x - [2])/[1])))/(sigma*sigma)");
-        func->SetParNames("Peak Coefficient", "Sigma", "Horizontal Shift", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-        func->SetParameters(60,  0.05, 0.1,  -100000, 30000, -60000, 0, 10000);
-        func->SetParLimits(0, 1, 10000.0);
-        func->SetParLimits(1, 0.0001, 1000000.0);
-        func->SetParLimits(2, 0.1, 0.3);
-        func->SetParLimits(3, -1000000.0, 0.0); // Quadric factor
-        func->SetParLimits(5, -1000000.0, 0.0); // Quadratic factor
-        
-    }
+    
     if (model_name == "Skew_Normal") {
         num_of_params = 9;
         num_of_peak_params = 4;
@@ -584,17 +588,9 @@ void my_code(string model_name) {
             double sigma_error = func->GetParError(2);
             
             means[i] = mu + (1.0/lambda);
-            mean_errors[i] = TMath::Sqrt((mu_error*mu_error) + (lambda_error*lambda_error)/(lambda*lambda*lambda*lambda));
+            mean_errors[i] = TMath::Sqrt(mu_error*mu_error + (lambda_error*lambda_error)/(lambda*lambda*lambda*lambda));
             sigmas[i] = 1000 * TMath::Sqrt((sigma*sigma) + (1.0/(lambda*lambda)));
-            sigma_errors[i] = 1000 * 0.5 * TMath::Sqrt((4.0 * sigma * sigma * sigma_error*sigma_error) + (4.0*lambda_error*lambda_error/TMath::Power(lambda, 6.0)))/TMath::Sqrt(sigmas[i]);
-        }
-        if (model_name == "Modified_Rayleigh") {
-            double mean_coeff = TMath::Sqrt(TMath::Pi()/2.0);
-            
-            means[i] = mean_coeff*(func->GetParameter(1)) + (func->GetParameter(2));
-            mean_errors[i] = TMath::Sqrt((mean_coeff*mean_coeff*(func->GetParError(1))*(func->GetParError(1))) + ((func->GetParError(2))*(func->GetParError(2))));
-            sigmas[i] = TMath::Sqrt(((func->GetParameter(1))*(func->GetParameter(1)))*(4.0 - TMath::Pi())/2.0);
-            sigma_errors[i] = (2*(func->GetParameter(2))*(func->GetParError(2)))/((4.0 - TMath::Pi())*sigmas[i]);
+            sigma_errors[i] = 1000 * 0.5 * TMath::Sqrt((4.0 * sigma_error*sigma_error*(sigma*sigma)) + (4.0*lambda_error*lambda_error/TMath::Power(lambda, 6.0)))/(sigmas[i]);
         }
         
         if (model_name == "Skew_Normal") {
@@ -606,7 +602,7 @@ void my_code(string model_name) {
             means[i] = (func->GetParameter(1)) + (func->GetParameter(2))*delta*TMath::Sqrt(2.0/TMath::Pi());
             mean_errors[i] = TMath::Sqrt((func->GetParError(1))*(func->GetParError(1)) + (2*(func->GetParameter(2))*(func->GetParameter(2))*delta*delta/TMath::Pi())*(((func->GetParError(2))/(func->GetParameter(2)))*((func->GetParError(2))/(func->GetParameter(2))) + (delta_error/delta)*(delta_error/delta)));
             sigmas[i] = ((func->GetParameter(2))*TMath::Sqrt(sigma_coeff))*1000;
-            sigma_errors[i] = (TMath::Sqrt(4*(func->GetParError(2))*(func->GetParError(2))/((func->GetParameter(2))*(func->GetParameter(2))) + (sigma_coeff_error*sigma_coeff_error)/(sigma_coeff*sigma_coeff))/(2*TMath::Power(sigmas[i], 1.5)))*1000;
+            sigma_errors[i] = (TMath::Sqrt(4*(func->GetParError(2))*(func->GetParError(2))/((func->GetParameter(2))*(func->GetParameter(2))) + (sigma_coeff_error*sigma_coeff_error)/(sigma_coeff*sigma_coeff))/(2.0*TMath::Power(sigmas[i], 3.0)))*1000;
         }
         
         gaussian_integrals[i] = (func->GetParameter(0))/MASSWIDTH;
@@ -616,7 +612,7 @@ void my_code(string model_name) {
         widths[i] = ptmax - center[i];
         
         // print out the mean, standard deviation, and their corresponding errors; and save the graph in a new file
-        std::cout << "Mean: " << means[i] << std::endl << "Standard Deviation: " << sigmas[i] << std::endl;
+        std::cout << "Mean: " << means[i] << std::endl << "Standard Deviation: " << sigmas[i] << std::endl << "Standard Deviation Error: " << sigma_errors[i] << std::endl;
         canvas->SaveAs(Form(str_concat_converter(directory_name, "MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png"), ptmin, ptmax));
         
         //Now use the signal_over_total function to get a graph of sigma vs. signal/total
