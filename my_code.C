@@ -154,81 +154,78 @@ double skew_normal_dist(Double_t *x, Double_t* par) {
 }
 
 /**
-double sin_model(Double_t *x,Double_t *par) {
-    double arg = 0;
-    
-    double A = par[0];
-    double mean = par[1];
-    double sigma = par[2];
-    double B = par[3];
-    double C = par[4];
-    double D = par[5];
-    double E = par[6];
-    double F = par[7];
-    
-    if (sigma != 0)
-        arg = (x[0] - mean)/sigma;
-    
-    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Sin((x[0] - C)/D)/TMath::Power(x[0], E) + F;
-    return fitval;
-}
-
-double logistic_model(Double_t *x,Double_t *par){
-    double arg = 0;
-    
-    double A = par[0];
-    double mean = par[1];
-    double sigma = par[2];
-    double B = par[3];
-    double C = par[4];
-    double D = par[5];
-    double E = par[6];
-    
-    if (sigma != 0)
-        arg = (x[0] - mean)/sigma;
-    
-    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Log(x[0] - C)/TMath::Log(D) + E;
-    return fitval;
-    
-}
-
-double logarithmic_model(Double_t *x,Double_t *par) {
-    double arg = 0;
-    
-    double A = par[0];
-    double mean = par[1];
-    double sigma = par[2];
-    double B = par[3];
-    double C = par[4];
-    double D = par[5];
-    double E = par[6];
-    double F = par[7];
-    
-    if (sigma != 0)
-        arg = (x[0] - mean)/sigma;
-    
-    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B/(1 + C*TMath::Exp(D*(x[0]-E))) + F;
-    return fitval;
-}
-
-double power_model(Double_t *x,Double_t *par) {
-    double arg = 0;
-    
-    double A = par[0];
-    double mean = par[1];
-    double sigma = par[2];
-    double B = par[3];
-    double C = par[4];
-    double D = par[5];
-    double E = par[6];
-    
-    if (sigma != 0)
-        arg = (x[0] - mean)/sigma;
-    
-    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power((x[0] - C), D) + E;
-    return fitval;
-}
-*/
+ double sin_model(Double_t *x,Double_t *par) {
+ double arg = 0;
+ 
+ double A = par[0];
+ double mean = par[1];
+ double sigma = par[2];
+ double B = par[3];
+ double C = par[4];
+ double D = par[5];
+ double E = par[6];
+ double F = par[7];
+ 
+ if (sigma != 0)
+ arg = (x[0] - mean)/sigma;
+ 
+ double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Sin((x[0] - C)/D)/TMath::Power(x[0], E) + F;
+ return fitval;
+ }
+ double logistic_model(Double_t *x,Double_t *par){
+ double arg = 0;
+ 
+ double A = par[0];
+ double mean = par[1];
+ double sigma = par[2];
+ double B = par[3];
+ double C = par[4];
+ double D = par[5];
+ double E = par[6];
+ 
+ if (sigma != 0)
+ arg = (x[0] - mean)/sigma;
+ 
+ double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Log(x[0] - C)/TMath::Log(D) + E;
+ return fitval;
+ 
+ }
+ double logarithmic_model(Double_t *x,Double_t *par) {
+ double arg = 0;
+ 
+ double A = par[0];
+ double mean = par[1];
+ double sigma = par[2];
+ double B = par[3];
+ double C = par[4];
+ double D = par[5];
+ double E = par[6];
+ double F = par[7];
+ 
+ if (sigma != 0)
+ arg = (x[0] - mean)/sigma;
+ 
+ double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B/(1 + C*TMath::Exp(D*(x[0]-E))) + F;
+ return fitval;
+ }
+ double power_model(Double_t *x,Double_t *par) {
+ double arg = 0;
+ 
+ double A = par[0];
+ double mean = par[1];
+ double sigma = par[2];
+ double B = par[3];
+ double C = par[4];
+ double D = par[5];
+ double E = par[6];
+ 
+ if (sigma != 0)
+ arg = (x[0] - mean)/sigma;
+ 
+ double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power((x[0] - C), D) + E;
+ return fitval;
+ }
+ */
 
 // The three functions used in this program: the first for the entire data, second for the peak alone, third for the background alone
 TF1 *func;
@@ -274,7 +271,7 @@ void my_code(string model_name) {
     //Open the files
     TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
     string rootfilename = "data/Pion" + model_name + "SparsesOutput.root";
-    fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
+    fOut = new TFile(rootfilename.c_str(), "NEW"); // Create an output file
     fIn->Print(); //print file content
     
     // Get the data
@@ -337,7 +334,7 @@ void my_code(string model_name) {
         func->SetParLimits(2, 0.005, 0.05); // width
         func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
         func->SetParLimits(5, -1000000.0, 0.0);
-
+        
     }
     if (model_name == "Exponential_Gaussian") {
         num_of_params = 9;
@@ -362,9 +359,10 @@ void my_code(string model_name) {
         func->SetParNames("Peak Coefficient", "Sigma", "Horizontal Shift", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
         func->SetParameters(60,  0.05, 0.1,  -100000, 30000, -60000, 0, 10000);
         func->SetParLimits(0, 1, 10000.0);
-        func->SetParLimits(1, 0.0, 1000000.0);
+        func->SetParLimits(1, 0.0001, 1000000.0);
+        func->SetParLimits(2, 0.1, 0.3);
         func->SetParLimits(3, -1000000.0, 0.0); // Quadric factor
-        func->SetParLimits(5, -100000.0, 0.0); // Quadratic factor
+        func->SetParLimits(5, -1000000.0, 0.0); // Quadratic factor
         
     }
     if (model_name == "Skew_Normal") {
@@ -376,59 +374,58 @@ void my_code(string model_name) {
         func->SetParameters(60,  0.14, 0.3, 100, -100000, 1000000, -60000, 10, 10000);
         func->SetParLimits(0, 1.0, 100.0); // Integral
         func->SetParLimits(1, 0, 0.3); // Position
-        func->SetParLimits(2, 0, 100.0); // Scale
+        func->SetParLimits(2, 0.005, 0.05); // width
         func->SetParLimits(3, -10, 10); //Shape
         func->SetParLimits(4, -1000000.0, 0.0); // Quadric and quadratic factors
         func->SetParLimits(6, -1000000.0, 0.0);
     }
-
+    
     /**
-    if (model_name == "Logistic") {
-        func = new TF1("fit", logistic_model,0.05,0.5,num_of_params);
-        background = new TF1("background curve", "[0]/(1 + [1]*TMath::Exp([2]*(x-[3]))) + [4]", 0.08, 0.26);
-    }
-    if (model_name == "Sine") {
-        func = new TF1("fit", sin_model,0.05,0.5,num_of_params);
-        background = new TF1("background curve", "[0]*TMath::Sin((x - [1])/[2])/TMath::Power(x, [3]) + [4]", 0.08, 0.26);
-    }
-    if (model_name == "Logarithmic") {
-        num_of_params = 7;
-        func = new TF1("fit", logarithmic_model,0.05,0.5,num_of_params);
-        background = new TF1("background curve", "[0]*TMath::Log(x - [1])/TMath::Log([2]) + [3]", 0.08, 0.26);
-    }
-    if (model_name == "Power") {
-        num_of_params = 7;
-        func = new TF1("fit", power_model,0.05,0.5,num_of_params);
-        background = new TF1("background curve", "[0]*TMath::Power((x - [1]), [2]) + [3]", 0.08, 0.26);
-    }
-    if (model_name == "Logarithmic")
-        func->SetParNames("Integral", "Mean", "Sigma", "Logarithmic coeff", "Horiz shift", "Base", "Constant");
-        func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-
-    if (model_name == "Sine") {
-        func->SetParNames("Integral", "Mean", "Sigma", "Damped Sine coeff", "Shift", "Period Factor", "Damping Exponent", "Constant");
-        func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-    }
-    if (model_name == "Logistic") {
-        func->SetParNames("Integral", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
-        func->SetParameters(6,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-    }
-    if (model_name == "Power") {
-        func->SetParNames("Integral", "Mean", "Sigma", "Power Coeff", "Horiz shft", "Exponent", "Constant");
-        func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-    }
+     if (model_name == "Logistic") {
+     func = new TF1("fit", logistic_model,0.05,0.5,num_of_params);
+     background = new TF1("background curve", "[0]/(1 + [1]*TMath::Exp([2]*(x-[3]))) + [4]", 0.08, 0.26);
+     }
+     if (model_name == "Sine") {
+     func = new TF1("fit", sin_model,0.05,0.5,num_of_params);
+     background = new TF1("background curve", "[0]*TMath::Sin((x - [1])/[2])/TMath::Power(x, [3]) + [4]", 0.08, 0.26);
+     }
+     if (model_name == "Logarithmic") {
+     num_of_params = 7;
+     func = new TF1("fit", logarithmic_model,0.05,0.5,num_of_params);
+     background = new TF1("background curve", "[0]*TMath::Log(x - [1])/TMath::Log([2]) + [3]", 0.08, 0.26);
+     }
+     if (model_name == "Power") {
+     num_of_params = 7;
+     func = new TF1("fit", power_model,0.05,0.5,num_of_params);
+     background = new TF1("background curve", "[0]*TMath::Power((x - [1]), [2]) + [3]", 0.08, 0.26);
+     }
+     if (model_name == "Logarithmic")
+     func->SetParNames("Integral", "Mean", "Sigma", "Logarithmic coeff", "Horiz shift", "Base", "Constant");
+     func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
+     func->SetParLimits(0, 1, 10000.0);//integral
+     func->SetParLimits(1, 0.1, 0.2); //mean
+     func->SetParLimits(2, 0.005, 0.05); // width
+     if (model_name == "Sine") {
+     func->SetParNames("Integral", "Mean", "Sigma", "Damped Sine coeff", "Shift", "Period Factor", "Damping Exponent", "Constant");
+     func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
+     func->SetParLimits(0, 1, 10000.0);//integral
+     func->SetParLimits(1, 0.1, 0.2); //mean
+     func->SetParLimits(2, 0.005, 0.05); // width
+     }
+     if (model_name == "Logistic") {
+     func->SetParNames("Integral", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
+     func->SetParameters(6,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
+     func->SetParLimits(0, 1, 10000.0);//integral
+     func->SetParLimits(1, 0.1, 0.2); //mean
+     func->SetParLimits(2, 0.005, 0.05); // width
+     }
+     if (model_name == "Power") {
+     func->SetParNames("Integral", "Mean", "Sigma", "Power Coeff", "Horiz shft", "Exponent", "Constant");
+     func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
+     func->SetParLimits(0, 1, 10000.0);//integral
+     func->SetParLimits(1, 0.1, 0.2); //mean
+     func->SetParLimits(2, 0.005, 0.05); // width
+     }
      */
     //func->SetParNames("Amplitude", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
     
@@ -501,8 +498,21 @@ void my_code(string model_name) {
     double widths[num_of_intervals];
     canvas->Clear();
     
-    // start cutting the data up; plot the mass data for momenta of 5-10, 10-15, 15-20, and so forth
+    // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15
     for(int i = 0; i < num_of_intervals; i++) {
+        //Adaptive Cuts
+        if (model_name == "Skew_Normal") {
+            if (i == 0) {
+                //func->SetParLimits(0, 1.0, 10.0); // Integral
+                //func->SetParLimits(3, 0.0, 10); //Shape
+                //func->SetParLimits(2, 0, 0.01); // Scale
+            }
+            else {
+                //func->SetParLimits(0, 1.0, 100.0); // Integral
+                //func->SetParLimits(3, -10, 10); //Shape
+                //func->SetParLimits(2, 0, 100.0); // Scale
+            }
+        }
         //for(int i = 0; i < 1; i++) {
         pad[0] = new TPad("pad0","",0,0.42,1,1);
         pad[1] = new TPad("pad1","",0,0.02,1,0.42);
@@ -547,7 +557,7 @@ void my_code(string model_name) {
             //std::cout<< (hMass->GetBinContent(i)) << std::endl;
             //std::cout<< (func->Eval(hMass->GetBinCenter(i))) << std::endl;
             //std::cout<< (hMass->GetBinError(i)) << std::endl << std::endl;
-
+            
         }
         canvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
@@ -693,7 +703,6 @@ void my_code(string model_name) {
     g_integral->Draw("AP");
     g_integral->Write("pion-integrals");
     canvas->SaveAs(str_concat_converter(directory_name, "peakIntegrals_v_pT.png"));
-    
     
     canvas->Close();
     return;
