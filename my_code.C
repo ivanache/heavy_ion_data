@@ -605,8 +605,8 @@ void my_code(string model_name) {
             
             means[i] = (func->GetParameter(1)) + (func->GetParameter(2))*delta*TMath::Sqrt(2.0/TMath::Pi());
             mean_errors[i] = TMath::Sqrt((func->GetParError(1))*(func->GetParError(1)) + (2*(func->GetParameter(2))*(func->GetParameter(2))*delta*delta/TMath::Pi())*(((func->GetParError(2))/(func->GetParameter(2)))*((func->GetParError(2))/(func->GetParameter(2))) + (delta_error/delta)*(delta_error/delta)));
-            sigmas[i] = (func->GetParameter(2))*TMath::Sqrt(sigma_coeff);
-            sigma_errors[i] = TMath::Sqrt(4*(func->GetParError(2))*(func->GetParError(2))/((func->GetParameter(2))*(func->GetParameter(2))) + (sigma_coeff_error*sigma_coeff_error)/(sigma_coeff*sigma_coeff))/(2*TMath::Power(sigmas[i], 1.5));
+            sigmas[i] = ((func->GetParameter(2))*TMath::Sqrt(sigma_coeff))*1000;
+            sigma_errors[i] = (TMath::Sqrt(4*(func->GetParError(2))*(func->GetParError(2))/((func->GetParameter(2))*(func->GetParameter(2))) + (sigma_coeff_error*sigma_coeff_error)/(sigma_coeff*sigma_coeff))/(2*TMath::Power(sigmas[i], 1.5)))*1000;
         }
         
         gaussian_integrals[i] = (func->GetParameter(0))/MASSWIDTH;
