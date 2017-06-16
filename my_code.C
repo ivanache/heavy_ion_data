@@ -502,6 +502,8 @@ void my_code(string model_name) {
     double widths[num_of_intervals];
     canvas->Clear();
     
+    TFitResultPtr fitres;
+    
     // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts
@@ -533,9 +535,12 @@ void my_code(string model_name) {
         pad[0]->cd();
         hMass->Draw();
         
-        // Find a fit just as you did for the entire data set
+        /** Has a severe error */
+        // Find a fit just as you did for the entire data set, load into the TFitResultPtr object pointer
         // Graph the fit and (separately) the Gaussian component of it
-        hMass->Fit(func);
+        fitres = hMass->Fit(func, "S");
+        fitres->Print("V");
+        //TMatrixD mt = fitres->GetCovarianceMatrix();
         chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         func->Draw("same");
@@ -573,6 +578,7 @@ void my_code(string model_name) {
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
         // and integral_errors, the center point of the interval into center (and its error into widths), and chi square of the fit into its respective array
+        // For non-Gaussian fits, use the FitResultPtr to help you
         if (model_name == "Gaussian") {
             means[i] = func->GetParameter(1);
             mean_errors[i] = func->GetParError(1);
@@ -580,6 +586,8 @@ void my_code(string model_name) {
             sigma_errors[i] = func->GetParError(2) * 1000;
         }
         if (model_name == "Exponential_Gaussian") {
+            //TMatrixD covmat = fitres->GetCovarianceMatrix();
+            //covmat.Print();
             double mu = func->GetParameter(1);
             double mu_error = func->GetParError(1);
             double lambda = func->GetParameter(3);
@@ -588,7 +596,7 @@ void my_code(string model_name) {
             double sigma_error = func->GetParError(2);
             
             means[i] = mu + (1.0/lambda);
-            mean_errors[i] = TMath::Sqrt(mu_error*mu_error + (lambda_error*lambda_error)/(lambda*lambda*lambda*lambda));
+            mean_errors[i] = TMath::Sqrt((mu_error*mu_error) + ((lambda_error*lambda_error)/(lambda*lambda*lambda*lambda)));
             sigmas[i] = 1000 * TMath::Sqrt((sigma*sigma) + (1.0/(lambda*lambda)));
             sigma_errors[i] = 1000 * 0.5 * TMath::Sqrt((4.0 * sigma_error*sigma_error*(sigma*sigma)) + (4.0*lambda_error*lambda_error/TMath::Power(lambda, 6.0)))/(sigmas[i]);
         }
