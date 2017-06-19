@@ -329,7 +329,7 @@ void my_code(string model_name) {
     std::cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
     double fit_y_max = 600.0;
     
-    // plot mass data and set up the fit function
+    // plot mass data, write it into the root file, and set up the fit function
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
     TH1D* residual = (TH1D*)hMass->Clone("residual");
     const double MASSWIDTH = hMass->GetBinWidth(1);
@@ -341,7 +341,7 @@ void my_code(string model_name) {
     pad[0]->Draw();
     pad[0]->cd();
     hMass->Draw();
-    
+    hMass->Write("unfitted_mass_pion");
     
     //Start making the fit, restrict the parameters to reasonable ranges, insert guess values, and give understandable names
     int num_of_params = 8;
@@ -501,10 +501,11 @@ void my_code(string model_name) {
     residual->Write("residual"); // Load into the ROOT file
     graphcanvas->SaveAs(str_concat_converter(directory_name, "mass_pion_plot.png"));
     
-    // Plot the data for the momentum
+    // Plot the data for the momentum, save into the Root file
     graphcanvas->Clear();
     TH1D* hPt = h_Pion->Projection(axis_pionPt);
     hPt->Draw();
+    hPt->Write("Momentum-entries_chart");
     graphcanvas->SaveAs(str_concat_converter(directory_name, "momentum_pion_plot.png"));
     
     // A collection of variables that is needed for the next steps
@@ -537,7 +538,7 @@ void my_code(string model_name) {
         min = intervals[i][0];
         max = intervals[i][1]; // Interval bounds
         
-        // Plot the data
+        // Plot the data, load it into the root file
         SetCut(h_Pion, axis_pionPt, min, max);
         
         hMass = h_Pion->Projection(axis_pionMass);
@@ -546,6 +547,7 @@ void my_code(string model_name) {
         pad[0]->Draw();
         pad[0]->cd();
         hMass->Draw();
+        hMass->Write(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max));
         
         // Find a fit just as you did for the entire data set and the reduced chi square of the fit into its respective array
         // Graph the fit and (separately) the Gaussian component of it

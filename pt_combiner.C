@@ -12,28 +12,115 @@ void pt_combiner() {
     TFile* CrystalBallFile = new TFile("data/PionCrystal_BallSparsesOutput.root", "READ");
     
     //Grab the data from the files
+    // Main data
     TH1D* GaussianData = 0;
     TH1D* ExpGaussianData = 0;
     TH1D* CrystalBallData = 0;
+    TH1D* MassData = 0;
     
     GaussianFile->GetObject("mass_pion", GaussianData);
     ExpGaussianFile->GetObject("mass_pion", ExpGaussianData);
     CrystalBallFile->GetObject("mass_pion", CrystalBallData);
+    GaussianFile->GetObject("unfitted_mass_pion", MassData);
+    
+    //residuals
+    TH1D* GaussianResiduals = 0;
+    TH1D* ExpGaussianResiduals = 0;
+    TH1D* CrystalBallResiduals = 0;
+    
+    GaussianFile->GetObject("residual", GaussianResiduals);
+    ExpGaussianFile->GetObject("residual", ExpGaussianResiduals);
+    CrystalBallFile->GetObject("residual", CrystalBallResiduals);
     
     // From each data object, get the fit function
     TF1* GaussianFit = (TF1*) GaussianData->GetListOfFunctions()->FindObject("fit");
     TF1* ExpGaussianFit = (TF1*) ExpGaussianData->GetListOfFunctions()->FindObject("fit");
     TF1* CrystalBallFit = (TF1*) CrystalBallData->GetListOfFunctions()->FindObject("fit");
     
-    // Create a TCanvas for graphing; as a test, graph out the fits
+    // Create a TCanvas and TPads for graphing; graph out the fits, data, and residuals for the entire sample
     TCanvas* canvas = new TCanvas();
+    TPad *pad[2] = {new TPad("pad0","",0,0.42,1,1), new TPad("pad1","",0,0,1,0.42)};
     
-    GaussianFit->Draw();
+    canvas->cd();
+    pad[0]->Draw();
+    pad[0]->cd();
+    MassData->GetYaxis()->SetTitle("Number of Entries");
+    MassData->Draw();
+    GaussianFit->Draw("same");
     ExpGaussianFit->SetLineColor(kBlue);
     ExpGaussianFit->Draw("same");
     CrystalBallFit->SetLineColor(kGreen);
     CrystalBallFit->Draw("same");
-    canvas->SaveAs("testgraph.png");
+    
+    canvas->cd();
+    pad[1]->Draw();
+    pad[1]->cd();
+    GaussianResiduals->GetYaxis()->SetTitle("Residuals");
+    GaussianResiduals->SetMarkerColor(kRed);
+    GaussianResiduals->Draw("P");
+    ExpGaussianResiduals->SetMarkerColor(kBlue);
+    ExpGaussianResiduals->Draw("P same");
+    CrystalBallResiduals->SetMarkerColor(kGreen);
+    CrystalBallResiduals->Draw("P same");
+    
+    canvas->SaveAs("data_comparisons/testgraph.png");
+    
+    // Graph the momentum chart
+    canvas->Clear();
+    TH1D* Momentum = 0;
+    GaussianFile->GetObject("Momentum-entries_chart", Momentum);
+    Momentum->Draw();
+    canvas->SaveAs("data_comparisons/Momentum_Graph.png");
+    
+    // Repeat for each of the following momentum intervals: 8-10 GeV, 10-11 GeV, 11-12 GeV, 12-13 GeV, 13-15 GeV
+    canvas->Clear();
+    const int num_of_intervals = 5;
+    double intervals[num_of_intervals][2] = {{8.0, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}};
+    for(int i = 0; i < num_of_intervals; i++) {
+        // Set up the pads and the min and max momenta
+        double min = intervals[i][0];
+        double max = intervals[i][1];
+        pad[0] = new TPad("pad0","",0,0.42,1,1);
+        pad[1] = new TPad("pad1","",0,0.02,1,0.42);
+        
+        // load data
+        GaussianFile->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), GaussianData);
+        ExpGaussianFile->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), ExpGaussianData);
+        CrystalBallFile->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), CrystalBallData);
+        GaussianFile->GetObject(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max), MassData);
+        GaussianFile->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), GaussianResiduals);
+        ExpGaussianFile->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), ExpGaussianResiduals);
+        CrystalBallFile->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), CrystalBallResiduals);
+        GaussianFit = (TF1*) GaussianData->GetListOfFunctions()->FindObject("fit");
+        ExpGaussianFit = (TF1*) ExpGaussianData->GetListOfFunctions()->FindObject("fit");
+        CrystalBallFit = (TF1*) CrystalBallData->GetListOfFunctions()->FindObject("fit");
+        
+        // Graph
+        canvas->cd();
+        pad[0]->Draw();
+        pad[0]->cd();
+        MassData->GetYaxis()->SetTitle("Number of Entries");
+        MassData->Draw();
+        GaussianFit->Draw("same");
+        ExpGaussianFit->SetLineColor(kBlue);
+        ExpGaussianFit->Draw("same");
+        CrystalBallFit->SetLineColor(kGreen);
+        CrystalBallFit->Draw("same");
+        
+        canvas->cd();
+        pad[1]->Draw();
+        pad[1]->cd();
+        GaussianResiduals->GetYaxis()->SetTitle("Residuals");
+        GaussianResiduals->SetMarkerColor(kRed);
+        GaussianResiduals->Draw("P");
+        ExpGaussianResiduals->SetMarkerColor(kBlue);
+        ExpGaussianResiduals->Draw("P same");
+        CrystalBallResiduals->SetMarkerColor(kGreen);
+        CrystalBallResiduals->Draw("P same");
+        
+        //Save file
+        canvas->SaveAs(Form("data_comparisons/testgraph_%2.2fGeV-%2.2fGeV.png", min, max));
+    }
     
     canvas->Close();
 }
