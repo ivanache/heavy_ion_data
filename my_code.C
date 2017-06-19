@@ -139,7 +139,7 @@ double exp_gaussian_model(Double_t *x, Double_t* par) {
     return fitval;
 }
 
-double skew_normal_dist(Double_t *x, Double_t* par) {
+/**double skew_normal_dist(Double_t *x, Double_t* par) {
     double arg = 0;
     
     double A = par[0];
@@ -159,7 +159,7 @@ double skew_normal_dist(Double_t *x, Double_t* par) {
     
     double fitval = (A/(scale*TMath::Pi()))*TMath::Exp(-0.5*arg*arg)*sqrt_pi_2*(TMath::Erf(shape*(x[0] - position)/(scale*TMath::Sqrt(2))) + 1.0) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
     return fitval;
-}
+}*/
 
 /**
  double sin_model(Double_t *x,Double_t *par) {
@@ -256,16 +256,13 @@ double signal_over_total(Double_t *x, Double_t *par) {
         mean = par[1] + (1.0/par[3]);
         sigma = TMath::Sqrt((par[2]*par[2]) + (1.0/(par[3]*par[3])));
     }*/
-    if (model == "Skew_Normal") {
+    /**if (model == "Skew_Normal") {
         double delta = par[3]/TMath::Sqrt(1 + par[3]*par[3]);
         mean = par[1] + (par[2]*delta*TMath::Sqrt(2.0/TMath::Pi()));
         sigma = par[2]*TMath::Sqrt(1 - (2.0*delta*delta/TMath::Pi()));
-    }
-    else {
-        mean = par[1];
-        sigma = par[2];
-        //return 0.0;
-    }
+    }*/
+    mean = par[1];
+    sigma = par[2];
     
     // Evaluate the integrals and return their quotient
     double signal = peak->Integral(mean-Nsigma*sigma, mean+Nsigma*sigma);
@@ -289,7 +286,7 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-// Precondition: model_name is "Gaussian", "Exponential_Gaussian", "Skew_Normal", "Crystal_Ball"
+// Precondition: model_name is "Gaussian", "Exponential_Gaussian", "Crystal_Ball"
 void my_code(string model_name) {
     model = model_name;
     directory_name = "data/" + model_name + "/";
@@ -380,7 +377,7 @@ void my_code(string model_name) {
         func->SetParLimits(8, -10000000.0, 0.0); // Constant
     }
     
-    if (model_name == "Skew_Normal") {
+    /**if (model_name == "Skew_Normal") {
         num_of_params = 9;
         num_of_peak_params = 4;
         func = new TF1("fit", skew_normal_dist,0.05,0.5,num_of_params);
@@ -393,7 +390,7 @@ void my_code(string model_name) {
         func->SetParLimits(3, -10, 10); //Shape
         func->SetParLimits(4, -1000000.0, 0.0); // Quadric and quadratic factors
         func->SetParLimits(6, -1000000.0, 0.0);
-    }
+    }*/
     
    if (model_name == "Crystal_Ball") {
         num_of_params = 10;
@@ -531,33 +528,10 @@ void my_code(string model_name) {
     double widths[num_of_intervals];
     graphcanvas->Clear();
     
-    TFitResultPtr fitres;
-    //Both are used to combat a very strange error
-    // Set the tolerance
-    if (model_name == "Skew_Normal")
-        ROOT::Math::MinimizerOptions::SetDefaultTolerance(1.0);
-    if (model_name == "Gaussian")
-        ROOT::Math::MinimizerOptions::SetDefaultTolerance(1.1);
-    if (model_name == "Exponential_Gaussian")
-        //ROOT::Math::MinimizerOptions::SetDefaultTolerance(250.0);
-    ROOT::Math::MinimizerOptions::SetDefaultStrategy(0); // Replaces covariance matrix with an approximation
-    
     // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15
     for(int i = 0; i < num_of_intervals; i++) {
-        //Adaptive Cuts
-        if (model_name == "Skew_Normal") {
-            if (i == 0) {
-                //func->SetParLimits(0, 1.0, 10.0); // Integral
-                //func->SetParLimits(3, 0.0, 10); //Shape
-                //func->SetParLimits(2, 0, 0.01); // Scale
-            }
-            else {
-                //func->SetParLimits(0, 1.0, 100.0); // Integral
-                //func->SetParLimits(3, -10, 10); //Shape
-                //func->SetParLimits(2, 0, 100.0); // Scale
-            }
-        }
-        //for(int i = 0; i < 1; i++) {
+        //Adaptive Cuts go here
+        
         pad[0] = new TPad("pad0","",0,0.42,1,1);
         pad[1] = new TPad("pad1","",0,0.02,1,0.42);
         min = intervals[i][0];
@@ -573,13 +547,9 @@ void my_code(string model_name) {
         pad[0]->cd();
         hMass->Draw();
         
-        /** Has a severe error */
-        // Find a fit just as you did for the entire data set, load into the TFitResultPtr object pointer
+        // Find a fit just as you did for the entire data set and the reduced chi square of the fit into its respective array
         // Graph the fit and (separately) the Gaussian component of it
-        fitres = hMass->Fit(func, "S");
-        //fitres->Print("V");
-        TMatrixD mt = fitres->GetCovarianceMatrix();
-        //mt.Print();
+        hMass->Fit(func);
         chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         func->Draw("same");
@@ -616,42 +586,11 @@ void my_code(string model_name) {
         
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
-        // and integral_errors, the center point of the interval into center (and its error into widths), and chi square of the fit into its respective array
-        
-        if (model_name == "Exponential_Gaussian") {
-            //TMatrixD covmat = fitres->GetCovarianceMatrix();
-            //covmat.Print();
-            means[i] = func->GetParameter(1);
-            mean_errors[i] = func->GetParError(1);
-            //double lambda = func->GetParameter(3);
-            //double lambda_error = func->GetParError(3);
-            sigmas[i] = func->GetParameter(2);
-            sigma_errors[i] = func->GetParError(2);
-            
-            //means[i] = mu + (1.0/lambda);
-            //mean_errors[i] = TMath::Sqrt((mu_error*mu_error) + ((lambda_error*lambda_error)/(lambda*lambda*lambda*lambda)));
-            //sigmas[i] = 1000 * TMath::Sqrt((sigma*sigma) + (1.0/(lambda*lambda)));
-            //sigma_errors[i] = 1000 * 0.5 * TMath::Sqrt((4.0 * sigma_error*sigma_error*(sigma*sigma)) + (4.0*lambda_error*lambda_error/TMath::Power(lambda, 6.0)))/(sigmas[i]);
-        }
-        
-        if (model_name == "Skew_Normal") {
-            double delta = (func->GetParameter(3))/TMath::Sqrt(1 + (func->GetParameter(3))*(func->GetParameter(3)));
-            double delta_error = (func->GetParError(3))/TMath::Power((1 + (func->GetParameter(3))*(func->GetParameter(3))), 1.5);
-            double sigma_coeff = 1 - 2*delta*delta/TMath::Pi();
-            double sigma_coeff_error = (4.0/TMath::Pi())*delta*delta_error;
-            
-            means[i] = (func->GetParameter(1)) + (func->GetParameter(2))*delta*TMath::Sqrt(2.0/TMath::Pi());
-            mean_errors[i] = TMath::Sqrt((func->GetParError(1))*(func->GetParError(1)) + (2*(func->GetParameter(2))*(func->GetParameter(2))*delta*delta/TMath::Pi())*(((func->GetParError(2))/(func->GetParameter(2)))*((func->GetParError(2))/(func->GetParameter(2))) + (delta_error/delta)*(delta_error/delta)));
-            sigmas[i] = ((func->GetParameter(2))*TMath::Sqrt(sigma_coeff))*1000;
-            sigma_errors[i] = (TMath::Sqrt(4*(func->GetParError(2))*(func->GetParError(2))/((func->GetParameter(2))*(func->GetParameter(2))) + (sigma_coeff_error*sigma_coeff_error)/(sigma_coeff*sigma_coeff))/(2.0*TMath::Power(sigmas[i], 3.0)))*1000;
-        }
-    
-        else {
-            means[i] = func->GetParameter(1);
-            mean_errors[i] = func->GetParError(1);
-            sigmas[i] = func->GetParameter(2) * 1000;
-            sigma_errors[i] = func->GetParError(2) * 1000;
-        }
+        // and integral_errors, and the center point of the interval into center (and its error into widths)
+        means[i] = func->GetParameter(1);
+        mean_errors[i] = func->GetParError(1);
+        sigmas[i] = func->GetParameter(2) * 1000;
+        sigma_errors[i] = func->GetParError(2) * 1000;
         
         gaussian_integrals[i] = (func->GetParameter(0))/MASSWIDTH;
         integral_errors[i] = (func->GetParError(0))/MASSWIDTH;
