@@ -89,45 +89,17 @@ double compound_model(Double_t *x,Double_t *par) {
 
 // The peak for the crystal ball function (because it is piecewise)
 double crystal_ball_function_peak(Double_t *x, Double_t *par) {
-    double fitval;
-    double arg = 0;
-    double cA = 0;
-    double cB = 0;
-    double cC = 0;
-    double cN = 0;
-    
     double A = par[0];
     double mean = par[1];
     double sigma = par[2];
     double alpha = par[3];
     double n = par[4];
     
-    if (sigma != 0)
-        arg = (x[0] - mean)/sigma;
-    
-    double cD = TMath::Sqrt(TMath::Pi()/2.0)*(1 + TMath::Erf(TMath::Abs(alpha)/2.0));
-    if (alpha != 0){
-        cA = TMath::Power((n/TMath::Abs(alpha)), n)*TMath::Exp(-TMath::Abs(alpha)*TMath::Abs(alpha)/2.0);
-        cB = n/TMath::Abs(alpha) - TMath::Abs(alpha);
-        cC = (n/TMath::Abs(alpha))*(1.0/(n-1.0))*TMath::Exp(-TMath::Abs(alpha)*TMath::Abs(alpha)/2.0);
-        cN = 1.0/(sigma*(cC + cD));
-    }
-
-    if (arg > (-alpha))
-        fitval = A*cN*TMath::Exp(-0.5*arg*arg);
-    else
-        fitval = A*cN*cA*TMath::Power((cB-arg), -n);
+    double fitval = A*ROOT::Math::crystalball_pdf(x[0], alpha, n, sigma, mean);
     return fitval;
 }
 // Crystal ball function
 double crystal_ball_model(Double_t *x, Double_t *par) {
-    double fitval;
-    double arg = 0;
-    double cA = 0;
-    double cB = 0;
-    double cC = 0;
-    double cN = 0;
-    
     double A = par[0];
     double mean = par[1];
     double sigma = par[2];
@@ -139,21 +111,7 @@ double crystal_ball_model(Double_t *x, Double_t *par) {
     double E = par[8];
     double F = par[9];
     
-    if (sigma != 0)
-        arg = (x[0] - mean)/sigma;
-    
-    double cD = TMath::Sqrt(TMath::Pi()/2.0)*(1 + TMath::Erf(TMath::Abs(alpha)/2.0));
-    if (alpha != 0){
-        cA = TMath::Power((n/TMath::Abs(alpha)), n)*TMath::Exp(-TMath::Abs(alpha)*TMath::Abs(alpha)/2.0);
-        cB = n/TMath::Abs(alpha) - TMath::Abs(alpha);
-        cC = (n/TMath::Abs(alpha))*(1.0/(n-1.0))*TMath::Exp(-TMath::Abs(alpha)*TMath::Abs(alpha)/2.0);
-        cN = 1.0/(sigma*(cC + cD));
-    }
-    
-    if (arg > (-alpha))
-        fitval = A*cN*TMath::Exp(-0.5*arg*arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
-    else
-        fitval = A*cN*cA*TMath::Power((cB-arg), -n) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
+    double fitval = A*ROOT::Math::crystalball_pdf(x[0], alpha, n, sigma, mean) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
     return fitval;
 }
 
@@ -294,10 +252,10 @@ double signal_over_total(Double_t *x, Double_t *par) {
     double mean;
     double sigma;
     
-    if (model == "Exponential_Gaussian") {
+    /**if (model == "Exponential_Gaussian") {
         mean = par[1] + (1.0/par[3]);
         sigma = TMath::Sqrt((par[2]*par[2]) + (1.0/(par[3]*par[3])));
-    }
+    }*/
     if (model == "Skew_Normal") {
         double delta = par[3]/TMath::Sqrt(1 + par[3]*par[3]);
         mean = par[1] + (par[2]*delta*TMath::Sqrt(2.0/TMath::Pi()));
@@ -306,7 +264,7 @@ double signal_over_total(Double_t *x, Double_t *par) {
     else {
         mean = par[1];
         sigma = par[2];
-        return 0.0;
+        //return 0.0;
     }
     
     // Evaluate the integrals and return their quotient
@@ -442,11 +400,12 @@ void my_code(string model_name) {
         num_of_peak_params = 5;
         func = new TF1("fit", crystal_ball_model,0.05,0.5,num_of_params);
         peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
-        func->SetParNames("Amplitude", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-        func->SetParameters(60,  0.14, 0.3, 1, 1,  -100000, 30000, -60000, 100, 10000);
+        func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+        func->SetParameters(60,  0.14, 0.3, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
         func->SetParLimits(0, 1, 10000.0);//integral
         func->SetParLimits(1, 0.1, 0.2); //mean
         func->SetParLimits(2, 0.005, 0.05); // width
+        func->SetParLimits(4, 1.6, 10000000.0); // n
         func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
         func->SetParLimits(7, -1000000.0, 0.0);
     }
@@ -554,7 +513,7 @@ void my_code(string model_name) {
     // A collection of variables that is needed for the next steps
     const int num_of_intervals = 5;
     TMultiGraph* peaks_over_totals = new TMultiGraph();
-    Color_t graph_colors[num_of_intervals] = {kBlack, kRed, kBlue, kGreen, kYellow};
+    Color_t graph_colors[num_of_intervals] = {kRed, kBlue, kGreen, kYellow, kBlack};
     
     double min;
     double max;
