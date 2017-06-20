@@ -8,11 +8,12 @@ copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
 The terms governing all copies or substantial portions of the Software are  
-subject to change without notice by Ivan Chernyshev until the notice in the 
+subject to change at any time by Ivan Chernyshev until the notice in the 
 README of the master copy ("master copy" means the copy of the software that 
 is located in the master branch of the Github repository 
 https://github.com/ivanache/heavy_ion_data/) that the Software is incomplete
-is removed by an authorized user. 
+is removed by an authorized user, provided that the change is posted 48 hours 
+in advance in the README or LICENCE.txt on https://github.com/ivanache/heavy_ion_data/.
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
