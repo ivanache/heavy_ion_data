@@ -4,8 +4,24 @@
 #include "TF1.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "atlasstyle-00-03-05/AtlasStyle.h"
+#include "atlasstyle-00-03-05/AtlasStyle.C"
+#include "atlasstyle-00-03-05/AtlasUtils.h"
+#include "atlasstyle-00-03-05/AtlasUtils.C"
+#include "atlasstyle-00-03-05/AtlasLabels.h"
+#include "atlasstyle-00-03-05/AtlasLabels.C"
+
+const int colBlack = 1;
+const int colRed = 2;
+const int colGreen = 3;
+const int colBlue = 4;
+const int colClear = 10;
 
 void pt_combiner() {
+    // Set ATLAS style
+    gROOT->LoadMacro("AtlasStyle.C");
+    SetAtlasStyle();
+    
     //Grab the files
     TFile* GaussianFile = new TFile("data/PionGaussianSparsesOutput.root", "READ");
     TFile* ExpGaussianFile = new TFile("data/PionExponential_GaussianSparsesOutput.root", "READ");
@@ -43,13 +59,16 @@ void pt_combiner() {
     
     // Create a TCanvas and TPads for graphing; graph out the fits, data, and residuals for the entire sample
     TCanvas* canvas = new TCanvas();
-    TPad *pad[2] = {new TPad("pad0","",0,0.42,1,1), new TPad("pad1","",0,0,1,0.42)};
+    TPad *pad[2] = {new TPad("pad0","",0,0.38,1,1), new TPad("pad1","",0,0,1,0.46)};
     
     canvas->cd();
     pad[0]->Draw();
     pad[0]->cd();
     MassData->GetYaxis()->SetTitle("Number of Entries");
+    MassData->GetYaxis()->SetTitleSize(.07);
+    MassData->GetYaxis()->SetTitleOffset(0.6);
     MassData->Draw();
+    GaussianFit->SetLineColor(kRed);
     GaussianFit->Draw("same");
     ExpGaussianFit->SetLineColor(kBlue);
     ExpGaussianFit->Draw("same");
@@ -58,12 +77,20 @@ void pt_combiner() {
     MassData->GetListOfFunctions()->Add(GaussianFit);
     MassData->GetListOfFunctions()->Add(ExpGaussianFit);
     MassData->GetListOfFunctions()->Add(CrystalBallFit);
+    myMarkerText(0.60, 0.85, colBlack, 20, "Pi0 Data",1.0);
+    myBoxText(0.60, 0.80, 0.05, colClear, colRed, "Gaussian Model");
+    myBoxText(0.60, 0.75, 0.05, colClear, colBlue, "Exponentially Modified Gaussian Model");
+    myBoxText(0.60, 0.70, 0.05, colClear, colGreen, "Crystal Ball Model");
     MassData->Write("mass-entry_fits");
     
     canvas->cd();
     pad[1]->Draw();
     pad[1]->cd();
     GaussianResiduals->GetYaxis()->SetTitle("Residuals");
+    GaussianResiduals->GetYaxis()->SetTitleSize(.07);
+    GaussianResiduals->GetYaxis()->SetTitleOffset(0.3);
+    GaussianResiduals->GetXaxis()->SetTitleSize(.06);
+    GaussianResiduals->GetXaxis()->SetTitleOffset(0.8);
     GaussianResiduals->SetMarkerColor(kRed);
     GaussianResiduals->Draw("P");
     ExpGaussianResiduals->SetMarkerColor(kBlue);
@@ -95,8 +122,8 @@ void pt_combiner() {
         // Set up the pads and the min and max momenta
         double min = intervals[i][0];
         double max = intervals[i][1];
-        pad[0] = new TPad("pad0","",0,0.42,1,1);
-        pad[1] = new TPad("pad1","",0,0.02,1,0.42);
+        pad[0] = new TPad("pad0","",0,0.38,1,1);
+        pad[1] = new TPad("pad1","",0,0,1,0.46);
         
         // load data
         GaussianFile->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), GaussianData);
@@ -115,16 +142,28 @@ void pt_combiner() {
         pad[0]->Draw();
         pad[0]->cd();
         MassData->GetYaxis()->SetTitle("Number of Entries");
+        MassData->GetYaxis()->SetTitleSize(.07);
+        MassData->GetYaxis()->SetTitleOffset(0.6);
+        MassData->GetYaxis()->SetTitle("Number of Entries");
         MassData->Draw();
         GaussianFit->Draw("same");
         ExpGaussianFit->SetLineColor(kBlue);
         ExpGaussianFit->Draw("same");
         CrystalBallFit->SetLineColor(kGreen);
         CrystalBallFit->Draw("same");
+        myMarkerText(0.60, 0.85, colBlack, 20, "Pi0 Data",1.0);
+        myBoxText(0.60, 0.80, 0.05, colClear, colRed, "Gaussian Model");
+        myBoxText(0.60, 0.75, 0.05, colClear, colBlue, "Exponentially Modified Gaussian Model");
+        myBoxText(0.60, 0.70, 0.05, colClear, colGreen, "Crystal Ball Model");
         
         canvas->cd();
         pad[1]->Draw();
         pad[1]->cd();
+        GaussianResiduals->GetYaxis()->SetTitle("Residuals");
+        GaussianResiduals->GetYaxis()->SetTitleSize(.07);
+        GaussianResiduals->GetYaxis()->SetTitleOffset(0.3);
+        GaussianResiduals->GetXaxis()->SetTitleSize(.06);
+        GaussianResiduals->GetXaxis()->SetTitleOffset(0.8);
         GaussianResiduals->GetYaxis()->SetTitle("Residuals");
         GaussianResiduals->SetMarkerColor(kRed);
         GaussianResiduals->Draw("P");
@@ -161,6 +200,12 @@ void pt_combiner() {
     mass_mom_gauss->Draw("same");
     mass_mom_crystalball->Draw("same");
     real_mass->Draw("same");
+    myText(0.30, 0.95, colBlack, "Mass vs. Momentum");
+    myBoxText(0.25, 0.85, 0.05, colClear, colBlack, "Actual pion mass");
+    myBoxText(0.25, 0.80, 0.05, colClear, colRed, "Gaussian Model");
+    myBoxText(0.25, 0.75, 0.05, colClear, colBlue, "Exponentially Modified Gaussian Model");
+    myBoxText(0.25, 0.70, 0.05, colClear, colGreen, "Crystal Ball Model");
+
     
     //Save
     canvas->SaveAs("data_comparisons/MassvsMomentum.png");
@@ -182,6 +227,9 @@ void pt_combiner() {
     width_mom_expgauss->Draw();
     width_mom_gauss->Draw("same");
     width_mom_crystalball->Draw("same");
+    myBoxText(0.25, 0.85, 0.05, colClear, colRed, "Gaussian Model");
+    myBoxText(0.25, 0.80, 0.05, colClear, colBlue, "Exponentially Modified Gaussian Model");
+    myBoxText(0.25, 0.75, 0.05, colClear, colGreen, "Crystal Ball Model");
     
     //Save
     canvas->SaveAs("data_comparisons/MassWidthvsMomentum.png");
@@ -203,6 +251,10 @@ void pt_combiner() {
     integral_mom_expgauss->Draw();
     integral_mom_gauss->Draw("same");
     integral_mom_crystalball->Draw("same");
+    myBoxText(0.25, 0.88, 0.05, colClear, colRed, "Gaussian Model");
+    myBoxText(0.25, 0.83, 0.05, colClear, colBlue, "Exponentially Modified Gaussian");
+    myBoxText(0.25, 0.78, 0.05, colClear, colGreen, "Crystal Ball Model");
+
     
     //Save
     canvas->SaveAs("data_comparisons/PeakIntegralvsMomentum.png");
