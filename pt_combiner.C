@@ -11,6 +11,10 @@ void pt_combiner() {
     TFile* ExpGaussianFile = new TFile("data/PionExponential_GaussianSparsesOutput.root", "READ");
     TFile* CrystalBallFile = new TFile("data/PionCrystal_BallSparsesOutput.root", "READ");
     
+    // Make an output root file
+    TFile* OutputFile = new TFile("data_comparisons/Output.root", "RECREATE");
+
+    
     //Grab the data from the files
     // Main data
     TH1D* GaussianData = 0;
@@ -51,6 +55,10 @@ void pt_combiner() {
     ExpGaussianFit->Draw("same");
     CrystalBallFit->SetLineColor(kGreen);
     CrystalBallFit->Draw("same");
+    MassData->GetListOfFunctions()->Add(GaussianFit);
+    MassData->GetListOfFunctions()->Add(ExpGaussianFit);
+    MassData->GetListOfFunctions()->Add(CrystalBallFit);
+    MassData->Write("mass-entry_fits");
     
     canvas->cd();
     pad[1]->Draw();
@@ -62,8 +70,15 @@ void pt_combiner() {
     ExpGaussianResiduals->Draw("P same");
     CrystalBallResiduals->SetMarkerColor(kGreen);
     CrystalBallResiduals->Draw("P same");
-    
     canvas->SaveAs("data_comparisons/testgraph.png");
+    
+    // Write residuals to the output root file
+    TMultiGraph* residualpackage = new TMultiGraph();
+    residualpackage->Add(new TGraph(GaussianResiduals));
+    residualpackage->Add(new TGraph(ExpGaussianResiduals));
+    residualpackage->Add(new TGraph (CrystalBallResiduals));
+    residualpackage->SetTitle("Residuals over Momentum; Mass (GeV); Entry residual");
+    residualpackage->Write("residuals");
     
     // Graph the momentum chart
     canvas->Clear();
@@ -121,6 +136,76 @@ void pt_combiner() {
         //Save file
         canvas->SaveAs(Form("data_comparisons/testgraph_%2.2fGeV-%2.2fGeV.png", min, max));
     }
+    
+    // Graph the mass vs momentum for each model
+    canvas->Clear();
+    // Fetch data
+    TGraph* mass_mom_gauss = 0;
+    TGraph* mass_mom_expgauss = 0;
+    TGraph* mass_mom_crystalball = 0;
+    GaussianFile->GetObject("mean-masses", mass_mom_gauss);
+    ExpGaussianFile->GetObject("mean-masses", mass_mom_expgauss);
+    CrystalBallFile->GetObject("mean-masses", mass_mom_crystalball);
+    
+    // Create the constant reference
+    TF1* real_mass = new TF1("real_mass_momentum", "[0]", 0, 20);
+    real_mass->SetParameter(0, 0.13498);
+    real_mass->SetLineWidth(2);
+    real_mass->SetLineColor(kBlack);
+
+    // Graph everything
+    mass_mom_gauss->SetLineColor(kRed);
+    mass_mom_expgauss->SetLineColor(kBlue);
+    mass_mom_crystalball->SetLineColor(kGreen);
+    mass_mom_expgauss->Draw();
+    mass_mom_gauss->Draw("same");
+    mass_mom_crystalball->Draw("same");
+    real_mass->Draw("same");
+    
+    //Save
+    canvas->SaveAs("data_comparisons/MassvsMomentum.png");
+    
+    // Graph mass width vs momentum for each interval
+    canvas->Clear();
+    // Fetch data
+    TGraph* width_mom_gauss = 0;
+    TGraph* width_mom_expgauss = 0;
+    TGraph* width_mom_crystalball = 0;
+    GaussianFile->GetObject("standard-dev-masses", width_mom_gauss);
+    ExpGaussianFile->GetObject("standard-dev-masses", width_mom_expgauss);
+    CrystalBallFile->GetObject("standard-dev-masses", width_mom_crystalball);
+    
+    // Graph everything
+    width_mom_gauss->SetLineColor(kRed);
+    width_mom_expgauss->SetLineColor(kBlue);
+    width_mom_crystalball->SetLineColor(kGreen);
+    width_mom_expgauss->Draw();
+    width_mom_gauss->Draw("same");
+    width_mom_crystalball->Draw("same");
+    
+    //Save
+    canvas->SaveAs("data_comparisons/MassWidthvsMomentum.png");
+
+    // Graph peak integral for each interval
+    canvas->Clear();
+    // Fetch data
+    TGraph* integral_mom_gauss = 0;
+    TGraph* integral_mom_expgauss = 0;
+    TGraph* integral_mom_crystalball = 0;
+    GaussianFile->GetObject("standard-dev-masses", integral_mom_gauss);
+    ExpGaussianFile->GetObject("standard-dev-masses", integral_mom_expgauss);
+    CrystalBallFile->GetObject("standard-dev-masses", integral_mom_crystalball);
+    
+    // Graph everything
+    integral_mom_gauss->SetLineColor(kRed);
+    integral_mom_expgauss->SetLineColor(kBlue);
+    integral_mom_crystalball->SetLineColor(kGreen);
+    integral_mom_expgauss->Draw();
+    integral_mom_gauss->Draw("same");
+    integral_mom_crystalball->Draw("same");
+    
+    //Save
+    canvas->SaveAs("data_comparisons/PeakIntegralvsMomentum.png");
     
     canvas->Close();
 }

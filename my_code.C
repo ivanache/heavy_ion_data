@@ -647,7 +647,7 @@ void my_code(string model_name) {
     graphcanvas->Clear();
     g_mean->Print();
     g_mean->SetTitle("Mean Masses for Various Momenta; Momentum (GeV); Mass (GeV/c^2)");
-    g_mean->GetYaxis()->SetRangeUser(0.133, 0.156);
+    g_mean->GetYaxis()->SetRangeUser(0.125, 0.156);
     //g_mean->SetMarkerSize(2);
     //g_mean->SetMarkerStyle(20);
     g_mean->Draw("AP");
@@ -679,11 +679,11 @@ void my_code(string model_name) {
     g_chisquare->Draw("AP");
     graphcanvas->SaveAs(str_concat_converter(directory_name, "reduced_chisquare_v_pT.png"));
     
-    // Graph the Gaussian distribution integrals over momentum
+    // Graph the distribution integrals over momentum
     graphcanvas->Clear();
     TGraphErrors* g_integral = new TGraphErrors(num_of_intervals, center, gaussian_integrals, widths, integral_errors);
     g_integral->Print();
-    g_integral->SetTitle("Gaussian Peak integrals for Various Momenta; Momentum (GeV); Number of Pions");
+    g_integral->SetTitle("Peak integrals for Various Momenta; Momentum (GeV); Number of Pions");
     //g_integral->GetYaxis()->SetRangeUser(0.0, 6000.0);
     g_integral->Draw("AP");
     g_integral->Write("pion-integrals");
