@@ -192,9 +192,9 @@ void pt_combiner() {
     TGraph* integral_mom_gauss = 0;
     TGraph* integral_mom_expgauss = 0;
     TGraph* integral_mom_crystalball = 0;
-    GaussianFile->GetObject("standard-dev-masses", integral_mom_gauss);
-    ExpGaussianFile->GetObject("standard-dev-masses", integral_mom_expgauss);
-    CrystalBallFile->GetObject("standard-dev-masses", integral_mom_crystalball);
+    GaussianFile->GetObject("pion-integrals", integral_mom_gauss);
+    ExpGaussianFile->GetObject("pion-integrals", integral_mom_expgauss);
+    CrystalBallFile->GetObject("pion-integrals", integral_mom_crystalball);
     
     // Graph everything
     integral_mom_gauss->SetLineColor(kRed);
