@@ -15,6 +15,8 @@ const int colBlack = 1;
 const int colRed = 2;
 const int colGreen = 3;
 const int colBlue = 4;
+const int colYellow = 5;
+const int colCyan = 7;
 const int colClear = 10;
 
 void pt_combiner() {
@@ -23,39 +25,58 @@ void pt_combiner() {
     SetAtlasStyle();
     
     //Grab the files
-    TFile* GaussianFile = new TFile("data/PionGaussianSparsesOutput.root", "READ");
-    TFile* ExpGaussianFile = new TFile("data/PionExponential_GaussianSparsesOutput.root", "READ");
-    TFile* CrystalBallFile = new TFile("data/PionCrystal_BallSparsesOutput.root", "READ");
+    TFile* cut0File = new TFile("data/Pion0cutsSparsesOutput.root", "READ");
+    TFile* cut1File = new TFile("data/Pion1cutsSparsesOutput.root", "READ");
+    TFile* cut2File = new TFile("data/Pion2cutsSparsesOutput.root", "READ");
+    TFile* cut3File = new TFile("data/Pion3cutsSparsesOutput.root", "READ");
+    TFile* cut4File = new TFile("data/Pion4cutsSparsesOutput.root", "READ");
     
     // Make an output root file
     TFile* OutputFile = new TFile("data_comparisons/Output.root", "RECREATE");
 
-    
     //Grab the data from the files
     // Main data
-    TH1D* GaussianData = 0;
-    TH1D* ExpGaussianData = 0;
-    TH1D* CrystalBallData = 0;
-    TH1D* MassData = 0;
+    TH1D* cut0Data = 0;
+    TH1D* cut1Data = 0;
+    TH1D* cut2Data = 0;
+    TH1D* cut3Data = 0;
+    TH1D* cut4Data = 0;
+    TH1D* cut0MassData = 0;
+    TH1D* cut1MassData = 0;
+    TH1D* cut2MassData = 0;
+    TH1D* cut3MassData = 0;
+    TH1D* cut4MassData = 0;
     
-    GaussianFile->GetObject("mass_pion", GaussianData);
-    ExpGaussianFile->GetObject("mass_pion", ExpGaussianData);
-    CrystalBallFile->GetObject("mass_pion", CrystalBallData);
-    GaussianFile->GetObject("unfitted_mass_pion", MassData);
+    cut0File->GetObject("mass_pion", cut0Data);
+    cut1File->GetObject("mass_pion", cut1Data);
+    cut2File->GetObject("mass_pion", cut2Data);
+    cut3File->GetObject("mass_pion", cut3Data);
+    cut4File->GetObject("mass_pion", cut4Data);
+    cut0File->GetObject("unfitted_mass_pion", cut0MassData);
+    cut1File->GetObject("unfitted_mass_pion", cut1MassData);
+    cut2File->GetObject("unfitted_mass_pion", cut2MassData);
+    cut3File->GetObject("unfitted_mass_pion", cut3MassData);
+    cut4File->GetObject("unfitted_mass_pion", cut4MassData);
     
     //residuals
-    TH1D* GaussianResiduals = 0;
-    TH1D* ExpGaussianResiduals = 0;
-    TH1D* CrystalBallResiduals = 0;
+    TH1D* cut0Residuals = 0;
+    TH1D* cut1Residuals = 0;
+    TH1D* cut2Residuals = 0;
+    TH1D* cut3Residuals = 0;
+    TH1D* cut4Residuals = 0;
     
-    GaussianFile->GetObject("residual", GaussianResiduals);
-    ExpGaussianFile->GetObject("residual", ExpGaussianResiduals);
-    CrystalBallFile->GetObject("residual", CrystalBallResiduals);
+    cut0File->GetObject("residual", cut0Residuals);
+    cut1File->GetObject("residual", cut1Residuals);
+    cut2File->GetObject("residual", cut2Residuals);
+    cut3File->GetObject("residual", cut3Residuals);
+    cut4File->GetObject("residual", cut4Residuals);
     
     // From each data object, get the fit function
-    TF1* GaussianFit = (TF1*) GaussianData->GetListOfFunctions()->FindObject("fit");
-    TF1* ExpGaussianFit = (TF1*) ExpGaussianData->GetListOfFunctions()->FindObject("fit");
-    TF1* CrystalBallFit = (TF1*) CrystalBallData->GetListOfFunctions()->FindObject("fit");
+    TF1* cut0Fit = (TF1*) cut0Data->GetListOfFunctions()->FindObject("fit");
+    TF1* cut1Fit = (TF1*) cut1Data->GetListOfFunctions()->FindObject("fit");
+    TF1* cut2Fit = (TF1*) cut2Data->GetListOfFunctions()->FindObject("fit");
+    TF1* cut3Fit = (TF1*) cut3Data->GetListOfFunctions()->FindObject("fit");
+    TF1* cut4Fit = (TF1*) cut4Data->GetListOfFunctions()->FindObject("fit");
     
     // Create a TCanvas and TPads for graphing; graph out the fits, data, and residuals for the entire sample
     TCanvas* canvas = new TCanvas();
@@ -64,53 +85,69 @@ void pt_combiner() {
     canvas->cd();
     pad[0]->Draw();
     pad[0]->cd();
-    MassData->GetYaxis()->SetTitle("Number of Entries");
-    MassData->GetYaxis()->SetTitleSize(.07);
-    MassData->GetYaxis()->SetTitleOffset(0.6);
-    MassData->Draw();
-    GaussianFit->SetLineColor(kRed);
-    GaussianFit->Draw("same");
-    ExpGaussianFit->SetLineColor(kBlue);
-    ExpGaussianFit->Draw("same");
-    CrystalBallFit->SetLineColor(kGreen);
-    CrystalBallFit->Draw("same");
-    MassData->GetListOfFunctions()->Add(GaussianFit);
-    MassData->GetListOfFunctions()->Add(ExpGaussianFit);
-    MassData->GetListOfFunctions()->Add(CrystalBallFit);
-    myMarkerText(0.60, 0.85, colBlack, 20, "Pi0 Data",1.0);
-    myBoxText(0.60, 0.80, 0.05, colClear, colRed, "Gaussian Model");
-    myBoxText(0.60, 0.75, 0.05, colClear, colBlue, "Exponentially Modified Gaussian Model");
-    myBoxText(0.60, 0.70, 0.05, colClear, colGreen, "Crystal Ball Model");
-    MassData->Write("mass-entry_fits");
+    cut0MassData->GetYaxis()->SetTitle("Number of Entries");
+    cut0MassData->GetYaxis()->SetTitleSize(.07);
+    cut0MassData->GetYaxis()->SetTitleOffset(0.6);
+    cut0MassData->SetMarkerColor(kRed);
+    cut0MassData->Draw();
+    cut1MassData->SetMarkerColor(kBlue);
+    cut1MassData->Draw("same");
+    cut2MassData->SetMarkerColor(kGreen);
+    cut2MassData->Draw("same");
+    cut3MassData->SetMarkerColor(kYellow);
+    cut3MassData->Draw("same");
+    cut4MassData->SetMarkerColor(kCyan);
+    cut4MassData->Draw("same");
+    cut0Fit->SetLineColor(kRed);
+    cut0Fit->Draw("same");
+    cut1Fit->SetLineColor(kBlue);
+    cut1Fit->Draw("same");
+    cut2Fit->SetLineColor(kGreen);
+    cut2Fit->Draw("same");
+    cut3Fit->SetLineColor(kYellow);
+    cut3Fit->Draw("same");
+    cut4Fit->SetLineColor(kCyan);
+    cut4Fit->Draw("same");
+    myBoxText(0.60, 0.80, 0.05, colClear, colRed, "No cuts");
+    myBoxText(0.60, 0.75, 0.05, colClear, colBlue, "Lambda Cut");
+    myBoxText(0.60, 0.70, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
+    myBoxText(0.60, 0.65, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
+    myBoxText(0.60, 0.60, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
     
     canvas->cd();
     pad[1]->Draw();
     pad[1]->cd();
-    GaussianResiduals->GetYaxis()->SetTitle("Residuals");
-    GaussianResiduals->GetYaxis()->SetTitleSize(.07);
-    GaussianResiduals->GetYaxis()->SetTitleOffset(0.3);
-    GaussianResiduals->GetXaxis()->SetTitleSize(.06);
-    GaussianResiduals->GetXaxis()->SetTitleOffset(0.8);
-    GaussianResiduals->SetMarkerColor(kRed);
-    GaussianResiduals->Draw("P");
-    ExpGaussianResiduals->SetMarkerColor(kBlue);
-    ExpGaussianResiduals->Draw("P same");
-    CrystalBallResiduals->SetMarkerColor(kGreen);
-    CrystalBallResiduals->Draw("P same");
+    cut0Residuals->GetYaxis()->SetTitle("Residuals");
+    cut0Residuals->GetYaxis()->SetTitleSize(.07);
+    cut0Residuals->GetYaxis()->SetTitleOffset(0.3);
+    cut0Residuals->GetXaxis()->SetTitleSize(.06);
+    cut0Residuals->GetXaxis()->SetTitleOffset(0.8);
+    cut0Residuals->SetMarkerColor(kRed);
+    cut0Residuals->Draw("P");
+    cut1Residuals->SetMarkerColor(kBlue);
+    cut1Residuals->Draw("P same");
+    cut2Residuals->SetMarkerColor(kGreen);
+    cut2Residuals->Draw("P same");
+    cut3Residuals->SetMarkerColor(kYellow);
+    cut3Residuals->Draw("P same");
+    cut4Residuals->SetMarkerColor(kCyan);
+    cut4Residuals->Draw("P same");
     canvas->SaveAs("data_comparisons/testgraph.png");
     
     // Write residuals to the output root file
     TMultiGraph* residualpackage = new TMultiGraph();
-    residualpackage->Add(new TGraph(GaussianResiduals));
-    residualpackage->Add(new TGraph(ExpGaussianResiduals));
-    residualpackage->Add(new TGraph (CrystalBallResiduals));
+    residualpackage->Add(new TGraph(cut0Residuals));
+    residualpackage->Add(new TGraph(cut1Residuals));
+    residualpackage->Add(new TGraph(cut2Residuals));
+    residualpackage->Add(new TGraph(cut3Residuals));
+    residualpackage->Add(new TGraph(cut4Residuals));
     residualpackage->SetTitle("Residuals over Momentum; Mass (GeV); Entry residual");
     residualpackage->Write("residuals");
     
     // Graph the momentum chart
     canvas->Clear();
     TH1D* Momentum = 0;
-    GaussianFile->GetObject("Momentum-entries_chart", Momentum);
+    cut0File->GetObject("Momentum-entries_chart", Momentum);
     Momentum->Draw();
     canvas->SaveAs("data_comparisons/Momentum_Graph.png");
     
@@ -126,52 +163,79 @@ void pt_combiner() {
         pad[1] = new TPad("pad1","",0,0,1,0.46);
         
         // load data
-        GaussianFile->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), GaussianData);
-        ExpGaussianFile->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), ExpGaussianData);
-        CrystalBallFile->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), CrystalBallData);
-        GaussianFile->GetObject(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max), MassData);
-        GaussianFile->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), GaussianResiduals);
-        ExpGaussianFile->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), ExpGaussianResiduals);
-        CrystalBallFile->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), CrystalBallResiduals);
-        GaussianFit = (TF1*) GaussianData->GetListOfFunctions()->FindObject("fit");
-        ExpGaussianFit = (TF1*) ExpGaussianData->GetListOfFunctions()->FindObject("fit");
-        CrystalBallFit = (TF1*) CrystalBallData->GetListOfFunctions()->FindObject("fit");
+        cut0File->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cut0Data);
+        cut1File->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cut1Data);
+        cut2File->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cut2Data);
+        cut3File->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cut3Data);
+        cut4File->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cut4Data);
+        cut0File->GetObject(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max), cut0MassData);
+        cut1File->GetObject(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max), cut1MassData);
+        cut2File->GetObject(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max), cut2MassData);
+        cut3File->GetObject(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max), cut3MassData);
+        cut4File->GetObject(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max), cut4MassData);
+        cut0File->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), cut0Residuals);
+        cut1File->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), cut1Residuals);
+        cut2File->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), cut2Residuals);
+        cut3File->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), cut3Residuals);
+        cut4File->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), cut4Residuals);
+        cut0Fit = (TF1*) cut0Data->GetListOfFunctions()->FindObject("fit");
+        cut1Fit = (TF1*) cut1Data->GetListOfFunctions()->FindObject("fit");
+        cut2Fit = (TF1*) cut2Data->GetListOfFunctions()->FindObject("fit");
+        cut3Fit = (TF1*) cut3Data->GetListOfFunctions()->FindObject("fit");
+        cut4Fit = (TF1*) cut4Data->GetListOfFunctions()->FindObject("fit");
         
         // Graph
         canvas->cd();
         pad[0]->Draw();
         pad[0]->cd();
-        MassData->GetYaxis()->SetTitle("Number of Entries");
-        MassData->GetYaxis()->SetTitleSize(.07);
-        MassData->GetYaxis()->SetTitleOffset(0.6);
-        MassData->GetYaxis()->SetTitle("Number of Entries");
-        MassData->Draw();
-        GaussianFit->Draw("same");
-        ExpGaussianFit->SetLineColor(kBlue);
-        ExpGaussianFit->Draw("same");
-        CrystalBallFit->SetLineColor(kGreen);
-        CrystalBallFit->Draw("same");
-        myMarkerText(0.60, 0.85, colBlack, 20, "Pi0 Data",1.0);
-        myBoxText(0.60, 0.80, 0.05, colClear, colRed, "Gaussian Model");
-        myBoxText(0.60, 0.75, 0.05, colClear, colBlue, "Exponentially Modified Gaussian Model");
-        myBoxText(0.60, 0.70, 0.05, colClear, colGreen, "Crystal Ball Model");
+        cut0MassData->GetYaxis()->SetTitle("Number of Entries");
+        cut0MassData->GetYaxis()->SetTitleSize(.07);
+        cut0MassData->GetYaxis()->SetTitleOffset(0.6);
+        cut0MassData->GetYaxis()->SetTitle("Number of Entries");
+        cut0MassData->SetMarkerColor(kRed);
+        cut0MassData->Draw();
+        cut1MassData->SetMarkerColor(kBlue);
+        cut1MassData->Draw("same");
+        cut2MassData->SetMarkerColor(kGreen);
+        cut2MassData->Draw("same");
+        cut3MassData->SetMarkerColor(kYellow);
+        cut3MassData->Draw("same");
+        cut4MassData->SetMarkerColor(kCyan);
+        cut4MassData->Draw("same");
+        cut0Fit->SetLineColor(kRed);
+        cut0Fit->Draw("same");
+        cut1Fit->SetLineColor(kBlue);
+        cut1Fit->Draw("same");
+        cut2Fit->SetLineColor(kGreen);
+        cut2Fit->Draw("same");
+        cut3Fit->SetLineColor(kYellow);
+        cut3Fit->Draw("same");
+        cut4Fit->SetLineColor(kCyan);
+        cut4Fit->Draw("same");
+        myBoxText(0.60, 0.80, 0.05, colClear, colRed, "No cuts");
+        myBoxText(0.60, 0.75, 0.05, colClear, colBlue, "Lambda Cut");
+        myBoxText(0.60, 0.70, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
+        myBoxText(0.60, 0.65, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
+        myBoxText(0.60, 0.60, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
         
         canvas->cd();
         pad[1]->Draw();
         pad[1]->cd();
-        GaussianResiduals->GetYaxis()->SetTitle("Residuals");
-        GaussianResiduals->GetYaxis()->SetTitleSize(.07);
-        GaussianResiduals->GetYaxis()->SetTitleOffset(0.3);
-        GaussianResiduals->GetXaxis()->SetTitleSize(.06);
-        GaussianResiduals->GetXaxis()->SetTitleOffset(0.8);
-        GaussianResiduals->GetYaxis()->SetTitle("Residuals");
-        GaussianResiduals->SetMarkerColor(kRed);
-        GaussianResiduals->Draw("P");
-        ExpGaussianResiduals->SetMarkerColor(kBlue);
-        ExpGaussianResiduals->Draw("P same");
-        CrystalBallResiduals->SetMarkerColor(kGreen);
-        CrystalBallResiduals->Draw("P same");
-        
+        cut0Residuals->GetYaxis()->SetTitle("Residuals");
+        cut0Residuals->GetYaxis()->SetTitleSize(.07);
+        cut0Residuals->GetYaxis()->SetTitleOffset(0.3);
+        cut0Residuals->GetXaxis()->SetTitleSize(.06);
+        cut0Residuals->GetXaxis()->SetTitleOffset(0.8);
+        cut0Residuals->SetMarkerColor(kRed);
+        cut0Residuals->Draw("P");
+        cut1Residuals->SetMarkerColor(kBlue);
+        cut1Residuals->Draw("P same");
+        cut2Residuals->SetMarkerColor(kGreen);
+        cut2Residuals->Draw("P same");
+        cut3Residuals->SetMarkerColor(kYellow);
+        cut3Residuals->Draw("P same");
+        cut4Residuals->SetMarkerColor(kCyan);
+        cut4Residuals->Draw("P same");
         //Save file
         canvas->SaveAs(Form("data_comparisons/testgraph_%2.2fGeV-%2.2fGeV.png", min, max));
     }
@@ -179,12 +243,16 @@ void pt_combiner() {
     // Graph the mass vs momentum for each model
     canvas->Clear();
     // Fetch data
-    TGraph* mass_mom_gauss = 0;
-    TGraph* mass_mom_expgauss = 0;
-    TGraph* mass_mom_crystalball = 0;
-    GaussianFile->GetObject("mean-masses", mass_mom_gauss);
-    ExpGaussianFile->GetObject("mean-masses", mass_mom_expgauss);
-    CrystalBallFile->GetObject("mean-masses", mass_mom_crystalball);
+    TGraph* mass_mom_0cut = 0;
+    TGraph* mass_mom_1cut = 0;
+    TGraph* mass_mom_2cut = 0;
+    TGraph* mass_mom_3cut = 0;
+    TGraph* mass_mom_4cut = 0;
+    cut0File->GetObject("mean-masses", mass_mom_0cut);
+    cut1File->GetObject("mean-masses", mass_mom_1cut);
+    cut2File->GetObject("mean-masses", mass_mom_2cut);
+    cut3File->GetObject("mean-masses", mass_mom_3cut);
+    cut4File->GetObject("mean-masses", mass_mom_4cut);
     
     // Create the constant reference
     TF1* real_mass = new TF1("real_mass_momentum", "[0]", 0, 20);
@@ -193,18 +261,25 @@ void pt_combiner() {
     real_mass->SetLineColor(kBlack);
 
     // Graph everything
-    mass_mom_gauss->SetLineColor(kRed);
-    mass_mom_expgauss->SetLineColor(kBlue);
-    mass_mom_crystalball->SetLineColor(kGreen);
-    mass_mom_expgauss->Draw();
-    mass_mom_gauss->Draw("same");
-    mass_mom_crystalball->Draw("same");
+    mass_mom_0cut->SetLineColor(kRed);
+    mass_mom_0cut->SetMarkerColor(kRed);
+    mass_mom_1cut->SetLineColor(kBlue);
+    mass_mom_2cut->SetLineColor(kGreen);
+    mass_mom_3cut->SetLineColor(kYellow);
+    mass_mom_4cut->SetLineColor(kCyan);
+    mass_mom_0cut->Draw();
+    mass_mom_1cut->Draw("same");
+    mass_mom_2cut->Draw("same");
+    mass_mom_3cut->Draw("same");
+    mass_mom_4cut->Draw("same");
     real_mass->Draw("same");
     myText(0.30, 0.95, colBlack, "Mass vs. Momentum");
-    myBoxText(0.25, 0.85, 0.05, colClear, colBlack, "Actual pion mass");
-    myBoxText(0.25, 0.80, 0.05, colClear, colRed, "Gaussian Model");
-    myBoxText(0.25, 0.75, 0.05, colClear, colBlue, "Exponentially Modified Gaussian Model");
-    myBoxText(0.25, 0.70, 0.05, colClear, colGreen, "Crystal Ball Model");
+    myBoxText(0.50, 0.46, 0.05, colClear, colBlack, "Actual pion mass");
+    myBoxText(0.50, 0.41, 0.05, colClear, colRed, "No cuts");
+    myBoxText(0.50, 0.36, 0.05, colClear, colBlue, "Lambda Cut");
+    myBoxText(0.50, 0.31, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
+    myBoxText(0.50, 0.26, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
+    myBoxText(0.50, 0.21, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
 
     
     //Save
@@ -213,48 +288,71 @@ void pt_combiner() {
     // Graph mass width vs momentum for each interval
     canvas->Clear();
     // Fetch data
-    TGraph* width_mom_gauss = 0;
-    TGraph* width_mom_expgauss = 0;
-    TGraph* width_mom_crystalball = 0;
-    GaussianFile->GetObject("standard-dev-masses", width_mom_gauss);
-    ExpGaussianFile->GetObject("standard-dev-masses", width_mom_expgauss);
-    CrystalBallFile->GetObject("standard-dev-masses", width_mom_crystalball);
-    
+    TGraph* width_mom_0cut = 0;
+    TGraph* width_mom_1cut = 0;
+    TGraph* width_mom_2cut = 0;
+    TGraph* width_mom_3cut = 0;
+    TGraph* width_mom_4cut = 0;
+    cut0File->GetObject("standard-dev-masses", width_mom_0cut);
+    cut1File->GetObject("standard-dev-masses", width_mom_1cut);
+    cut2File->GetObject("standard-dev-masses", width_mom_2cut);
+    cut3File->GetObject("standard-dev-masses", width_mom_3cut);
+    cut4File->GetObject("standard-dev-masses", width_mom_4cut);
+                       
     // Graph everything
-    width_mom_gauss->SetLineColor(kRed);
-    width_mom_expgauss->SetLineColor(kBlue);
-    width_mom_crystalball->SetLineColor(kGreen);
-    width_mom_expgauss->Draw();
-    width_mom_gauss->Draw("same");
-    width_mom_crystalball->Draw("same");
-    myBoxText(0.25, 0.85, 0.05, colClear, colRed, "Gaussian Model");
-    myBoxText(0.25, 0.80, 0.05, colClear, colBlue, "Exponentially Modified Gaussian Model");
-    myBoxText(0.25, 0.75, 0.05, colClear, colGreen, "Crystal Ball Model");
-    
+    width_mom_0cut->SetLineColor(kRed);
+    width_mom_0cut->SetMarkerColor(kRed);
+    width_mom_0cut->GetYaxis()->SetRangeUser(7., 19.);
+    width_mom_1cut->SetLineColor(kBlue);
+    width_mom_2cut->SetLineColor(kGreen);
+    width_mom_3cut->SetLineColor(kYellow);
+    width_mom_4cut->SetLineColor(kCyan);
+    width_mom_0cut->Draw();
+    width_mom_1cut->Draw("same");
+    width_mom_2cut->Draw("same");
+    width_mom_3cut->Draw("same");
+    width_mom_4cut->Draw("same");
+    myBoxText(0.40, 0.85, 0.05, colClear, colRed, "No cuts");
+    myBoxText(0.40, 0.80, 0.05, colClear, colBlue, "Lambda Cut");
+    myBoxText(0.40, 0.75, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
+    myBoxText(0.40, 0.70, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
+    myBoxText(0.40, 0.65, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
+
     //Save
     canvas->SaveAs("data_comparisons/MassWidthvsMomentum.png");
 
     // Graph peak integral for each interval
     canvas->Clear();
     // Fetch data
-    TGraph* integral_mom_gauss = 0;
-    TGraph* integral_mom_expgauss = 0;
-    TGraph* integral_mom_crystalball = 0;
-    GaussianFile->GetObject("pion-integrals", integral_mom_gauss);
-    ExpGaussianFile->GetObject("pion-integrals", integral_mom_expgauss);
-    CrystalBallFile->GetObject("pion-integrals", integral_mom_crystalball);
+    TGraph* integral_mom_0cut = 0;
+    TGraph* integral_mom_1cut = 0;
+    TGraph* integral_mom_2cut = 0;
+    TGraph* integral_mom_3cut = 0;
+    TGraph* integral_mom_4cut = 0;
+    cut0File->GetObject("pion-integrals", integral_mom_0cut);
+    cut1File->GetObject("pion-integrals", integral_mom_1cut);
+    cut2File->GetObject("pion-integrals", integral_mom_2cut);
+    cut3File->GetObject("pion-integrals", integral_mom_3cut);
+    cut4File->GetObject("pion-integrals", integral_mom_4cut);
     
     // Graph everything
-    integral_mom_gauss->SetLineColor(kRed);
-    integral_mom_expgauss->SetLineColor(kBlue);
-    integral_mom_crystalball->SetLineColor(kGreen);
-    integral_mom_expgauss->Draw();
-    integral_mom_gauss->Draw("same");
-    integral_mom_crystalball->Draw("same");
-    myBoxText(0.25, 0.88, 0.05, colClear, colRed, "Gaussian Model");
-    myBoxText(0.25, 0.83, 0.05, colClear, colBlue, "Exponentially Modified Gaussian");
-    myBoxText(0.25, 0.78, 0.05, colClear, colGreen, "Crystal Ball Model");
-
+    integral_mom_0cut->SetLineColor(kRed);
+    integral_mom_0cut->SetMarkerColor(kRed);
+    integral_mom_0cut->GetYaxis()->SetRangeUser(500., 5000.);
+    integral_mom_1cut->SetLineColor(kBlue);
+    integral_mom_2cut->SetLineColor(kGreen);
+    integral_mom_3cut->SetLineColor(kYellow);
+    integral_mom_4cut->SetLineColor(kCyan);
+    integral_mom_0cut->Draw();
+    integral_mom_1cut->Draw("same");
+    integral_mom_2cut->Draw("same");
+    integral_mom_3cut->Draw("same");
+    integral_mom_4cut->Draw("same");
+    myBoxText(0.45, 0.88, 0.05, colClear, colRed, "No cuts");
+    myBoxText(0.45, 0.83, 0.05, colClear, colBlue, "Lambda Cut");
+    myBoxText(0.45, 0.78, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
+    myBoxText(0.45, 0.73, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
+    myBoxText(0.45, 0.68, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
     
     //Save
     canvas->SaveAs("data_comparisons/PeakIntegralvsMomentum.png");

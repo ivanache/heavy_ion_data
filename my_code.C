@@ -10,15 +10,18 @@
 #include <TGraphErrors.h>
 #include <TCanvas.h>
 #include <iostream>
+#include "atlasstyle-00-03-05/AtlasStyle.h"
+#include "atlasstyle-00-03-05/AtlasStyle.C"
+#include "atlasstyle-00-03-05/AtlasUtils.h"
+#include "atlasstyle-00-03-05/AtlasUtils.C"
+#include "atlasstyle-00-03-05/AtlasLabels.h"
+#include "atlasstyle-00-03-05/AtlasLabels.C"
 
 // The output file
 TFile* fOut;
 
 // The general filepath string
 string directory_name;
-
-// The string with the model name
-string model;
 
 //variables of hPion
 const int axis_pion_Cen    = 0;
@@ -31,17 +34,6 @@ const int axis_pionLambda1 = 17;
 const int axis_pionLambda2 = 18;
 const int axis_pionNcells1 = 19;
 const int axis_pionNcells2 = 20;
-
-/**
- // Concatenates two C-strings without changing the contents of the input parameters
- char* output_strcat(char* input1, char* input2){
- char *sumstring = new char[strlen(input1) + strlen(input2)];
- strcpy(sumstring, input1);
- strcat(sumstring, input2);
- 
- return sumstring;
- }
- */
 
 // Concatenates two strings and gives a char array
 char* str_concat_converter(string str1, string str2){
@@ -61,32 +53,7 @@ void SetCut(THnSparse* h, const int axis, double min, double max){
     return;
 }
 
-// The fitting functions
-// Fitting models:
-// Primary one: Ae^(x-mean)^2/(2*sigma^2) + B*x^4 + C*x^3 + D*x^2 + E*x + F
-//Ae^(x-mean)^2/(2*sigma^2) + B*sin((x-C)/D)/x^E + F
-// Ae^(x-mean)^2/(2*sigma^2) + B*(x - C)^D + E
-// Ae^(x-mean)^2/(2*sigma^2) + B/(1 + Ce^D(x-E)) + F
-// Ae^(x-mean)^2/(2*sigma^2) + B*ln(x[0])/ln(C) + E
-double compound_model(Double_t *x,Double_t *par) {
-    double arg = 0;
-    
-    double A = par[0];
-    double mean = par[1];
-    double sigma = par[2];
-    double B = par[3];
-    double C = par[4];
-    double D = par[5];
-    double E = par[6];
-    double F = par[7];
-    
-    if (sigma != 0)
-        arg = (x[0] - mean)/sigma;
-    
-    double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
-    return fitval;
-}
-
+// The fitting function
 // The peak for the crystal ball function (because it is piecewise)
 double crystal_ball_function_peak(Double_t *x, Double_t *par) {
     double A = par[0];
@@ -115,126 +82,6 @@ double crystal_ball_model(Double_t *x, Double_t *par) {
     return fitval;
 }
 
-// Non-bell curve peaks
-// Gaussian plus exponential
-double exp_gaussian_model(Double_t *x, Double_t* par) {
-    double arg = 0;
-    
-    double A = par[0];
-    double mean = par[1];
-    double sigma = par[2];
-    double lambda = par[3];
-    double B = par[4];
-    double C = par[5];
-    double D = par[6];
-    double E = par[7];
-    double F = par[8];
-    
-    if (sigma != 0)
-        arg = (mean + lambda*sigma*sigma - x[0])/(TMath::Sqrt(2)*sigma);
-    
-    double lambda_over_two = lambda/2.0;
-    
-    double fitval = A*lambda_over_two*TMath::Exp(lambda_over_two*(2*mean + lambda*sigma*sigma - 2*x[0]))*TMath::Erfc(arg) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
-    return fitval;
-}
-
-/**double skew_normal_dist(Double_t *x, Double_t* par) {
-    double arg = 0;
-    
-    double A = par[0];
-    double position = par[1];
-    double scale = par[2];
-    double shape = par[3];
-    double B = par[4];
-    double C = par[5];
-    double D = par[6];
-    double E = par[7];
-    double F = par[8];
-    
-    if (scale != 0)
-        arg = ((x[0] - position)/scale);
-    
-    double sqrt_pi_2 = TMath::Sqrt(TMath::Pi())/TMath::Sqrt(2);
-    
-    double fitval = (A/(scale*TMath::Pi()))*TMath::Exp(-0.5*arg*arg)*sqrt_pi_2*(TMath::Erf(shape*(x[0] - position)/(scale*TMath::Sqrt(2))) + 1.0) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
-    return fitval;
-}*/
-
-/**
- double sin_model(Double_t *x,Double_t *par) {
- double arg = 0;
- 
- double A = par[0];
- double mean = par[1];
- double sigma = par[2];
- double B = par[3];
- double C = par[4];
- double D = par[5];
- double E = par[6];
- double F = par[7];
- 
- if (sigma != 0)
- arg = (x[0] - mean)/sigma;
- 
- double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Sin((x[0] - C)/D)/TMath::Power(x[0], E) + F;
- return fitval;
- }
- double logistic_model(Double_t *x,Double_t *par){
- double arg = 0;
- 
- double A = par[0];
- double mean = par[1];
- double sigma = par[2];
- double B = par[3];
- double C = par[4];
- double D = par[5];
- double E = par[6];
- 
- if (sigma != 0)
- arg = (x[0] - mean)/sigma;
- 
- double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Log(x[0] - C)/TMath::Log(D) + E;
- return fitval;
- 
- }
- double logarithmic_model(Double_t *x,Double_t *par) {
- double arg = 0;
- 
- double A = par[0];
- double mean = par[1];
- double sigma = par[2];
- double B = par[3];
- double C = par[4];
- double D = par[5];
- double E = par[6];
- double F = par[7];
- 
- if (sigma != 0)
- arg = (x[0] - mean)/sigma;
- 
- double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B/(1 + C*TMath::Exp(D*(x[0]-E))) + F;
- return fitval;
- }
- double power_model(Double_t *x,Double_t *par) {
- double arg = 0;
- 
- double A = par[0];
- double mean = par[1];
- double sigma = par[2];
- double B = par[3];
- double C = par[4];
- double D = par[5];
- double E = par[6];
- 
- if (sigma != 0)
- arg = (x[0] - mean)/sigma;
- 
- double fitval = A*(1.0/(sigma*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*arg*arg) + B*TMath::Power((x[0] - C), D) + E;
- return fitval;
- }
- */
-
 // The three functions used in this program: the first for the entire data, second for the peak alone, third for the background alone
 TF1 *func;
 TF1 *peak;
@@ -251,16 +98,6 @@ double signal_over_total(Double_t *x, Double_t *par) {
     // Based on the peak model, derive the mean and sigma
     double mean;
     double sigma;
-    
-    /**if (model == "Exponential_Gaussian") {
-        mean = par[1] + (1.0/par[3]);
-        sigma = TMath::Sqrt((par[2]*par[2]) + (1.0/(par[3]*par[3])));
-    }*/
-    /**if (model == "Skew_Normal") {
-        double delta = par[3]/TMath::Sqrt(1 + par[3]*par[3]);
-        mean = par[1] + (par[2]*delta*TMath::Sqrt(2.0/TMath::Pi()));
-        sigma = par[2]*TMath::Sqrt(1 - (2.0*delta*delta/TMath::Pi()));
-    }*/
     mean = par[1];
     sigma = par[2];
     
@@ -286,14 +123,17 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-// Precondition: model_name is "Gaussian", "Exponential_Gaussian", "Crystal_Ball"
-void my_code(string model_name) {
-    model = model_name;
-    directory_name = "data/" + model_name + "/";
+// Precondition: NumOfCuts is 0, 1, 2, 3, or 4
+void my_code(int NumOfCuts) {
+    // Set ATLAS style
+    gROOT->LoadMacro("AtlasStyle.C");
+    SetAtlasStyle();
+    
+    directory_name = Form("data/%icuts/", NumOfCuts);
     
     //Open the files
     TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
-    string rootfilename = "data/Pion" + model_name + "SparsesOutput.root";
+    string rootfilename = Form("data/Pion%iCutsSparsesOutput.root", NumOfCuts);
     fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
     fIn->Print(); //print file content
     
@@ -303,12 +143,11 @@ void my_code(string model_name) {
     
     //The TCanvas and TPads (for sub-canvassing)
     TCanvas* graphcanvas = new TCanvas();
-    TPad *pad[2] = {new TPad("pad0","",0,0.42,1,1), new TPad("pad1","",0,0,1,0.42)};
+    TPad *pad[2] = {new TPad("pad0","",0,0.38,1,1), new TPad("pad1","",0,0,1,0.46)};
     
     //For the mass plot, restrict to mass between 0.08 and 0.25 and the momentum to between 5 GeV and 18 GeV
     //plot the data for the asymmetry, both lambdas, the angle, and number of cells
     SetCut(h_Pion, axis_pionPt, 8.0, 15.0);
-    //SetCut(h_Pion, axis_pionPt, 5.0, 18.0);
     SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
     
     graph_raw_data(h_Pion, axis_asymmetry, graphcanvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"), "asymmetry");
@@ -319,24 +158,53 @@ void my_code(string model_name) {
     graph_raw_data(h_Pion, axis_pionNcells2, graphcanvas, str_concat_converter(directory_name, "Ncells2_pion_plot.png"), "Ncells2");
     
     // restrict asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value to above 0.015, and Ncells 1 and 2 to above 1.5
+    // Omit cuts in the order that is in reverse to this, as required by the number of cuts
     // Also set the maximum y value of the pion entries vs mass to 600
-    SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-    SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
-    SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-    SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
-    SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
-    SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
-    std::cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
-    double fit_y_max = 600.0;
+    double fit_y_max;
+    if(NumOfCuts == 0) {
+        cout << "No cuts done\n\n";
+        fit_y_max = 1600.0;
+    }
+    else if (NumOfCuts == 1) {
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        cout << "Cuts: lambda02\n\n";
+        fit_y_max = 1000.0;
+    }
+    else if (NumOfCuts == 2) {
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+        cout << "Cuts: lambda02 and asymmetry\n\n";
+        fit_y_max = 1000.0;
+    }
+    else if (NumOfCuts == 3) {
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+        std::cout << "Cuts: lambda02, asymmetry, and angle\n\n";
+        fit_y_max = 600.0;
+    }
+    else if (NumOfCuts == 4) {
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+        SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
+        SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
+        std::cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
+        fit_y_max = 600.0;
+    }
     
     // plot mass data, write it into the root file, and set up the fit function
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
     TH1D* residual = (TH1D*)hMass->Clone("residual");
     const double MASSWIDTH = hMass->GetBinWidth(1);
-    hMass->SetAxisRange(0., 2500., "Y");
+    hMass->SetAxisRange(0., 5000., "Y");
     hMass->GetYaxis()->SetTitle("Number of Entries");
     hMass->GetYaxis()->SetTitleSize(.05);
-    hMass->GetYaxis()->SetTitleOffset(0.5);
+    hMass->GetYaxis()->SetTitleOffset(0.8);
     graphcanvas->cd();
     pad[0]->Draw();
     pad[0]->cd();
@@ -347,117 +215,23 @@ void my_code(string model_name) {
     int num_of_params = 8;
     int num_of_peak_params = 3;
     background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
-    if (model_name == "Gaussian") {
-        func = new TF1("fit", compound_model,0.05,0.5,num_of_params);
-        peak = new TF1("mass peak", "[0]*(1.0/([2]*TMath::Sqrt(2*TMath::Pi())))*TMath::Exp(-0.5*((x - [1])/[2])*((x - [1])/[2]))", 0.08, 0.26);
-        func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-        func->SetParameters(60,  0.14, 0.3,  -100000, 30000, -60000, 0, 10000);
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-        func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
-        func->SetParLimits(5, -1000000.0, 0.0);
-        
-    }
-    if (model_name == "Exponential_Gaussian") {
-        num_of_params = 9;
-        num_of_peak_params = 4;
-        func = new TF1("fit", exp_gaussian_model,0.05,0.5,num_of_params);
-        peak = new TF1("mass peak", "[0]*([3]/2.0)*TMath::Exp(([3]/2.0)*(2*[1] + [3]*[2]*[2] - 2*x[0]))*TMath::Erfc(([1] + [3]*[2]*[2] - x[0])/(TMath::Sqrt(2)*[2]))", 0.08, 0.26);
-        func->SetParNames("Integral", "Mean", "Sigma", "Lambda", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-        func->SetParameters(60,  0.14, 0.3, 100, -100000, 1000000, -60000, 10, 10000);
-        func->SetParLimits(0, 1.0, 50.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //Mean
-        func->SetParLimits(2, 0.00005, 0.02); // width
-        func->SetParLimits(3, 0.0, 1000.0); //lambda
-        func->SetParLimits(4, -1000000.0, 0.0); // Quadric factor
-        func->SetParLimits(5, 0.0, 1000000.0); // Cubic factor
-        func->SetParLimits(6, -1000000.0, 0.0); // Quadratic factor
-        func->SetParLimits(7, 0.0, 10000000.0); // Linear factor
-        func->SetParLimits(8, -10000000.0, 0.0); // Constant
-    }
+    num_of_params = 10;
+    num_of_peak_params = 5;
+    func = new TF1("fit", crystal_ball_model,0.05,0.5,num_of_params);
+    peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
+    func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+    func->SetParameters(60,  0.14, 0.3, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
+    func->SetParLimits(0, 1, 9000.0);//integral
+    func->SetParLimits(1, 0.1, 0.2); //mean
+    func->SetParLimits(2, 0.005, 0.05); // width
+    func->SetParLimits(4, 1.6, 10000000.0); // n
+    func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
+    func->SetParLimits(7, -1000000.0, 0.0);
     
-    /**if (model_name == "Skew_Normal") {
-        num_of_params = 9;
-        num_of_peak_params = 4;
-        func = new TF1("fit", skew_normal_dist,0.05,0.5,num_of_params);
-        peak = new TF1("mass peak", "([0]/([2]*TMath::Pi()))*TMath::Exp(-0.5*((x[0] - [1])/[2])*((x - [1])/[2]))*TMath::Sqrt(TMath::Pi())/TMath::Sqrt(2)*(TMath::Erf([3]*(x - [1])/([2]*TMath::Sqrt(2))) + 1.0)");
-        func->SetParNames("Integral", "Location", "Scale", "Shape", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-        func->SetParameters(60,  0.14, 0.3, 100, -100000, 1000000, -60000, 10, 10000);
-        func->SetParLimits(0, 1.0, 100.0); // Integral
-        func->SetParLimits(1, 0, 0.3); // Position
-        func->SetParLimits(2, 0.005, 0.05); // width
-        func->SetParLimits(3, -10, 10); //Shape
-        func->SetParLimits(4, -1000000.0, 0.0); // Quadric and quadratic factors
-        func->SetParLimits(6, -1000000.0, 0.0);
-    }*/
-    
-   if (model_name == "Crystal_Ball") {
-        num_of_params = 10;
-        num_of_peak_params = 5;
-        func = new TF1("fit", crystal_ball_model,0.05,0.5,num_of_params);
-        peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
-        func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-        func->SetParameters(60,  0.14, 0.3, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
-        func->SetParLimits(0, 1, 10000.0);//integral
-        func->SetParLimits(1, 0.1, 0.2); //mean
-        func->SetParLimits(2, 0.005, 0.05); // width
-        func->SetParLimits(4, 1.6, 10000000.0); // n
-        func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
-        func->SetParLimits(7, -1000000.0, 0.0);
-    }
-    
-    /**
-     if (model_name == "Logistic") {
-     func = new TF1("fit", logistic_model,0.05,0.5,num_of_params);
-     background = new TF1("background curve", "[0]/(1 + [1]*TMath::Exp([2]*(x-[3]))) + [4]", 0.08, 0.26);
-     }
-     if (model_name == "Sine") {
-     func = new TF1("fit", sin_model,0.05,0.5,num_of_params);
-     background = new TF1("background curve", "[0]*TMath::Sin((x - [1])/[2])/TMath::Power(x, [3]) + [4]", 0.08, 0.26);
-     }
-     if (model_name == "Logarithmic") {
-     num_of_params = 7;
-     func = new TF1("fit", logarithmic_model,0.05,0.5,num_of_params);
-     background = new TF1("background curve", "[0]*TMath::Log(x - [1])/TMath::Log([2]) + [3]", 0.08, 0.26);
-     }
-     if (model_name == "Power") {
-     num_of_params = 7;
-     func = new TF1("fit", power_model,0.05,0.5,num_of_params);
-     background = new TF1("background curve", "[0]*TMath::Power((x - [1]), [2]) + [3]", 0.08, 0.26);
-     }
-     if (model_name == "Logarithmic")
-     func->SetParNames("Integral", "Mean", "Sigma", "Logarithmic coeff", "Horiz shift", "Base", "Constant");
-     func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
-     func->SetParLimits(0, 1, 10000.0);//integral
-     func->SetParLimits(1, 0.1, 0.2); //mean
-     func->SetParLimits(2, 0.005, 0.05); // width
-     if (model_name == "Sine") {
-     func->SetParNames("Integral", "Mean", "Sigma", "Damped Sine coeff", "Shift", "Period Factor", "Damping Exponent", "Constant");
-     func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
-     func->SetParLimits(0, 1, 10000.0);//integral
-     func->SetParLimits(1, 0.1, 0.2); //mean
-     func->SetParLimits(2, 0.005, 0.05); // width
-     }
-     if (model_name == "Logistic") {
-     func->SetParNames("Integral", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
-     func->SetParameters(6,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
-     func->SetParLimits(0, 1, 10000.0);//integral
-     func->SetParLimits(1, 0.1, 0.2); //mean
-     func->SetParLimits(2, 0.005, 0.05); // width
-     }
-     if (model_name == "Power") {
-     func->SetParNames("Integral", "Mean", "Sigma", "Power Coeff", "Horiz shft", "Exponent", "Constant");
-     func->SetParameters(60,  0.14, 0.3,  3.0, 0.13, 9, 1, 10);
-     func->SetParLimits(0, 1, 10000.0);//integral
-     func->SetParLimits(1, 0.1, 0.2); //mean
-     func->SetParLimits(2, 0.005, 0.05); // width
-     }
-     */
-    //func->SetParNames("Amplitude", "Mean", "Sigma", "Logistic asymptote", "e-coeff", "In-exponent coeff", "Shift", "Constant");
     
     // Plot the fit for the mass and (separately) the Gaussian and background components of it
     hMass->Fit(func);
+    func->SetLineColor(kRed);
     func->Draw("same");
     std::cout << "Reduced Chi Square " << (func->GetChisquare())/10 << std::endl; //Reduced Chi Square of the mass vs entries curve (function has 18 degrees of freedom, 7 parameters)
     int i = 0;
@@ -480,10 +254,6 @@ void my_code(string model_name) {
         if (hMass->GetBinError(i))
             residual->SetBinContent(i, ((hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i)));
         residual->SetBinError(i, 0); //Residuals don't have errors
-        //std::cout<< "Bin: " << i << std::endl;
-        //std::cout<< (hMass->GetBinContent(i)) << std::endl;
-        //std::cout<< (func->Eval(hMass->GetBinCenter(i))) << std::endl;
-        //std::cout<< (hMass->GetBinError(i)) << std::endl << std::endl;
     }
     cout << std::endl;
     graphcanvas->cd();
@@ -533,8 +303,8 @@ void my_code(string model_name) {
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
         
-        pad[0] = new TPad("pad0","",0,0.42,1,1);
-        pad[1] = new TPad("pad1","",0,0.02,1,0.42);
+        pad[0] = new TPad("pad0","",0,0.38,1,1);
+        pad[1] = new TPad("pad1","",0,0,1,0.46);
         min = intervals[i][0];
         max = intervals[i][1]; // Interval bounds
         
@@ -552,6 +322,7 @@ void my_code(string model_name) {
         // Find a fit just as you did for the entire data set and the reduced chi square of the fit into its respective array
         // Graph the fit and (separately) the Gaussian component of it
         hMass->Fit(func);
+        func->SetLineColor(kRed);
         chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         func->Draw("same");
@@ -659,7 +430,7 @@ void my_code(string model_name) {
     graphcanvas->Clear();
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
-    g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass (MeV/c^2)");
+    g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass Width (MeV/c^2)");
     g_sigma->GetYaxis()->SetRangeUser(7.5, 16.0);
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
