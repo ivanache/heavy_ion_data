@@ -1,5 +1,5 @@
 /**
- my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses_060717.root
+ my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses_062017.root
  the macro must be called with two bools, the first to tell if the lambda must be cut, the second to tell if asymmetry must be cut
  */
 
@@ -132,7 +132,7 @@ void my_code(int NumOfCuts) {
     directory_name = Form("data/%icuts/", NumOfCuts);
     
     //Open the files
-    TFile* fIn = new TFile("THnSparses_060717.root","READ"); //get file
+    TFile* fIn = new TFile("THnSparses_062017.root","READ"); //get file
     string rootfilename = Form("data/Pion%iCutsSparsesOutput.root", NumOfCuts);
     fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
     fIn->Print(); //print file content
@@ -221,10 +221,10 @@ void my_code(int NumOfCuts) {
     peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
     func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
     func->SetParameters(60,  0.14, 0.3, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
-    func->SetParLimits(0, 1, 9000.0);//integral
+    func->SetParLimits(0, 1, 8000.0);//integral
     func->SetParLimits(1, 0.1, 0.2); //mean
     func->SetParLimits(2, 0.005, 0.05); // width
-    func->SetParLimits(4, 1.6, 10000000.0); // n
+    func->SetParLimits(4, 1.5, 10000000.0); // n
     func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
     func->SetParLimits(7, -1000000.0, 0.0);
     
