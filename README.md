@@ -13,4 +13,4 @@ Creator: Ivan Chernyshev, June 20 2017
 - my_code: the main generator of the data graphs produced by this software
 - pt_combiner: a comparator which compares graohs created by my_code
 - old: a storage compartment for data created by older versions of the code, as well as old veersions of the code
-- atlasstyle-00-03-05: the folder with the libraries 
+- atlasstyle-00-03-05: the folder with the libraries for ATLAS's style
