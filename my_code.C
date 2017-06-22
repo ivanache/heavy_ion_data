@@ -28,12 +28,17 @@ const int axis_pion_Cen    = 0;
 const int axis_pion_Zvtx   = 1;
 const int axis_pionMass    = 2;
 const int axis_pionPt      = 3;
+const int axis_photon1E    = 7;
+const int axis_photon2E    = 8;
 const int axis_asymmetry   = 9;
 const int axis_pionAngle   = 16;
 const int axis_pionLambda1 = 17;
 const int axis_pionLambda2 = 18;
 const int axis_pionNcells1 = 19;
 const int axis_pionNcells2 = 20;
+const int axis_pionMatchedTracks1 = 21;
+const int axis_pionMatchedTracks2 = 22;
+
 
 // Concatenates two strings and gives a char array
 char* str_concat_converter(string str1, string str2){
@@ -123,7 +128,7 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 /**
  Main function
  */
-// Precondition: NumOfCuts is 0, 1, 2, 3, or 4
+// Precondition: NumOfCuts is 0, 1, 2, 3, 4, or 5
 void my_code(int NumOfCuts) {
     // Set ATLAS style
     gROOT->LoadMacro("AtlasStyle.C");
@@ -157,44 +162,55 @@ void my_code(int NumOfCuts) {
     graph_raw_data(h_Pion, axis_pionNcells1, graphcanvas, str_concat_converter(directory_name, "Ncells1_pion_plot.png"), "Ncells1");
     graph_raw_data(h_Pion, axis_pionNcells2, graphcanvas, str_concat_converter(directory_name, "Ncells2_pion_plot.png"), "Ncells2");
     
-    // restrict asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value to above 0.015, and Ncells 1 and 2 to above 1.5
-    // Omit cuts in the order that is in reverse to this, as required by the number of cuts
-    // Also set the maximum y value of the pion entries vs mass to 600
+    // restrict matched tracks to no more than -1, asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value
+    // to above 0.015, and Ncells 1 and 2 to above 1.5. Omit cuts in the order that is in reverse to this, as required
+    // by the number of cuts. Also set the maximum y value of the pion entries vs mass to 600
     double fit_y_max;
     if(NumOfCuts == 0) {
         cout << "No cuts done\n\n";
         fit_y_max = 1600.0;
     }
     else if (NumOfCuts == 1) {
-        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
-        cout << "Cuts: lambda02\n\n";
+        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, -0.75);
+        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, -0.75);
+        cout << "Cuts: matched tracks\n\n";
         fit_y_max = 1000.0;
     }
     else if (NumOfCuts == 2) {
-        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, -0.75);
+        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, -0.75);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-        cout << "Cuts: lambda02 and asymmetry\n\n";
+        cout << "Cuts: matched tracks and asymmetry\n\n";
         fit_y_max = 1000.0;
     }
     else if (NumOfCuts == 3) {
-        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, -0.75);
+        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, -0.75);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
-        std::cout << "Cuts: lambda02, asymmetry, and angle\n\n";
+        std::cout << "Cuts: matched tracks, asymmetry, and angle\n\n";
         fit_y_max = 600.0;
     }
     else if (NumOfCuts == 4) {
-        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
-        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, -0.75);
+        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, -0.75);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
         SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
         SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
-        std::cout << "Cuts: lambda02, asymmetry, angle, and Ncells\n\n";
+        std::cout << "Cuts: matched tracks, asymmetry, angle, and Ncells\n\n";
         fit_y_max = 600.0;
+    }
+    else if (NumOfCuts == 5) {
+        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, -0.75);
+        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, -0.75);
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+        SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
+        SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
+        SetCut(h_Pion, axis_pionLambda1, 0.0, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.0, 0.4);
+        std::cout << "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02\n\n";
     }
     
     // plot mass data, write it into the root file, and set up the fit function
@@ -221,9 +237,9 @@ void my_code(int NumOfCuts) {
     peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
     func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
     func->SetParameters(60,  0.14, 0.3, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
-    func->SetParLimits(0, 1, 8000.0);//integral
+    func->SetParLimits(0, 1, 100.0);//integral
     func->SetParLimits(1, 0.1, 0.2); //mean
-    func->SetParLimits(2, 0.005, 0.05); // width
+    func->SetParLimits(2, 0.005, 0.08); // width
     func->SetParLimits(4, 1.5, 10000000.0); // n
     func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
     func->SetParLimits(7, -1000000.0, 0.0);
@@ -271,6 +287,17 @@ void my_code(int NumOfCuts) {
     residual->Write("residual"); // Load into the ROOT file
     graphcanvas->SaveAs(str_concat_converter(directory_name, "mass_pion_plot.png"));
     
+    // Plot the energies of the two photons against each other
+    graphcanvas->Clear();
+    auto h2D = h_Pion->Projection(axis_photon2E, axis_photon1E);
+    h2D->SetTitle("Photon momentum correlation; Leading Photon Energy (GeV); Trailing Photon Energy (GeV)");
+    h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
+    h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
+    h2D->Draw("COLZ");
+    myText(.35,.9, kBlack, "Photon energies");
+    graphcanvas->SaveAs(str_concat_converter(directory_name, "PhotonEs.png"));
+    h2D->Write("Photon_Energies");
+
     // Plot the data for the momentum, save into the Root file
     graphcanvas->Clear();
     TH1D* hPt = h_Pion->Projection(axis_pionPt);
@@ -299,6 +326,8 @@ void my_code(int NumOfCuts) {
     double widths[num_of_intervals];
     graphcanvas->Clear();
     
+    func->SetParLimits(0, 1, 20.0);
+    
     // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
@@ -312,7 +341,7 @@ void my_code(int NumOfCuts) {
         SetCut(h_Pion, axis_pionPt, min, max);
         
         hMass = h_Pion->Projection(axis_pionMass);
-        hMass->SetAxisRange(0.0, fit_y_max, "Y");
+        //hMass->SetAxisRange(0.0, fit_y_max, "Y");
         graphcanvas->cd();
         pad[0]->Draw();
         pad[0]->cd();
@@ -393,7 +422,18 @@ void my_code(int NumOfCuts) {
         hMass->GetListOfFunctions()->Add(background);
         hMass->Write(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max));
         residual->Write(Form("residual-%2.2fGeV-%2.2fGeV", min, max));
-    }
+        
+        // Graph the
+        graphcanvas->Clear();
+        auto h2D = h_Pion->Projection(axis_photon2E, axis_photon1E);
+        h2D->SetTitle("Photon energy correlation; Leading Photon Energy (GeV); Trailing Photon Energy (GeV)");
+        h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
+        h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
+        h2D->Draw("COLZ");
+        myText(.35,.9, kBlack, Form("Photon energies: Pion momenta %2.2f to %2.2f", min, max));
+        graphcanvas->SaveAs(Form(str_concat_converter(directory_name, "PhotonEs_Ptmin_%2.2f_Ptmax_%2.2f.png"), min, max));
+        h2D->Write(Form("Photon_Energies_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
+    }// end of loop over pt
     
     // Graph the signal/total curves for each momentum increment
     // Black = 7.5-10, Red = 10-11, Blue = 11-12, Green = 12-13, Yellow = 13-15

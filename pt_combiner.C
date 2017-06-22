@@ -16,6 +16,7 @@ const int colRed = 2;
 const int colGreen = 3;
 const int colBlue = 4;
 const int colYellow = 5;
+const int colMagenta = 6;
 const int colCyan = 7;
 const int colClear = 10;
 
@@ -24,29 +25,57 @@ void pt_combiner() {
     gROOT->LoadMacro("AtlasStyle.C");
     SetAtlasStyle();
     
+    const int num_of_samples = 6;
+    char filenames[num_of_samples][33] = {"data/Pion0cutsSparsesOutput.root", "data/Pion1cutsSparsesOutput.root", "data/Pion2cutsSparsesOutput.root", "data/Pion3cutsSparsesOutput.root", "data/Pion4cutsSparsesOutput.root", "data/Pion5cutsSparsesOutput.root"};
     //Grab the files
+    TFile* cutFiles[num_of_samples];
+    for (int i = 0; i < num_of_samples; i++){
+        cutFiles[i] = new TFile(filenames[i], "READ");
+    }
+    /**
     TFile* cut0File = new TFile("data/Pion0cutsSparsesOutput.root", "READ");
     TFile* cut1File = new TFile("data/Pion1cutsSparsesOutput.root", "READ");
     TFile* cut2File = new TFile("data/Pion2cutsSparsesOutput.root", "READ");
     TFile* cut3File = new TFile("data/Pion3cutsSparsesOutput.root", "READ");
     TFile* cut4File = new TFile("data/Pion4cutsSparsesOutput.root", "READ");
+    TFile* cut5File = new TFile("data/Pion5cutsSparsesOutput.root", "READ");
+     */
     
     // Make an output root file
     TFile* OutputFile = new TFile("data_comparisons/Output.root", "RECREATE");
 
     //Grab the data from the files
+    TH1D* cutData[num_of_samples];
+    TH1D* cutMassData[num_of_samples];
+    TH1D* cutResiduals[num_of_samples];
+    TF1* cutFits[num_of_samples];
+    for (int i = 0; i < num_of_samples; i++) {
+        cutData[i] = 0;
+        cutMassData[i] = 0;
+        cutResiduals[i] = 0;
+        cutFiles[i]->GetObject("mass_pion", cutData[i]);
+        cutFiles[i]->GetObject("unfitted_mass_pion", cutMassData[i]);
+        cutFiles[i]->GetObject("residual", cutResiduals[i]);
+        cutFits[i] = (TF1*) cutData[i]->GetListOfFunctions()->FindObject("fit");
+    }
+    
     // Main data
+    /**
     TH1D* cut0Data = 0;
     TH1D* cut1Data = 0;
     TH1D* cut2Data = 0;
     TH1D* cut3Data = 0;
     TH1D* cut4Data = 0;
+    TH1D* cut5Data = 0;
     TH1D* cut0MassData = 0;
     TH1D* cut1MassData = 0;
     TH1D* cut2MassData = 0;
     TH1D* cut3MassData = 0;
     TH1D* cut4MassData = 0;
+    TH1D* cut5MassData = 0;
+     */
     
+    /**
     cut0File->GetObject("mass_pion", cut0Data);
     cut1File->GetObject("mass_pion", cut1Data);
     cut2File->GetObject("mass_pion", cut2Data);
@@ -57,7 +86,7 @@ void pt_combiner() {
     cut2File->GetObject("unfitted_mass_pion", cut2MassData);
     cut3File->GetObject("unfitted_mass_pion", cut3MassData);
     cut4File->GetObject("unfitted_mass_pion", cut4MassData);
-    
+        
     //residuals
     TH1D* cut0Residuals = 0;
     TH1D* cut1Residuals = 0;
@@ -77,19 +106,30 @@ void pt_combiner() {
     TF1* cut2Fit = (TF1*) cut2Data->GetListOfFunctions()->FindObject("fit");
     TF1* cut3Fit = (TF1*) cut3Data->GetListOfFunctions()->FindObject("fit");
     TF1* cut4Fit = (TF1*) cut4Data->GetListOfFunctions()->FindObject("fit");
+     */
     
     // Create a TCanvas and TPads for graphing; graph out the fits, data, and residuals for the entire sample
+    int colors[num_of_samples] = {kRed, kBlue, kGreen, kYellow, kCyan, kMagenta};
     TCanvas* canvas = new TCanvas();
     TPad *pad[2] = {new TPad("pad0","",0,0.38,1,1), new TPad("pad1","",0,0,1,0.46)};
     
     canvas->cd();
     pad[0]->Draw();
     pad[0]->cd();
-    cut0MassData->GetYaxis()->SetTitle("Number of Entries");
-    cut0MassData->GetYaxis()->SetTitleSize(.07);
-    cut0MassData->GetYaxis()->SetTitleOffset(0.6);
-    cut0MassData->SetMarkerColor(kRed);
-    cut0MassData->Draw();
+    cutMassData[0]->GetYaxis()->SetTitle("Number of Entries");
+    cutMassData[0]->GetYaxis()->SetTitleSize(.07);
+    cutMassData[0]->GetYaxis()->SetTitleOffset(0.6);
+    cutMassData[0]->SetMarkerColor(colors[0]);
+    cutMassData[0]->Draw();
+    cutFits[0]->SetLineColor(colors[0]);
+    cutFits[0]->Draw("same");
+    for (int i = 1; i < num_of_samples; i++) {
+        cutMassData[i]->SetMarkerColor(colors[i]);
+        cutMassData[i]->Draw("same");
+        cutFits[i]->SetLineColor(colors[i]);
+        cutFits[i]->Draw("same");
+    }
+    /**
     cut1MassData->SetMarkerColor(kBlue);
     cut1MassData->Draw("same");
     cut2MassData->SetMarkerColor(kGreen);
@@ -107,23 +147,28 @@ void pt_combiner() {
     cut3Fit->SetLineColor(kYellow);
     cut3Fit->Draw("same");
     cut4Fit->SetLineColor(kCyan);
-    cut4Fit->Draw("same");
-    myBoxText(0.60, 0.80, 0.05, colClear, colRed, "No cuts");
-    myBoxText(0.60, 0.75, 0.05, colClear, colBlue, "Lambda Cut");
-    myBoxText(0.60, 0.70, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
-    myBoxText(0.60, 0.65, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
-    myBoxText(0.60, 0.60, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
+    cut4Fit->Draw("same");*/
+    myBoxText(0.60, 0.80, 0.05, colClear, colors[0], "No cuts done");
+    myBoxText(0.60, 0.75, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.60, 0.70, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.60, 0.65, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.60, 0.60, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.60, 0.55, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
     
     canvas->cd();
     pad[1]->Draw();
     pad[1]->cd();
-    cut0Residuals->GetYaxis()->SetTitle("Residuals");
-    cut0Residuals->GetYaxis()->SetTitleSize(.07);
-    cut0Residuals->GetYaxis()->SetTitleOffset(0.3);
-    cut0Residuals->GetXaxis()->SetTitleSize(.06);
-    cut0Residuals->GetXaxis()->SetTitleOffset(0.8);
-    cut0Residuals->SetMarkerColor(kRed);
-    cut0Residuals->Draw("P");
+    cutResiduals[0]->GetYaxis()->SetTitle("Residuals");
+    cutResiduals[0]->GetYaxis()->SetTitleSize(.07);
+    cutResiduals[0]->GetYaxis()->SetTitleOffset(0.3);
+    cutResiduals[0]->GetXaxis()->SetTitleSize(.06);
+    cutResiduals[0]->GetXaxis()->SetTitleOffset(0.8);
+    cutResiduals[0]->SetMarkerColor(kRed);
+    cutResiduals[0]->Draw("P");
+    for (int i = 1; i < num_of_samples; i++) {
+        cutResiduals[i]->SetLineColor(colors[i]);
+        cutResiduals[i]->Draw("P same");
+    }/**
     cut1Residuals->SetMarkerColor(kBlue);
     cut1Residuals->Draw("P same");
     cut2Residuals->SetMarkerColor(kGreen);
@@ -131,23 +176,24 @@ void pt_combiner() {
     cut3Residuals->SetMarkerColor(kYellow);
     cut3Residuals->Draw("P same");
     cut4Residuals->SetMarkerColor(kCyan);
-    cut4Residuals->Draw("P same");
+    cut4Residuals->Draw("P same");*/
     canvas->SaveAs("data_comparisons/testgraph.png");
     
     // Write residuals to the output root file
     TMultiGraph* residualpackage = new TMultiGraph();
-    residualpackage->Add(new TGraph(cut0Residuals));
-    residualpackage->Add(new TGraph(cut1Residuals));
-    residualpackage->Add(new TGraph(cut2Residuals));
-    residualpackage->Add(new TGraph(cut3Residuals));
-    residualpackage->Add(new TGraph(cut4Residuals));
+    residualpackage->Add(new TGraph(cutResiduals[0]));
+    residualpackage->Add(new TGraph(cutResiduals[1]));
+    residualpackage->Add(new TGraph(cutResiduals[2]));
+    residualpackage->Add(new TGraph(cutResiduals[3]));
+    residualpackage->Add(new TGraph(cutResiduals[4]));
+    residualpackage->Add(new TGraph(cutResiduals[5]));
     residualpackage->SetTitle("Residuals over Momentum; Mass (GeV); Entry residual");
     residualpackage->Write("residuals");
     
     // Graph the momentum chart
     canvas->Clear();
     TH1D* Momentum = 0;
-    cut0File->GetObject("Momentum-entries_chart", Momentum);
+    cutFiles[0]->GetObject("Momentum-entries_chart", Momentum);
     Momentum->Draw();
     canvas->SaveAs("data_comparisons/Momentum_Graph.png");
     
@@ -163,6 +209,17 @@ void pt_combiner() {
         pad[1] = new TPad("pad1","",0,0,1,0.46);
         
         // load data
+        TH1D* cutData[num_of_samples];
+        TH1D* cutMassData[num_of_samples];
+        TH1D* cutResiduals[num_of_samples];
+        TF1* cutFits[i];
+        for (int i = 0; i < num_of_samples; i++) {
+            cutFiles[i]->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cutData[i]);
+            cutFiles[i]->GetObject(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max), cutMassData[i]);
+            cutFiles[i]->GetObject(Form("residual-%2.2fGeV-%2.2fGeV", min, max), cutResiduals[i]);
+            cutFits[i] = (TF1*) cutData[i]->GetListOfFunctions()->FindObject("fit");
+        }
+        /**
         cut0File->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cut0Data);
         cut1File->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cut1Data);
         cut2File->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", min, max), cut2Data);
@@ -183,11 +240,26 @@ void pt_combiner() {
         cut2Fit = (TF1*) cut2Data->GetListOfFunctions()->FindObject("fit");
         cut3Fit = (TF1*) cut3Data->GetListOfFunctions()->FindObject("fit");
         cut4Fit = (TF1*) cut4Data->GetListOfFunctions()->FindObject("fit");
+        */
         
         // Graph
         canvas->cd();
         pad[0]->Draw();
         pad[0]->cd();
+        cutMassData[0]->GetYaxis()->SetTitle("Number of Entries");
+        cutMassData[0]->GetYaxis()->SetTitleSize(.07);
+        cutMassData[0]->GetYaxis()->SetTitleOffset(0.6);
+        cutMassData[0]->SetMarkerColor(colors[0]);
+        cutMassData[0]->Draw();
+        cutFits[0]->SetLineColor(colors[0]);
+        cutFits[0]->Draw("same");
+        for (int i = 1; i < num_of_samples; i++) {
+            cutMassData[i]->SetMarkerColor(colors[i]);
+            cutMassData[i]->Draw("same");
+            cutFits[i]->SetLineColor(colors[i]);
+            cutFits[i]->Draw("same");
+        }
+        /**
         cut0MassData->GetYaxis()->SetTitle("Number of Entries");
         cut0MassData->GetYaxis()->SetTitleSize(.07);
         cut0MassData->GetYaxis()->SetTitleOffset(0.6);
@@ -211,16 +283,29 @@ void pt_combiner() {
         cut3Fit->SetLineColor(kYellow);
         cut3Fit->Draw("same");
         cut4Fit->SetLineColor(kCyan);
-        cut4Fit->Draw("same");
-        myBoxText(0.60, 0.80, 0.05, colClear, colRed, "No cuts");
-        myBoxText(0.60, 0.75, 0.05, colClear, colBlue, "Lambda Cut");
-        myBoxText(0.60, 0.70, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
-        myBoxText(0.60, 0.65, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
-        myBoxText(0.60, 0.60, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
+        cut4Fit->Draw("same");*/
+        myBoxText(0.60, 0.80, 0.05, colClear, colors[0], "No cuts done");
+        myBoxText(0.60, 0.75, 0.05, colClear, colors[1], "Cuts: matched tracks");
+        myBoxText(0.60, 0.70, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+        myBoxText(0.60, 0.65, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+        myBoxText(0.60, 0.60, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+        myBoxText(0.60, 0.55, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
         
         canvas->cd();
         pad[1]->Draw();
         pad[1]->cd();
+        cutResiduals[0]->GetYaxis()->SetTitle("Residuals");
+        cutResiduals[0]->GetYaxis()->SetTitleSize(.07);
+        cutResiduals[0]->GetYaxis()->SetTitleOffset(0.3);
+        cutResiduals[0]->GetXaxis()->SetTitleSize(.06);
+        cutResiduals[0]->GetXaxis()->SetTitleOffset(0.8);
+        cutResiduals[0]->SetMarkerColor(kRed);
+        cutResiduals[0]->Draw("P");
+        for (int i = 1; i < num_of_samples; i++) {
+            cutResiduals[i]->SetMarkerColor(colors[i]);
+            cutResiduals[i]->Draw("P same");
+        }
+        /**
         cut0Residuals->GetYaxis()->SetTitle("Residuals");
         cut0Residuals->GetYaxis()->SetTitleSize(.07);
         cut0Residuals->GetYaxis()->SetTitleOffset(0.3);
@@ -235,7 +320,7 @@ void pt_combiner() {
         cut3Residuals->SetMarkerColor(kYellow);
         cut3Residuals->Draw("P same");
         cut4Residuals->SetMarkerColor(kCyan);
-        cut4Residuals->Draw("P same");
+        cut4Residuals->Draw("P same"); */
         //Save file
         canvas->SaveAs(Form("data_comparisons/testgraph_%2.2fGeV-%2.2fGeV.png", min, max));
     }
@@ -243,6 +328,11 @@ void pt_combiner() {
     // Graph the mass vs momentum for each model
     canvas->Clear();
     // Fetch data
+    TGraph* mass_mom_cuts[num_of_samples];
+    for (int i = 0; i < num_of_samples; i++) {
+        mass_mom_cuts[i] = 0;
+        cutFiles[i]->GetObject("mean-masses", mass_mom_cuts[i]);
+    } /**
     TGraph* mass_mom_0cut = 0;
     TGraph* mass_mom_1cut = 0;
     TGraph* mass_mom_2cut = 0;
@@ -252,15 +342,22 @@ void pt_combiner() {
     cut1File->GetObject("mean-masses", mass_mom_1cut);
     cut2File->GetObject("mean-masses", mass_mom_2cut);
     cut3File->GetObject("mean-masses", mass_mom_3cut);
-    cut4File->GetObject("mean-masses", mass_mom_4cut);
+    cut4File->GetObject("mean-masses", mass_mom_4cut); */
     
     // Create the constant reference
-    TF1* real_mass = new TF1("real_mass_momentum", "[0]", 0, 20);
+    TF1* real_mass = new TF1("real_mass_momentum", "[0]", 8, 15);
     real_mass->SetParameter(0, 0.13498);
     real_mass->SetLineWidth(2);
     real_mass->SetLineColor(kBlack);
+    real_mass->GetYaxis()->SetRangeUser(.1, .17);
 
     // Graph everything
+    real_mass->Draw();
+    for (int i = 0; i < num_of_samples; i++) {
+        mass_mom_cuts[i]->SetLineColor(colors[i]);
+        mass_mom_cuts[i]->SetMarkerColor(colors[i]);
+        mass_mom_cuts[i]->Draw("same");
+    }/**
     mass_mom_0cut->SetLineColor(kRed);
     mass_mom_0cut->SetMarkerColor(kRed);
     mass_mom_1cut->SetLineColor(kBlue);
@@ -272,14 +369,21 @@ void pt_combiner() {
     mass_mom_2cut->Draw("same");
     mass_mom_3cut->Draw("same");
     mass_mom_4cut->Draw("same");
-    real_mass->Draw("same");
+    real_mass->Draw("same");*/
     myText(0.30, 0.95, colBlack, "Mass vs. Momentum");
+    myBoxText(0.50, 0.41, 0.05,colClear, colors[0], "No cuts done");
+    myBoxText(0.50, 0.36, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.50, 0.31, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.50, 0.26, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.50, 0.21, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.50, 0.16, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+    /**
     myBoxText(0.50, 0.46, 0.05, colClear, colBlack, "Actual pion mass");
     myBoxText(0.50, 0.41, 0.05, colClear, colRed, "No cuts");
     myBoxText(0.50, 0.36, 0.05, colClear, colBlue, "Lambda Cut");
     myBoxText(0.50, 0.31, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
     myBoxText(0.50, 0.26, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
-    myBoxText(0.50, 0.21, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
+    myBoxText(0.50, 0.21, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");*/
 
     
     //Save
@@ -288,6 +392,11 @@ void pt_combiner() {
     // Graph mass width vs momentum for each interval
     canvas->Clear();
     // Fetch data
+    TGraph* width_mom_cuts[num_of_samples];
+    for (int i = 0; i < num_of_samples; i++) {
+        width_mom_cuts[i] = 0;
+        cutFiles[i]->GetObject("standard-dev-masses", width_mom_cuts[i]);
+    }/**
     TGraph* width_mom_0cut = 0;
     TGraph* width_mom_1cut = 0;
     TGraph* width_mom_2cut = 0;
@@ -297,9 +406,17 @@ void pt_combiner() {
     cut1File->GetObject("standard-dev-masses", width_mom_1cut);
     cut2File->GetObject("standard-dev-masses", width_mom_2cut);
     cut3File->GetObject("standard-dev-masses", width_mom_3cut);
-    cut4File->GetObject("standard-dev-masses", width_mom_4cut);
+    cut4File->GetObject("standard-dev-masses", width_mom_4cut);*/
                        
     // Graph everything
+    width_mom_cuts[0]->SetLineColor(colors[0]);
+    width_mom_cuts[0]->SetMarkerColor(colors[0]);
+    width_mom_cuts[0]->GetYaxis()->SetRangeUser(7., 19.);
+    width_mom_cuts[0]->Draw();
+    for (int i = 1; i < num_of_samples; i++) {
+        width_mom_cuts[i]->SetLineColor(colors[i]);
+        width_mom_cuts[i]->Draw("same");
+    }/**
     width_mom_0cut->SetLineColor(kRed);
     width_mom_0cut->SetMarkerColor(kRed);
     width_mom_0cut->GetYaxis()->SetRangeUser(7., 19.);
@@ -311,12 +428,19 @@ void pt_combiner() {
     width_mom_1cut->Draw("same");
     width_mom_2cut->Draw("same");
     width_mom_3cut->Draw("same");
-    width_mom_4cut->Draw("same");
+    width_mom_4cut->Draw("same");*/
+    myBoxText(0.40, 0.85, 0.05,colClear, colors[0], "No cuts done");
+    myBoxText(0.40, 0.80, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.40, 0.75, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.40, 0.70, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.40, 0.65, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.40, 0.60, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+    /**
     myBoxText(0.40, 0.85, 0.05, colClear, colRed, "No cuts");
     myBoxText(0.40, 0.80, 0.05, colClear, colBlue, "Lambda Cut");
     myBoxText(0.40, 0.75, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
     myBoxText(0.40, 0.70, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
-    myBoxText(0.40, 0.65, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
+    myBoxText(0.40, 0.65, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");*/
 
     //Save
     canvas->SaveAs("data_comparisons/MassWidthvsMomentum.png");
@@ -324,6 +448,11 @@ void pt_combiner() {
     // Graph peak integral for each interval
     canvas->Clear();
     // Fetch data
+    TGraph* integral_mom_cuts[num_of_samples];
+    for (int i = 0; i < num_of_samples; i++) {
+        integral_mom_cuts[i] = 0;
+        cutFiles[i]->GetObject("pion-integrals", integral_mom_cuts[i]);
+    }/**
     TGraph* integral_mom_0cut = 0;
     TGraph* integral_mom_1cut = 0;
     TGraph* integral_mom_2cut = 0;
@@ -333,9 +462,18 @@ void pt_combiner() {
     cut1File->GetObject("pion-integrals", integral_mom_1cut);
     cut2File->GetObject("pion-integrals", integral_mom_2cut);
     cut3File->GetObject("pion-integrals", integral_mom_3cut);
-    cut4File->GetObject("pion-integrals", integral_mom_4cut);
+    cut4File->GetObject("pion-integrals", integral_mom_4cut);*/
     
     // Graph everything
+    integral_mom_cuts[0]->SetLineColor(colors[0]);
+    integral_mom_cuts[0]->SetMarkerColor(colors[0]);
+    integral_mom_cuts[0]->GetYaxis()->SetRangeUser(500., 5000.);
+    integral_mom_cuts[0]->Draw();
+    for (int i = 1; i < num_of_samples; i++){
+        integral_mom_cuts[i]->SetLineColor(colors[i]);
+        integral_mom_cuts[i]->Draw("same");
+    }
+    /**
     integral_mom_0cut->SetLineColor(kRed);
     integral_mom_0cut->SetMarkerColor(kRed);
     integral_mom_0cut->GetYaxis()->SetRangeUser(500., 5000.);
@@ -347,12 +485,19 @@ void pt_combiner() {
     integral_mom_1cut->Draw("same");
     integral_mom_2cut->Draw("same");
     integral_mom_3cut->Draw("same");
-    integral_mom_4cut->Draw("same");
+    integral_mom_4cut->Draw("same");*/
+    myBoxText(0.45, 0.88, 0.05,colClear, colors[0], "No cuts done");
+    myBoxText(0.45, 0.83, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.45, 0.78, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.45, 0.73, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.45, 0.68, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.45, 0.63, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+    /**
     myBoxText(0.45, 0.88, 0.05, colClear, colRed, "No cuts");
     myBoxText(0.45, 0.83, 0.05, colClear, colBlue, "Lambda Cut");
     myBoxText(0.45, 0.78, 0.05, colClear, colGreen, "Lambda and Asymmetry cuts");
     myBoxText(0.45, 0.73, 0.05, colClear, colYellow, "Lambda, Asymmetry, Angle cuts");
-    myBoxText(0.45, 0.68, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");
+    myBoxText(0.45, 0.68, 0.05, colClear, colCyan, "Lambda, Asymmetry, Angle, Ncells cuts");*/
     
     //Save
     canvas->SaveAs("data_comparisons/PeakIntegralvsMomentum.png");

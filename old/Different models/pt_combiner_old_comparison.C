@@ -146,6 +146,7 @@ void pt_combiner_old_comparison() {
         MassData->GetYaxis()->SetTitleOffset(0.6);
         MassData->GetYaxis()->SetTitle("Number of Entries");
         MassData->Draw();
+        GaussianFit->SetLineColor(kRed);
         GaussianFit->Draw("same");
         ExpGaussianFit->SetLineColor(kBlue);
         ExpGaussianFit->Draw("same");
@@ -225,7 +226,8 @@ void pt_combiner_old_comparison() {
     width_mom_gauss->SetLineColor(kRed);
     width_mom_expgauss->SetLineColor(kBlue);
     width_mom_crystalball->SetLineColor(kGreen);
-    width_mom_expgauss->Draw();
+    width_mom_crystalball->Draw();
+    width_mom_expgauss->Draw("same");
     width_mom_gauss->Draw("same");
     width_mom_crystalball->Draw("same");
     myBoxText(0.25, 0.85, 0.05, colClear, colRed, "Gaussian Model");

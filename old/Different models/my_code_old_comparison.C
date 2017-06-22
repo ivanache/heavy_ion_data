@@ -409,7 +409,7 @@ void my_code_old_comparison(string model_name) {
         peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
         func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
         func->SetParameters(60,  0.14, 0.3, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
-        func->SetParLimits(0, 1, 10000.0);//integral
+        func->SetParLimits(0, 1, 500.0);//integral
         func->SetParLimits(1, 0.1, 0.2); //mean
         func->SetParLimits(2, 0.005, 0.05); // width
         func->SetParLimits(4, 1.6, 10000000.0); // n
@@ -552,7 +552,7 @@ void my_code_old_comparison(string model_name) {
         SetCut(h_Pion, axis_pionPt, min, max);
         
         hMass = h_Pion->Projection(axis_pionMass);
-        hMass->SetAxisRange(0.0, fit_y_max, "Y");
+        //hMass->SetAxisRange(0.0, fit_y_max, "Y");
         graphcanvas->cd();
         pad[0]->Draw();
         pad[0]->cd();
@@ -670,7 +670,7 @@ void my_code_old_comparison(string model_name) {
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass (MeV/c^2)");
-    g_sigma->GetYaxis()->SetRangeUser(7.5, 16.0);
+    g_sigma->GetYaxis()->SetRangeUser(4.0, 16.0);
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Write("standard-dev-masses");
