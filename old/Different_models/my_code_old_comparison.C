@@ -642,6 +642,11 @@ void my_code_old_comparison(string model_name) {
     peaks_over_totals->SetMaximum(1.0);
     peaks_over_totals->SetMinimum(0.4);
     peaks_over_totals->Draw("Al");
+    myBoxText(0.25, 0.40, 0.05, 10, graph_colors[0], "8-10 GeV");
+    myBoxText(0.25, 0.35, 0.05, 10, graph_colors[1], "10-11 GeV");
+    myBoxText(0.25, 0.30, 0.05, 10, graph_colors[2], "11-12 GeV");
+    myBoxText(0.25, 0.25, 0.05, 10, graph_colors[3], "12-13 GeV");
+    myBoxText(0.25, 0.20, 0.05, 10, graph_colors[4], "13-15 GeV");
     peaks_over_totals->Write("signal-over-total");
     graphcanvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     graphcanvas->Clear();

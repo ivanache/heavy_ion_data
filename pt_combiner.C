@@ -148,12 +148,12 @@ void pt_combiner() {
     cut3Fit->Draw("same");
     cut4Fit->SetLineColor(kCyan);
     cut4Fit->Draw("same");*/
-    myBoxText(0.60, 0.80, 0.05, colClear, colors[0], "No cuts done");
-    myBoxText(0.60, 0.75, 0.05, colClear, colors[1], "Cuts: matched tracks");
-    myBoxText(0.60, 0.70, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
-    myBoxText(0.60, 0.65, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
-    myBoxText(0.60, 0.60, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
-    myBoxText(0.60, 0.55, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+    myBoxText(0.55, 0.90, 0.05, colClear, colors[0], "No cuts done");
+    myBoxText(0.55, 0.85, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.55, 0.80, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.55, 0.75, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.55, 0.70, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.55, 0.65, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
     
     canvas->cd();
     pad[1]->Draw();
@@ -166,7 +166,7 @@ void pt_combiner() {
     cutResiduals[0]->SetMarkerColor(kRed);
     cutResiduals[0]->Draw("P");
     for (int i = 1; i < num_of_samples; i++) {
-        cutResiduals[i]->SetLineColor(colors[i]);
+        cutResiduals[i]->SetMarkerColor(colors[i]);
         cutResiduals[i]->Draw("P same");
     }/**
     cut1Residuals->SetMarkerColor(kBlue);
@@ -250,6 +250,7 @@ void pt_combiner() {
         cutMassData[0]->GetYaxis()->SetTitleSize(.07);
         cutMassData[0]->GetYaxis()->SetTitleOffset(0.6);
         cutMassData[0]->SetMarkerColor(colors[0]);
+        cutMassData[0]->GetYaxis()->SetRangeUser(-1.0, 1400.0);
         cutMassData[0]->Draw();
         cutFits[0]->SetLineColor(colors[0]);
         cutFits[0]->Draw("same");
@@ -284,12 +285,12 @@ void pt_combiner() {
         cut3Fit->Draw("same");
         cut4Fit->SetLineColor(kCyan);
         cut4Fit->Draw("same");*/
-        myBoxText(0.60, 0.80, 0.05, colClear, colors[0], "No cuts done");
-        myBoxText(0.60, 0.75, 0.05, colClear, colors[1], "Cuts: matched tracks");
-        myBoxText(0.60, 0.70, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
-        myBoxText(0.60, 0.65, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
-        myBoxText(0.60, 0.60, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
-        myBoxText(0.60, 0.55, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+        myBoxText(0.55, 0.90, 0.05, colClear, colors[0], "No cuts done");
+        myBoxText(0.55, 0.85, 0.05, colClear, colors[1], "Cuts: matched tracks");
+        myBoxText(0.55, 0.80, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+        myBoxText(0.55, 0.75, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+        myBoxText(0.55, 0.70, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+        myBoxText(0.55, 0.65, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
         
         canvas->cd();
         pad[1]->Draw();
@@ -349,7 +350,7 @@ void pt_combiner() {
     real_mass->SetParameter(0, 0.13498);
     real_mass->SetLineWidth(2);
     real_mass->SetLineColor(kBlack);
-    real_mass->GetYaxis()->SetRangeUser(.1, .17);
+    real_mass->GetYaxis()->SetRangeUser(.13, .15);
 
     // Graph everything
     real_mass->Draw();
@@ -371,12 +372,12 @@ void pt_combiner() {
     mass_mom_4cut->Draw("same");
     real_mass->Draw("same");*/
     myText(0.30, 0.95, colBlack, "Mass vs. Momentum");
-    myBoxText(0.50, 0.41, 0.05,colClear, colors[0], "No cuts done");
-    myBoxText(0.50, 0.36, 0.05, colClear, colors[1], "Cuts: matched tracks");
-    myBoxText(0.50, 0.31, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
-    myBoxText(0.50, 0.26, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
-    myBoxText(0.50, 0.21, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
-    myBoxText(0.50, 0.16, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+    myBoxText(0.55, 0.41, 0.05,colClear, colors[0], "No cuts done");
+    myBoxText(0.55, 0.36, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.55, 0.31, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.55, 0.26, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.55, 0.21, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.55, 0.16, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
     /**
     myBoxText(0.50, 0.46, 0.05, colClear, colBlack, "Actual pion mass");
     myBoxText(0.50, 0.41, 0.05, colClear, colRed, "No cuts");
@@ -411,7 +412,7 @@ void pt_combiner() {
     // Graph everything
     width_mom_cuts[0]->SetLineColor(colors[0]);
     width_mom_cuts[0]->SetMarkerColor(colors[0]);
-    width_mom_cuts[0]->GetYaxis()->SetRangeUser(7., 19.);
+    width_mom_cuts[0]->GetYaxis()->SetRangeUser(4., 19.);
     width_mom_cuts[0]->Draw();
     for (int i = 1; i < num_of_samples; i++) {
         width_mom_cuts[i]->SetLineColor(colors[i]);
@@ -467,7 +468,7 @@ void pt_combiner() {
     // Graph everything
     integral_mom_cuts[0]->SetLineColor(colors[0]);
     integral_mom_cuts[0]->SetMarkerColor(colors[0]);
-    integral_mom_cuts[0]->GetYaxis()->SetRangeUser(500., 5000.);
+    integral_mom_cuts[0]->GetYaxis()->SetRangeUser(0.0, 5000.);
     integral_mom_cuts[0]->Draw();
     for (int i = 1; i < num_of_samples; i++){
         integral_mom_cuts[i]->SetLineColor(colors[i]);

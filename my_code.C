@@ -161,6 +161,8 @@ void my_code(int NumOfCuts) {
     graph_raw_data(h_Pion, axis_pionAngle, graphcanvas, str_concat_converter(directory_name, "angle_pion_plot.png"), "angle");
     graph_raw_data(h_Pion, axis_pionNcells1, graphcanvas, str_concat_converter(directory_name, "Ncells1_pion_plot.png"), "Ncells1");
     graph_raw_data(h_Pion, axis_pionNcells2, graphcanvas, str_concat_converter(directory_name, "Ncells2_pion_plot.png"), "Ncells2");
+    graph_raw_data(h_Pion, axis_pionMatchedTracks1, graphcanvas, str_concat_converter(directory_name, "MatchedTracks1_pion_plot.png"), "MatchedTracks1");
+    graph_raw_data(h_Pion, axis_pionMatchedTracks2, graphcanvas, str_concat_converter(directory_name, "MatchedTracks2_pion_plot.png"), "MatchedTracks2");
     
     // restrict matched tracks to no more than -1, asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value
     // to above 0.015, and Ncells 1 and 2 to above 1.5. Omit cuts in the order that is in reverse to this, as required
@@ -171,14 +173,14 @@ void my_code(int NumOfCuts) {
         fit_y_max = 1600.0;
     }
     else if (NumOfCuts == 1) {
-        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, -0.75);
-        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, -0.75);
+        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, 0.0);
+        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, 0.0);
         cout << "Cuts: matched tracks\n\n";
         fit_y_max = 1000.0;
     }
     else if (NumOfCuts == 2) {
-        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, -0.75);
-        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, -0.75);
+        SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, 0.0);
+        SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, 0.0);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         cout << "Cuts: matched tracks and asymmetry\n\n";
         fit_y_max = 1000.0;
@@ -236,14 +238,16 @@ void my_code(int NumOfCuts) {
     func = new TF1("fit", crystal_ball_model,0.05,0.5,num_of_params);
     peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
     func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-    func->SetParameters(60,  0.14, 0.3, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
-    func->SetParLimits(0, 1, 100.0);//integral
-    func->SetParLimits(1, 0.1, 0.2); //mean
+    func->SetParameters(60,  0.14, 0.03, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
+    func->SetParLimits(0, 2, 200.0);//integral
+    func->SetParLimits(1, 0.13, 0.149); //mean
     func->SetParLimits(2, 0.005, 0.08); // width
-    func->SetParLimits(4, 1.5, 10000000.0); // n
-    func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
+    func->SetParLimits(3, 0.1, 10000000.0); // alpha
+    func->SetParLimits(4, 1.5, 1000.0); // n
+    func->SetParLimits(5, -10000.0, 0.0); // Quadric and quadratic factors
     func->SetParLimits(7, -1000000.0, 0.0);
-    
+    //func->SetParLimits(8, 0.0, 1000000.0); // Linear
+    //func->SetParLimits(9, -1000000.0, 0.0); //Constant
     
     // Plot the fit for the mass and (separately) the Gaussian and background components of it
     hMass->Fit(func);
@@ -326,11 +330,13 @@ void my_code(int NumOfCuts) {
     double widths[num_of_intervals];
     graphcanvas->Clear();
     
-    func->SetParLimits(0, 1, 20.0);
+    //func->SetParLimits(0, 2, 30.0);
     
     // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
+        if(i == 1)
+            func->SetParLimits(3, 0.0, 1000000.0);
         
         pad[0] = new TPad("pad0","",0,0.38,1,1);
         pad[1] = new TPad("pad1","",0,0,1,0.46);
@@ -341,7 +347,7 @@ void my_code(int NumOfCuts) {
         SetCut(h_Pion, axis_pionPt, min, max);
         
         hMass = h_Pion->Projection(axis_pionMass);
-        //hMass->SetAxisRange(0.0, fit_y_max, "Y");
+        hMass->SetAxisRange(0.0, 1400.0, "Y");
         graphcanvas->cd();
         pad[0]->Draw();
         pad[0]->cd();
@@ -436,13 +442,17 @@ void my_code(int NumOfCuts) {
     }// end of loop over pt
     
     // Graph the signal/total curves for each momentum increment
-    // Black = 7.5-10, Red = 10-11, Blue = 11-12, Green = 12-13, Yellow = 13-15
     graphcanvas->Clear();
     peaks_over_totals->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
     //peaks_over_totals->GetYaxis()->SetRangeUser(0.4, 1.0);
     peaks_over_totals->SetMaximum(1.0);
     peaks_over_totals->SetMinimum(0.4);
     peaks_over_totals->Draw("Al");
+    myBoxText(0.25, 0.40, 0.05, 10, graph_colors[0], "8-10 GeV");
+    myBoxText(0.25, 0.35, 0.05, 10, graph_colors[1], "10-11 GeV");
+    myBoxText(0.25, 0.30, 0.05, 10, graph_colors[2], "11-12 GeV");
+    myBoxText(0.25, 0.25, 0.05, 10, graph_colors[3], "12-13 GeV");
+    myBoxText(0.25, 0.20, 0.05, 10, graph_colors[4], "13-15 GeV");
     peaks_over_totals->Write("signal-over-total");
     graphcanvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     graphcanvas->Clear();
@@ -471,7 +481,7 @@ void my_code(int NumOfCuts) {
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass Width (MeV/c^2)");
-    g_sigma->GetYaxis()->SetRangeUser(7.5, 16.0);
+    g_sigma->GetYaxis()->SetRangeUser(3.0, 16.0);
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Write("standard-dev-masses");
