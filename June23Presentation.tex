@@ -99,9 +99,11 @@ Skew Normal:
 \frame
 {
 \frametitle{Signal-to-noise ratio}
-Gaussian Model:\\
+Gaussian Model:
+\noindent\hspace{2.0 cm}  ExpGaussian:\\
 \includegraphics[width=0.5\textwidth]{old/Different_models/data/Gaussian/Overall_Signal_Over_Total.png}
 \includegraphics[width=0.5\textwidth]{old/Different_models/data/Exponential_Gaussian/Overall_Signal_Over_Total.png}\\
+Crystal Ball:\\
 \includegraphics[width=0.5\textwidth]{old/Different_models/data/Crystal_Ball/Overall_Signal_Over_Total.png}
 }
 
@@ -171,21 +173,34 @@ Mean masses over momentum:
 \includegraphics[width=0.5\textwidth]{data_comparisons/MassWidthvsMomentum.png}\\
 Number of pions:\\
 \includegraphics[width=0.5\textwidth]{data_comparisons/PeakIntegralvsMomentum.png}\\
-Note: I might want to use the Gaussian fit for the 8-10 GeV sample at all but the lambda cut due to a very weird fit two slides ago and very weird mass and mass peak width values for this set. 
 }
 
 \frame
 {
 \frametitle{Analysis of Cuts: Data Table}
 \begin{table}
-\caption{How cuts affect data quality}\centering\begin{tabular}{c c c c}\hline\hlineCuts & \# Pions1 & S/T at 1 $\sigma$ &  S/T at 2 $\sigma$ \\ [0.5ex] % inserts table %heading\hline
-0 & 11003& 0.754 & 0.686 \\1 & 7798 & 0.817 & 0.763 \\2 & 7798 & 0.817 & 0.763 \\3 & 7414 & 0.787 & 0.724 \\4 & 7456 & 0.789 & 0.726 \\5 & 4183 & 0.861 & 0.817 \\ [1ex]\hline\end{tabular}\label{table:nonlin}\end{table}
+\caption{How cuts affect data quality}
+\centering
+\begin{tabular}{c c c c}
+\hline\hline
+Cuts & \# Pions1 & S/T at 1 $\sigma$ &  S/T at 2 $\sigma$ \\ [0.5ex] % inserts table %heading
+\hline
+None & 11003& 0.75 & 0.69 \\
++M.Tracks & 7798 & 0.82 & 0.76 \\
++asymmetry & 7798 & 0.82 & 0.76 \\
++angle& 7414 & 0.79 & 0.72 \\
++Ncells & 7456 & 0.79 & 0.73 \\
++lambda & 4183 & 0.86 & 0.82 \\ [1ex]
+\hline
+\end{tabular}
+\label{table:nonlin}
+\end{table}
 }
 
 \frame
 {
 \frametitle{Analysis of Cuts: Conclusion}
-In conclusion, the asymmetry cut (\# 2) is completely irrelevant, the Ncells (\#4) has a tiny positive effect for all three particles , the angle cut has a negative effect for all three parameters (though it seems to increase signal-to-noise ratio near for lower momenta but decrease it for higher momenta), the matched tracks cut (\# 1) and the lambda cut (\#5) both increase signal to total ration but decrease the number of pions, and the lambda cut also decreases residuals noticeably. However, the lambda cut may not be worthwhile as it cuts one half of all the pions, despite otherwise yielding the highest amount of benefit.
+In conclusion, the asymmetry cut  is completely irrelevant, the Ncells has a tiny positive effect for all three particles , the angle cut has a negative effect for all three parameters (though it seems to increase signal-to-noise ratio near for lower momenta but decrease it for higher momenta), the matched tracks cut  and the lambda cut both increase signal to total ration but decrease the number of pions, and the lambda cut also decreases residuals noticeably. However, the lambda cut may not be worthwhile as it cuts one half of all the pions. On the other hand, it may be worthwhile because other than the pion count, it yields the highest amount of benefit.
 }
 \end{document}
 
