@@ -249,8 +249,9 @@ void my_code(int NumOfCuts) {
     //func->SetParLimits(8, 0.0, 1000000.0); // Linear
     //func->SetParLimits(9, -1000000.0, 0.0); //Constant
     
-    // Plot the fit for the mass and (separately) the Gaussian and background components of it
+    // Plot the fit for the mass and (separately) the Gaussian and background components of it, print out the number of pions
     hMass->Fit(func);
+    std::cout << "\n\nNumber of pions:" << (func->GetParameter(0))/MASSWIDTH << std::endl;
     func->SetLineColor(kRed);
     func->Draw("same");
     std::cout << "Reduced Chi Square " << (func->GetChisquare())/10 << std::endl; //Reduced Chi Square of the mass vs entries curve (function has 18 degrees of freedom, 7 parameters)
@@ -290,6 +291,15 @@ void my_code(int NumOfCuts) {
     residual->Draw("p");
     residual->Write("residual"); // Load into the ROOT file
     graphcanvas->SaveAs(str_concat_converter(directory_name, "mass_pion_plot.png"));
+    
+    // Plot signal to noise ratio for the entire sample over various distances from the mean, print out values for 1 sigma and 2 sigmas
+    graphcanvas->Clear();
+    TF1* sig_over_tot_funct = new TF1("Signal over Total", signal_over_total, 0, 4, num_of_params);
+    sig_over_tot_funct->SetParameters(func->GetParameters());
+    sig_over_tot_funct->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
+    sig_over_tot_funct->Draw();
+    std::cout << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
+    graphcanvas->SaveAs(str_concat_converter(directory_name, "WholeSample_Signal_Over_Total.png"));
     
     // Plot the energies of the two photons against each other
     graphcanvas->Clear();
@@ -411,7 +421,7 @@ void my_code(int NumOfCuts) {
         graphcanvas->SaveAs(Form(str_concat_converter(directory_name, "MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png"), min, max));
         
         //Now use the signal_over_total function to get a graph of sigma vs. signal/total
-        TF1* sig_over_tot_funct = new TF1("Signal over Total", signal_over_total, 0, 4, num_of_params);
+        sig_over_tot_funct = new TF1("Signal over Total", signal_over_total, 0, 4, num_of_params);
         sig_over_tot_funct->SetParameters(func->GetParameters());
         graphcanvas->Clear();
         

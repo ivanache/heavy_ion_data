@@ -372,12 +372,12 @@ void pt_combiner() {
     mass_mom_4cut->Draw("same");
     real_mass->Draw("same");*/
     myText(0.30, 0.95, colBlack, "Mass vs. Momentum");
-    myBoxText(0.55, 0.41, 0.05,colClear, colors[0], "No cuts done");
-    myBoxText(0.55, 0.36, 0.05, colClear, colors[1], "Cuts: matched tracks");
-    myBoxText(0.55, 0.31, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
-    myBoxText(0.55, 0.26, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
-    myBoxText(0.55, 0.21, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
-    myBoxText(0.55, 0.16, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+    myBoxText(0.20, 0.41, 0.05,colClear, colors[0], "No cuts done");
+    myBoxText(0.20, 0.36, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.20, 0.31, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.20, 0.26, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.20, 0.21, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.20, 0.16, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
     /**
     myBoxText(0.50, 0.46, 0.05, colClear, colBlack, "Actual pion mass");
     myBoxText(0.50, 0.41, 0.05, colClear, colRed, "No cuts");
@@ -412,7 +412,7 @@ void pt_combiner() {
     // Graph everything
     width_mom_cuts[0]->SetLineColor(colors[0]);
     width_mom_cuts[0]->SetMarkerColor(colors[0]);
-    width_mom_cuts[0]->GetYaxis()->SetRangeUser(4., 19.);
+    width_mom_cuts[0]->GetYaxis()->SetRangeUser(4., 25.);
     width_mom_cuts[0]->Draw();
     for (int i = 1; i < num_of_samples; i++) {
         width_mom_cuts[i]->SetLineColor(colors[i]);
@@ -430,12 +430,12 @@ void pt_combiner() {
     width_mom_2cut->Draw("same");
     width_mom_3cut->Draw("same");
     width_mom_4cut->Draw("same");*/
-    myBoxText(0.40, 0.85, 0.05,colClear, colors[0], "No cuts done");
-    myBoxText(0.40, 0.80, 0.05, colClear, colors[1], "Cuts: matched tracks");
-    myBoxText(0.40, 0.75, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
-    myBoxText(0.40, 0.70, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
-    myBoxText(0.40, 0.65, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
-    myBoxText(0.40, 0.60, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+    myBoxText(0.20, 0.85, 0.05,colClear, colors[0], "No cuts done");
+    myBoxText(0.20, 0.80, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.20, 0.75, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.20, 0.70, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.20, 0.65, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.20, 0.60, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
     /**
     myBoxText(0.40, 0.85, 0.05, colClear, colRed, "No cuts");
     myBoxText(0.40, 0.80, 0.05, colClear, colBlue, "Lambda Cut");
@@ -487,12 +487,12 @@ void pt_combiner() {
     integral_mom_2cut->Draw("same");
     integral_mom_3cut->Draw("same");
     integral_mom_4cut->Draw("same");*/
-    myBoxText(0.45, 0.88, 0.05,colClear, colors[0], "No cuts done");
-    myBoxText(0.45, 0.83, 0.05, colClear, colors[1], "Cuts: matched tracks");
-    myBoxText(0.45, 0.78, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
-    myBoxText(0.45, 0.73, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
-    myBoxText(0.45, 0.68, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
-    myBoxText(0.45, 0.63, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
+    myBoxText(0.20, 0.88, 0.05,colClear, colors[0], "No cuts done");
+    myBoxText(0.20, 0.83, 0.05, colClear, colors[1], "Cuts: matched tracks");
+    myBoxText(0.20, 0.78, 0.05, colClear, colors[2], "Cuts: matched tracks and asymmetry");
+    myBoxText(0.20, 0.73, 0.05, colClear, colors[3], "Cuts: matched tracks, asymmetry, and angle");
+    myBoxText(0.20, 0.68, 0.05, colClear, colors[4], "Cuts: matched tracks, asymmetry, angle, and Ncells");
+    myBoxText(0.20, 0.63, 0.05, colClear, colors[5], "Cuts: matched tracks, asymmetry, angle, Ncells, and lambda02");
     /**
     myBoxText(0.45, 0.88, 0.05, colClear, colRed, "No cuts");
     myBoxText(0.45, 0.83, 0.05, colClear, colBlue, "Lambda Cut");
@@ -502,6 +502,13 @@ void pt_combiner() {
     
     //Save
     canvas->SaveAs("data_comparisons/PeakIntegralvsMomentum.png");
+    
+    // Create a TPaveText in order to hold a data table for the number of pions and the signal-to-total ratio
+    canvas->Clear();
+    TPaveText *LegendColumn = new TPaveText(0.0, 0.0, 0.25, 0.9);
+    LegendColumn->AddText("No cuts");
+    LegendColumn->Draw();
+    canvas->SaveAs("data_comparisons/testtable.png");
     
     canvas->Close();
 }
