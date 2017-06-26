@@ -28,7 +28,7 @@ THnSparses<br />
       ||<br />
       \\/<br />
      Data processing macro<br />
-      ||&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;/\&nbsp;&nbsp;&nbsp;&nbsp;||<br />
+      ||&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;/\ &nbsp;&nbsp;&nbsp;&nbsp;||<br />
       ||&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;||&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;&nbsp;||<br />
       \\/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\\/&nbsp;&nbsp;||&nbsp;&nbsp;&nbsp;&nbsp;\\/<br />
 .png graph ROOT output Terminal print<br />
