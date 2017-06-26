@@ -22,19 +22,19 @@ Creator: Ivan Chernyshev, June 20 2017
 - To view the data inside a THnSparses, first enter the constructor TFile* <file object (your choice) name here> = new TFile(<insert the name of the THnSparses here (make sure you are in the THnSparses's directory)>);. Alternatively, you may enter the name of the THnSparses right after the "root" command when you launch ROOT. Then enter the command TBrowser* <insert the name of the browser object (your choice) here> = new TBrowser();. A  Browser window will pop up, and your THnSparses will be one of the files on the menu to the left. Click on it to access the data inside.
 - To run a macro (one of the C++ programs which processes the data), type in .x <enter macro name here, followed by any arguments that the macro requires>.
 
-*Flowchart of the data processing:* 
-THnSparses <br />
-      ||   <br />                 
-      ||   <br />            
-      \/   <br />           
-     Data processing macro  <br />
-      ||      ||  /\    ||  <br />
-      ||      ||  ||    ||  <br />
-      \/      \/  ||    \/  <br />
-.png graph ROOT output Terminal print <br />
-files       files       output        <br />
-    ||         ||         ||  <br />
-    \/         \/         \/  <br />
+*Flowchart of the data processing:*<br />
+THnSparses<br />
+      ||<br />
+      ||<br />
+      \/<br />
+     Data processing macro<br />
+      ||      ||  /\    ||<br />
+      ||      ||  ||    ||<br />
+      \/      \/  ||    \/<br />
+.png graph ROOT output Terminal print<br />
+files       files       output<br />
+    ||         ||         ||<br />
+    \/         \/         \/<br />
 ______________________________________
-|Presentations and other communication| <br />
-|_____________________________________| <br />
+|Presentations and other communication|<br />
+|_____________________________________|<br />
