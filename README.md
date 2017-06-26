@@ -26,11 +26,11 @@ Creator: Ivan Chernyshev, June 20 2017
 THnSparses<br />
       ||<br />
       ||<br />
-      \/<br />
+      \\/<br />
      Data processing macro<br />
       ||      ||  /\    ||<br />
       ||      ||  ||    ||<br />
-      \/      \/  ||    \/<br />
+      \\/      \\/  ||    \\/<br />
 .png graph ROOT output Terminal print<br />
 files       files       output<br />
     ||         ||         ||<br />
