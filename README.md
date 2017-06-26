@@ -21,6 +21,7 @@ Creator: Ivan Chernyshev, June 20 2017
 - To start, start up ROOT by entering "root" into Terminal after navigating to the desired directory (make sure that you have ROOT 6 installed and hooked up to Terminal). 
 - To view the data inside a THnSparses, first enter the constructor TFile* <file object (your choice) name here> = new TFile(<insert the name of the THnSparses here (make sure you are in the THnSparses's directory)>);. Alternatively, you may enter the name of the THnSparses right after the "root" command when you launch ROOT. Then enter the command TBrowser* <insert the name of the browser object (your choice) here> = new TBrowser();. A  Browser window will pop up, and your THnSparses will be one of the files on the menu to the left. Click on it to access the data inside.
 - To run a macro (one of the C++ programs which processes the data), type in .x <enter macro name here, followed by any arguments that the macro requires>.
+
 *Flowchart of the data processing:* 
 THnSparses 
       ||                     
