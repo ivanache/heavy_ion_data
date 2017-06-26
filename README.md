@@ -23,18 +23,18 @@ Creator: Ivan Chernyshev, June 20 2017
 - To run a macro (one of the C++ programs which processes the data), type in .x <enter macro name here, followed by any arguments that the macro requires>.
 
 *Flowchart of the data processing:* 
-THnSparses 
-      ||                     
-      ||                     
-      \/                    
-     Data processing macro 
-      ||      ||  /\    ||
-      ||      ||  ||    ||
-      \/      \/  ||    \/
-.png graph ROOT output Terminal print     
-files       files       output          
-    ||         ||         ||
-    \/         \/         \/
+THnSparses <br />
+      ||   <br />                 
+      ||   <br />            
+      \/   <br />           
+     Data processing macro  <br />
+      ||      ||  /\    ||  <br />
+      ||      ||  ||    ||  <br />
+      \/      \/  ||    \/  <br />
+.png graph ROOT output Terminal print <br />
+files       files       output        <br />
+    ||         ||         ||  <br />
+    \/         \/         \/  <br />
 ______________________________________
-|Presentations and other communication| 
-|_____________________________________|
+|Presentations and other communication| <br />
+|_____________________________________| <br />
