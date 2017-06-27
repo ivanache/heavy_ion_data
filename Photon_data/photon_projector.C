@@ -21,13 +21,17 @@ char* str_concat_converter(string str1, string str2){
     return output;
 }
 
-void photon_projector(int NumOfSigmasFromMean) {
+/**
+ Main function
+ */
+// Precondition: NumOfSigmasFromMeanMax = 1, 2, 3, or 4
+void photon_projector(string NumOfSigmasFromMeanMax) {
     const double lambdamin = 0;
     const double lambdamax = 2;
     const int axis_pionLambda1 = 17;
     const int y_min = 6;
     const int y_max = 8;
-    const string directory_name = Form("%isigma/projections/", NumOfSigmasFromMean);
+    const string directory_name = Form("%ssigma/projections/", NumOfSigmasFromMeanMax.c_str());
     TCanvas* canvas = new TCanvas();
     
     // Set ATLAS Style
@@ -35,7 +39,7 @@ void photon_projector(int NumOfSigmasFromMean) {
     SetAtlasStyle();
     
     // Open the root file, get the data
-    TFile* fIn = new TFile(Form("%isigmaPhotonsOutput.root", NumOfSigmasFromMean), "READ");
+    TFile* fIn = new TFile(Form("%ssigmaPhotonsOutput.root", NumOfSigmasFromMeanMax.c_str()), "READ");
     fIn->Print();
     TH2D* hist = 0;
     fIn->GetObject("leading_Evslambda", hist);
@@ -50,16 +54,21 @@ void photon_projector(int NumOfSigmasFromMean) {
     // Copy the energy data from the E vs lambda histogram, integrate it over Y, put it into the corresponding bin of the projection
     int maxbin = projection->GetXaxis()->FindBin(lambdamax);
     double actual_bin;
+    
     for (int i = projection->GetXaxis()->FindBin(lambdamin); i <= maxbin; i++) {
         actual_bin = hist->Integral(i, i, yminbin, ymaxbin);
         projection->SetBinContent(i, actual_bin);
     }
-    // Graph
-    projection->SetTitle("Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection; lambda0; Number of Leading Photons with energy 6-8 GeV");
+    // Before graphing, create an object to write to the root file being read from
+    TFile* fOut = new TFile(Form("%ssigmaPhotonsOutput.root", NumOfSigmasFromMeanMax.c_str()), "UPDATE");
+
+    // Graph and update the root file
+    projection->SetTitle("Photons from Pi0 decay; lambda0; Number of Leading Photons with energy 6-8 GeV");
     projection->GetXaxis()->SetTitleOffset(1.0);
     projection->GetYaxis()->SetTitleOffset(1.0);
     projection->Draw();
-    myText(.10,.95, kBlack, "Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection");
+    myText(.35,.95, kBlack, "Photons from Pi0 decay");
+    projection->Write("Lambda_projection");
     canvas->SaveAs(str_concat_converter(directory_name, "Lambda_vs_E_projection.png"));
     
     
@@ -86,8 +95,8 @@ void photon_projector(int NumOfSigmasFromMean) {
         projection->SetTitle(Form("Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection (Momentum %2.2f-%2.2f Gev); lambda0; Number of Leading Photons with energy 6-8 GeV", ptmin, ptmax));
         projection->Draw();
         myText(.10,.95, kBlack, "Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection");
-        canvas->SaveAs(str_concat_converter(directory_name, Form("Lambda_vs_E_projection_ptmin_%2.2f_ptmax_%2.2f.png", ptmin, ptmax)));
-        
+        projection->Write(Form("Lambda_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
+        canvas->SaveAs(str_concat_converter(directory_name, Form("Lambda_vs_E_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
 
     }
     

@@ -51,9 +51,9 @@ void SetCut(THnSparse* h, const int axis, double min, double max){
 /**
  Main function
 */
-// Precondition: NumOfSigmasFromMean = 1, 2, or 3
-void photon_analyzer(int NumOfSigmasFromMean) {
-    const string directory_name = Form("%isigma/", NumOfSigmasFromMean);
+// Precondition: NumOfSigmasFromMeanMax = 1, 2, 3, or 4
+void photon_analyzer(int NumOfSigmasFromMeanMax) {
+    const string directory_name = Form("%isigma/", NumOfSigmasFromMeanMax);
     
     // Set ATLAS style
     gROOT->LoadMacro("AtlasStyle.C");
@@ -86,11 +86,11 @@ void photon_analyzer(int NumOfSigmasFromMean) {
     TF1* peakfunct = (TF1*) piondata->GetListOfFunctions()->FindObject("mass peak");
     double mean = peakfunct->GetParameter(1);
     double sigma = peakfunct->GetParameter(2);
-    SetCut(h_photon, axis_pionMass, mean - NumOfSigmasFromMean*sigma, mean + NumOfSigmasFromMean*sigma);
+    SetCut(h_photon, axis_pionMass, mean - NumOfSigmasFromMeanMax*sigma, mean + NumOfSigmasFromMeanMax*sigma);
 
     // Set up the root output file
-    string rootfilename = Form("%isigmaPhotonsOutput.root", NumOfSigmasFromMean);
-    TFile* fOut = new TFile(rootfilename.c_str(), "NEW");
+    string rootfilename = Form("%isigmaPhotonsOutput.root", NumOfSigmasFromMeanMax);
+    TFile* fOut = new TFile(rootfilename.c_str(), "RECREATE");
     
     // Plot energy vs. eigenvalue for the leading photon
     TH2D* hEnergy = h_photon->Projection(axis_photon1E, axis_pionLambda1);
