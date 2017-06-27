@@ -47,7 +47,7 @@ void photon_projector(string NumOfSigmasFromMeanMax) {
     int ymaxbin = hist->GetYaxis()->FindBin(y_max);
     
     // Create the TH1D object, using the lambda vs entries graph from the THnSparses as a template
-    TFile* TemplateSource = new TFile("THnSparses_062017.root", "READ");
+    TFile* TemplateSource = new TFile("THnSparses_062717.root", "READ");
     THnSparse* temp = 0;
     TemplateSource->GetObject("h_Pion", temp);
     TH1D* projection = temp->Projection(axis_pionLambda1);
