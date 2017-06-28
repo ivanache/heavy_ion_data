@@ -69,10 +69,10 @@ void background_maker(int NumOfSigmasFromMean) {
     std::cout << "\n3-4 sigma background integrals:\n2D histogram: " << h2d_back_int << "\n1D histogram: " << h1d_back_int << Form("\n%i sigma total integrals:\n2Dhistogram: ", NumOfSigmasFromMean) << h2d_total_int << "\n1D histogram: " << h1d_total_int << std::endl;
     
     // Now take the background-to-total ratio using 1 - signal to total
-    // Find the ratio by which to multiply all of the points using (interval radius, in sigma)(b-t ratio)(total integral)/(experimental background integral)
+    // Find the ratio by which to multiply all of the points using (b-t ratio)(total integral)/(experimental background integral, weighted by the interval radius in sigma)
     double bt_ratio = 1.0 - (sig_tot_graph->Eval(NumOfSigmasFromMean));
-    double h2d_adjustment_factor = (NumOfSigmasFromMean * bt_ratio * h2d_total_int)/h2d_back_int;
-    double h1d_adjustment_factor = (NumOfSigmasFromMean * bt_ratio * h1d_total_int)/h1d_back_int;
+    double h2d_adjustment_factor = (bt_ratio * h2d_total_int)/(NumOfSigmasFromMean * h2d_back_int);
+    double h1d_adjustment_factor = (bt_ratio * h1d_total_int)/(NumOfSigmasFromMean * h1d_back_int);
     // Print these out, so that they can be checked if they make sense
     std::cout << "\nCumulative background to total ratio: " << bt_ratio << "\nAdjustment factor, calculated from 2D histograms: " << h2d_adjustment_factor << "\nAdjustment factor, calculated from 1D histograms: " << h1d_adjustment_factor << std::endl;
     
