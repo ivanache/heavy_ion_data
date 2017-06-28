@@ -29,6 +29,8 @@ const int axis_pionNcells1 = 19;
 const int axis_pionNcells2 = 20;
 const int axis_pionMatchedTracks1 = 21;
 const int axis_pionMatchedTracks2 = 22;
+const int axis_pionDisToBorder1 = 27;
+const int axis_pionDisToBorder2 = 28;
 
 // Concatenates two strings and gives a char array
 char* str_concat_converter(string str1, string str2){
@@ -80,7 +82,7 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     
     // Load the THnSparses with the pion data
     // Use it to cut the mass to within 1 sigma of the mean pion mass
-    TFile* pionIn = new TFile("PionCutsSparsesOutput.root", "READ");
+    TFile* pionIn = new TFile("Pion5CutsSparsesOutput.root", "READ");
     TH1D* piondata = 0;
     pionIn->GetObject("mass_pion", piondata);
     TF1* peakfunct = (TF1*) piondata->GetListOfFunctions()->FindObject("mass peak");
@@ -127,7 +129,7 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
         TF1* peakfunct = (TF1*) piondata->GetListOfFunctions()->FindObject("mass peak");
         double mean = peakfunct->GetParameter(1);
         double sigma = peakfunct->GetParameter(2);
-        SetCut(h_photon, axis_pionMass, mean - sigma, mean + sigma);
+        SetCut(h_photon, axis_pionMass, mean - NumOfSigmasFromMeanMax*sigma, mean + NumOfSigmasFromMeanMax*sigma);
 
         
         // Plot energy vs. eigenvalue for the leading photon

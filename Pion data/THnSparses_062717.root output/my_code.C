@@ -325,7 +325,7 @@ void my_code(int NumOfCuts) {
     sig_over_tot_funct->SetParameters(func->GetParameters());
     sig_over_tot_funct->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
     sig_over_tot_funct->Draw();
-    std::cout << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
+    std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
     graphcanvas->SaveAs(str_concat_converter(directory_name, "WholeSample_Signal_Over_Total.png"));
     TGraph* total_sigtot = new TGraph(sig_over_tot_funct);
     total_sigtot->Write("Total_Sig_To_Total:");
