@@ -328,7 +328,7 @@ void my_code(int NumOfCuts) {
     std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
     graphcanvas->SaveAs(str_concat_converter(directory_name, "WholeSample_Signal_Over_Total.png"));
     TGraph* total_sigtot = new TGraph(sig_over_tot_funct);
-    total_sigtot->Write("Total_Sig_To_Total:");
+    total_sigtot->Write("Total_Sig_To_Total");
     
     // Plot the energies of the two photons against each other
     graphcanvas->Clear();
