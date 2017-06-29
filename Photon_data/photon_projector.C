@@ -58,6 +58,7 @@ void photon_projector(string NumOfSigmasFromMeanMax) {
     for (int i = projection->GetXaxis()->FindBin(lambdamin); i <= maxbin; i++) {
         actual_bin = hist->Integral(i, i, yminbin, ymaxbin);
         projection->SetBinContent(i, actual_bin);
+        projection->SetBinError(i, TMath::Sqrt(projection->GetBinContent(i)));
     }
     // Before graphing, create an object to write to the root file being read from
     TFile* fOut = new TFile(Form("%ssigmaPhotonsOutput.root", NumOfSigmasFromMeanMax.c_str()), "UPDATE");
@@ -90,6 +91,7 @@ void photon_projector(string NumOfSigmasFromMeanMax) {
         for (int i = projection->GetXaxis()->FindBin(lambdamin); i <= maxbin; i++) {
             actual_bin = hist->Integral(i, i, yminbin, ymaxbin);
             projection->SetBinContent(i, actual_bin);
+            projection->SetBinError(i, TMath::Sqrt(projection->GetBinContent(i)));
         }
         // Graph
         projection->SetTitle(Form("Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection (Momentum %2.2f-%2.2f Gev); lambda0; Number of Leading Photons with energy 6-8 GeV", ptmin, ptmax));

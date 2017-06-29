@@ -113,6 +113,7 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
     for (int i = x_bin_min; i <= x_bin_max; i++) {
         new_content = projmax->GetBinContent(i) - projmin->GetBinContent(i);
         projoutput->SetBinContent(i, new_content);
+        projoutput->SetBinError(i, TMath::Sqrt(projoutput->GetBinContent(i)));
     }
 
     // Graph, save, and write
@@ -138,6 +139,7 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
         for (int i = x_bin_min; i <= x_bin_max; i++) {
             new_content = projmax->GetBinContent(i) - projmin->GetBinContent(i);
             projoutput->SetBinContent(i, new_content);
+            projoutput->SetBinError(i, TMath::Sqrt(projoutput->GetBinContent(i)));
         }
         
         // Graph, save, and write
