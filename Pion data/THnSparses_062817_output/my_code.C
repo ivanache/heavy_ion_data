@@ -192,8 +192,8 @@ void my_code(int NumOfCuts) {
         SetCut(h_Pion, axis_pionDisToCharged2, 0.02, 0.14);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
-        SetCut(h_Pion, axis_pionNcells1, 1.0000001, 30.0);
-        SetCut(h_Pion, axis_pionNcells2, 1.0000001, 30.0);
+        SetCut(h_Pion, axis_pionNcells1, 1.9, 30.0);
+        SetCut(h_Pion, axis_pionNcells2, 1.9, 30.0);
         std::cout << "Cuts: distance to charged particles, asymmetry, angle, and Ncells\n\n";
         //fit_y_max = 600.0;
     }
@@ -202,10 +202,10 @@ void my_code(int NumOfCuts) {
         SetCut(h_Pion, axis_pionDisToCharged2, 0.02, 0.14);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
-        SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
-        SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
+        SetCut(h_Pion, axis_pionNcells1, 1.9, 30.0);
+        SetCut(h_Pion, axis_pionNcells2, 1.9, 30.0);
         SetCut(h_Pion, axis_pionDisToBorder1, 2.0, 6.0);
-        SetCut(h_Pion, axis_pionDisToBorder1, 2.0, 6.0);
+        SetCut(h_Pion, axis_pionDisToBorder2, 2.0, 6.0);
         std::cout << "Cuts: distance to charged particles, asymmetry, angle, Ncells, and DisToBorder\n\n";
     }
     else if (NumOfCuts == 6) {
@@ -213,10 +213,10 @@ void my_code(int NumOfCuts) {
         SetCut(h_Pion, axis_pionDisToCharged2, 0.02, 0.14);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
         SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
-        SetCut(h_Pion, axis_pionNcells1, 1.0, 30.0);
-        SetCut(h_Pion, axis_pionNcells2, 1.0, 30.0);
+        SetCut(h_Pion, axis_pionNcells1, 1.9, 30.0);
+        SetCut(h_Pion, axis_pionNcells2, 1.9, 30.0);
         SetCut(h_Pion, axis_pionDisToBorder1, 2.0, 6.0);
-        SetCut(h_Pion, axis_pionDisToBorder1, 2.0, 6.0);
+        SetCut(h_Pion, axis_pionDisToBorder2, 2.0, 6.0);
         SetCut(h_Pion, axis_pionLambda1, 0.1, 0.4);
         SetCut(h_Pion, axis_pionLambda2, 0.1, 0.4);
         std::cout << "Cuts: distance to charged particles, asymmetry, angle, Ncells, DisToBorder, and lambda02\n\n";
@@ -260,11 +260,11 @@ void my_code(int NumOfCuts) {
     func = new TF1("fit", crystal_ball_model,0.05,0.5,num_of_params);
     peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
     func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-    func->SetParameters(60,  0.14, 0.03, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
+    func->SetParameters(60,  0.14, 0.013, 1, 4.0,  -100000, 30000, -60000, 100, 10000);
     func->SetParLimits(0, 0.1, 400.0);//integral
-    func->SetParLimits(1, 0.13, 0.149); //mean
-    func->SetParLimits(2, 0.008, 0.02); // width
-    func->SetParLimits(3, 0.03, 10000000.0); // alpha
+    func->SetParLimits(1, 0.13, 0.151); //mean
+    func->SetParLimits(2, 0.01, 0.016); // width
+    func->SetParLimits(3, 0.5, 1000.0); // alpha
     func->SetParLimits(4, 1.2, 1000.0); // n
     func->SetParLimits(5, -100000.0, 0.0); // Quadric and quadratic factors
     func->SetParLimits(7, -1000000.0, 0.0);
@@ -382,11 +382,13 @@ void my_code(int NumOfCuts) {
     // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
+        /**
         if(i == 0)
            func->SetParLimits(1, 0.13, 0.142); //mean
         else
             func->SetParLimits(1, 0.13, 0.149); //mean 
-
+        */
+         
         pad[0] = new TPad("pad0","",0,0.38,1,1);
         pad[1] = new TPad("pad1","",0,0,1,0.46);
         min = intervals[i][0];
@@ -471,6 +473,9 @@ void my_code(int NumOfCuts) {
         g_sig_over_tot->SetLineColor(graph_colors[i]);
         peaks_over_totals->Add(g_sig_over_tot);
         
+        // Print out the number of pions and the signal to noise ratio
+        std::cout << "\nNumber of pions: " << func->GetParameter(0)/MASSWIDTH << "\nError: " << func->GetParError(0)/MASSWIDTH << std::endl;
+        std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
         
         //Load onto the ROOT file
         hMass->GetListOfFunctions()->Add(peak);
