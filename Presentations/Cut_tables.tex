@@ -1,0 +1,56 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+% \usepackage{beamerthemesplit} // Activate for custom appearance
+
+\title{Cut Data Tables}
+\author{Ivan Chernyshev}
+\date{\today}
+
+\begin{document}
+
+%\frame
+%{
+%\frametitle{Analysis of Cuts: Old Data Table; Pt 8-15 GeV}
+%\begin{table}
+%\caption{How cuts affect data quality}
+%\centering
+%\begin{tabular}{c c c c}
+%\hline\hline
+%Cuts & \# Pions1 & S/T at 1 $\sigma$ &  S/T at 2 $\sigma$ \\ [0.5ex] % inserts table %heading
+%\hline
+%None & 11003& 0.75 & 0.69 \\
+%+M.Tracks & 7798 & 0.82 & 0.76 \\
+%+asymmetry & 7798 & 0.82 & 0.76 \\
+%+angle& 7414 & 0.79 & 0.72 \\
+%+Ncells & 7456 & 0.79 & 0.73 \\
+%+lambda & 4183 & 0.86 & 0.82 \\ [1ex]
+%\hline
+%\end{tabular}
+%\label{table:nonlin}
+%\end{table}
+%}
+
+\frame
+{
+\frametitle{Analysis of Cuts: New Data Table;  Pt 8-15 GeV}
+\begin{table}
+\caption{How cuts affect data quality}
+\centering
+\begin{tabular}{c c c c}
+\hline\hline
+Cuts & \# Pions1 & S/T at 1 $\sigma$ &  S/T at 2 $\sigma$ \\ [0.5ex] % inserts table %heading
+\hline
+None & 3993 +/- 111 & 0.74 & 0.67 \\
++dR $> 20$ mrad & 4048 +/- 115 & 0.80 & 0.74 \\
++asymmetry $< 0.7$ & 4048 +/- 115 & 0.80 & 0.74 \\
++angle $> 15$ mrad & 2752 +/- 98 & 0.83 & 0.78 \\
++Ncells $> 1$& 2752 +/- 98 & 0.83 & 0.78 \\
++DisToBorder $>$ 2 & 2512 +/- 74 & 0.85 & 0.80 \\
++$0.1 < \lambda <$ 0.4 & 1058 +/- 44 & 0.87 & 0.83 \\ [1ex]
+\hline
+\end{tabular}
+\label{table:nonlin}
+\end{table}
+}
+
+\end{document}

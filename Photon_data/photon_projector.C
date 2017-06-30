@@ -47,7 +47,7 @@ void photon_projector(string NumOfSigmasFromMeanMax) {
     int ymaxbin = hist->GetYaxis()->FindBin(y_max);
     
     // Create the TH1D object, using the lambda vs entries graph from the THnSparses as a template
-    TFile* TemplateSource = new TFile("THnSparses_062717.root", "READ");
+    TFile* TemplateSource = new TFile("THnSparses_062817.root", "READ");
     THnSparse* temp = 0;
     TemplateSource->GetObject("h_Pion", temp);
     TH1D* projection = temp->Projection(axis_pionLambda1);
@@ -64,11 +64,12 @@ void photon_projector(string NumOfSigmasFromMeanMax) {
     TFile* fOut = new TFile(Form("%ssigmaPhotonsOutput.root", NumOfSigmasFromMeanMax.c_str()), "UPDATE");
 
     // Graph and update the root file
-    projection->SetTitle("Photons from Pi0 decay; lambda0; Number of Leading Photons with energy 6-8 GeV");
+    projection->SetTitle("Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection; lambda0; Number of Leading Photons with energy 6-8 GeV");
     projection->GetXaxis()->SetTitleOffset(1.0);
     projection->GetYaxis()->SetTitleOffset(1.0);
     projection->Draw();
-    myText(.35,.95, kBlack, "Photons from Pi0 decay");
+    myText(.03,.97, kBlack, "Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection, Pt 8-15 GeV");
+    myText(.35,.92, kBlack, Form("mass within %s sigma of the mean", NumOfSigmasFromMeanMax.c_str()));
     projection->Write("Lambda_projection");
     canvas->SaveAs(str_concat_converter(directory_name, "Lambda_vs_E_projection.png"));
     
@@ -96,7 +97,8 @@ void photon_projector(string NumOfSigmasFromMeanMax) {
         // Graph
         projection->SetTitle(Form("Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection (Momentum %2.2f-%2.2f Gev); lambda0; Number of Leading Photons with energy 6-8 GeV", ptmin, ptmax));
         projection->Draw();
-        myText(.10,.95, kBlack, "Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection");
+        myText(.10,.97, kBlack, "Leading Pi0 Photon Lambda vs. Leading Pi0 Photon Energy Projection, ");
+        myText(.25,.92, kBlack, Form("Pt %2.2f-%2.2f GeV, mass within %s sigma of the mean", ptmin, ptmax, NumOfSigmasFromMeanMax.c_str()));
         projection->Write(Form("Lambda_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
         canvas->SaveAs(str_concat_converter(directory_name, Form("Lambda_vs_E_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
 

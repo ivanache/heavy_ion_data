@@ -39,8 +39,8 @@ void background_maker(int NumOfSigmasFromMean) {
     gROOT->LoadMacro("AtlasStyle.C");
     SetAtlasStyle();
     
-    // Load the file with the 3-4 background sample, signal-to-total ratio, and data
-    TFile* backIn = new TFile("3-4sigmaPhotonsOutput.root", "READ");
+    // Load the file with the 3-5 background sample, signal-to-total ratio, and data
+    TFile* backIn = new TFile("3-5sigmaPhotonsOutput.root", "READ");
     TFile* ratioIn = new TFile("Pion5CutsSparsesOutput.root", "READ");
     TFile* totalIn = new TFile(Form("%isigmaPhotonsOutput.root", NumOfSigmasFromMean), "READ");
     
@@ -66,7 +66,7 @@ void background_maker(int NumOfSigmasFromMean) {
     double h2d_back_int = back_lambda_E_graph->Integral(x_bin_min, x_bin_max, y_bin_min, y_bin_max);
     double h1d_back_int = back_lambda_projection->Integral(x_bin_min, x_bin_max);
     // Print it out, so it can be checked if it makes sense
-    std::cout << "\n3-4 sigma background integrals:\n2D histogram: " << h2d_back_int << "\n1D histogram: " << h1d_back_int << Form("\n%i sigma total integrals:\n2Dhistogram: ", NumOfSigmasFromMean) << h2d_total_int << "\n1D histogram: " << h1d_total_int << std::endl;
+    std::cout << "\n3-5 sigma background integrals:\n2D histogram: " << h2d_back_int << "\n1D histogram: " << h1d_back_int << Form("\n%i sigma total integrals:\n2Dhistogram: ", NumOfSigmasFromMean) << h2d_total_int << "\n1D histogram: " << h1d_total_int << std::endl;
     
     // Now take the background-to-total ratio using 1 - signal to total
     // Find the ratio by which to multiply all of the points using (b-t ratio)(total integral)/(experimental background integral)
@@ -91,22 +91,21 @@ void background_maker(int NumOfSigmasFromMean) {
     back_lambda_E_graph->GetXaxis()->SetTitleOffset(0.9);
     back_lambda_E_graph->GetYaxis()->SetTitleOffset(0.9);
     back_lambda_E_graph->Draw("COLZ");
-    myText(0.35, 0.95, kBlack, "Leading Pi0 Photon Energy vs lambda0");
+    myText(0.10, 0.95, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
     canvas->SaveAs(str_concat_converter(background_directory_name, "LeadingEvsLambda.png"));
     canvas->Clear();
     back_lambda_projection->GetXaxis()->SetTitleOffset(1.0);
     back_lambda_projection->GetYaxis()->SetTitleOffset(1.0);
     back_lambda_projection->Draw();
-    myText(0.35, 0.95, kBlack, "Photons from Pi0 decay");
+    myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
     canvas->SaveAs(str_concat_converter(background_directory_name, "Lambda_vs_E_projection.png"));
     total_lambda_projection->SetMarkerColor(kRed);
     total_lambda_projection->Draw();
     total_lambda_projection->GetXaxis()->SetTitleOffset(1.0);
     total_lambda_projection->GetYaxis()->SetTitleOffset(1.0);
-    myText(0.35, 0.95, kBlack, "Photons from Pi0 decay");
+    myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
     back_lambda_projection->Draw("same");
-    myMarkerText(0.70, 0.85, kBlack, 20, "Background data", 1);
-    myMarkerText(0.70, 0.80, kRed, 20, "Total data", 1);
+    myMarkerText(0.30, 0.85, kBlack, 20, Form("Background data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
+    myMarkerText(0.30, 0.80, kRed, 20, Form("Total data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
     canvas->SaveAs(str_concat_converter(total_directory_name, "Lambda_vs_E_projection.png"));
-
 }

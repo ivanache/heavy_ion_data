@@ -62,7 +62,7 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     SetAtlasStyle();
     
     // Load the THnSparses file, print its content, and get the data from it
-    TFile* fIn = new TFile("THnSparses_062717.root","READ");
+    TFile* fIn = new TFile("THnSparses_062817.root","READ");
     fIn->Print();
     THnSparse* h_photon = 0;
     fIn->GetObject("h_Pion", h_photon);
@@ -99,7 +99,8 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     hEnergy->SetTitle("Leading Pi0 Photon Energy vs lambda0; lambda0; Leading photon energy (GeV)");
     hEnergy->SetAxisRange(6, 15, "Y");
     hEnergy->Draw("COLZ");
-    myText(.35,.9, kBlack, "Leading  Pi0 Photon Energy vs lambda0");
+    myText(.20,.97, kBlack, "Leading  Pi0 Photon Energy vs lambda0, Pt 8-15 GeV");
+    myText(.35,.92, kBlack, Form("Mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
     hEnergy->Write("leading_Evslambda");
     canvas->SaveAs(str_concat_converter(directory_name, "LeadingEvsLambda.png"));
     canvas->Clear();
@@ -109,7 +110,8 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     hEnergy->SetTitle("Trailing Pi0 Photon Energy vs lambda0; lambda0; Trailing photon energy (GeV)");
     hEnergy->SetAxisRange(3, 9, "Y");
     hEnergy->Draw("COLZ");
-    myText(.35,.9, kBlack, "Trailing Pi0 Photon Energy vs lambda0");
+    myText(.20,.97, kBlack, "Trailing Pi0 Photon Energy vs lambda0, Pt 8-15 GeV,");
+    myText(.35,.92, kBlack, Form("mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
     hEnergy->Write("trailing_Evslambda");
     canvas->SaveAs(str_concat_converter(directory_name, "TrailingEvsLambda.png"));
     canvas->Clear();
@@ -137,7 +139,8 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
         hEnergy->SetTitle("Leading Pi0 Photon Energy vs lambda0; lambda0; Leading photon energy (GeV)");
         hEnergy->SetAxisRange(6, 15, "Y");
         hEnergy->Draw("COLZ");
-        myText(.35,.9, kBlack, "Leading Pi0 Photon Energy vs lambda0");
+        myText(.20,.97, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
+        myText(.35,.92, kBlack, Form("mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
         hEnergy->Write(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
         canvas->SaveAs(str_concat_converter(directory_name, Form("LeadingEvsLambda_ptmin_%2.2f_ptmax_%2.2f.png", ptmin, ptmax)));
         canvas->Clear();
@@ -147,7 +150,8 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
         hEnergy->SetTitle("Trailing Pi0 Photon Energy vs lambda0; lambda0; Trailing photon energy (GeV)");
         hEnergy->SetAxisRange(3, 9, "Y");
         hEnergy->Draw("COLZ");
-        myText(.35,.9, kBlack, "Trailing Pi0 Photon Energy vs lambda0");
+        myText(.20,.97, kBlack, Form("Trailing Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
+        myText(.35,.92, kBlack, Form("mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
         hEnergy->Write(Form("trailing_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
         canvas->SaveAs(str_concat_converter(directory_name, Form("TrailingEvsLambda_ptmin_%2.2f_ptmax_%2.2f.png", ptmin, ptmax)));
         canvas->Clear();

@@ -165,10 +165,7 @@ void my_code(int NumOfCuts) {
     graph_raw_data(h_Pion, axis_pionDisToBorder1, graphcanvas, str_concat_converter(directory_name, "DisToBorder1_pion_plot.png"), "DisToBorder1");
     graph_raw_data(h_Pion, axis_pionDisToBorder2, graphcanvas, str_concat_converter(directory_name, "DisToBorder2_pion_plot.png"), "DisToBorder2");
 
-    // restrict matched tracks to no more than -1, asymmetry to below 0.7, lambda 1 and 2 to below 0.4, the angle absolute value
-    // to above 0.015, and Ncells 1 and 2 to above 1.5. Omit cuts in the order that is in reverse to this, as required
-    // by the number of cuts. Also set the maximum y value of the pion entries vs mass to 600
-    double fit_y_max;
+    //Apply cuts, as described in the cout output
     if(NumOfCuts == 0) {
         cout << "No cuts done\n\n";
         fit_y_max = 1600.0;
@@ -176,14 +173,14 @@ void my_code(int NumOfCuts) {
     else if (NumOfCuts == 1) {
         SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, 0.0);
         SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, 0.0);
-        cout << "Cuts: matched tracks\n\n";
+        std::cout << "Cuts: matched tracks\n\n";
         fit_y_max = 1000.0;
     }
     else if (NumOfCuts == 2) {
         SetCut(h_Pion, axis_pionMatchedTracks1, -1.5, 0.0);
         SetCut(h_Pion, axis_pionMatchedTracks2, -1.5, 0.0);
         SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-        cout << "Cuts: matched tracks and asymmetry\n\n";
+        std::cout << "Cuts: matched tracks and asymmetry\n\n";
         fit_y_max = 1000.0;
     }
     else if (NumOfCuts == 3) {
@@ -255,7 +252,7 @@ void my_code(int NumOfCuts) {
     func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
     func->SetParameters(60,  0.14, 0.03, 1, 2.0,  -100000, 30000, -60000, 100, 10000);
     func->SetParLimits(0, 2, 400.0);//integral
-    func->SetParLimits(1, 0.13, 0.149); //mean
+    func->SetParLimits(1, 0.13, 0.151); //mean
     func->SetParLimits(2, 0.008, 0.02); // width
     func->SetParLimits(3, 0.1, 10000000.0); // alpha
     func->SetParLimits(4, 1.2, 1000.0); // n

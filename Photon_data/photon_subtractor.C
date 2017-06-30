@@ -62,9 +62,10 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
     TFile* fOut = new TFile(Form("%i-%isigmaPhotonsOutput.root", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax),"RECREATE");
     
     // Graph, save, and write
-    histoutput->SetTitle("Leading Pi0 Photon Energy vs lambda0; lambda0; Leading photon energy (GeV)");
+    histoutput->SetTitle("; lambda0; Leading photon energy (GeV)");
     histoutput->Draw("COLZ");
-    myText(.35,.9, kBlack, "Leading Pi0 Photon Energy vs lambda0");
+    myText(.20,.97, kBlack, "Leading Pi0 Photon Energy vs lambda0, Pt 8-15 GeV");
+    myText(.35,.92, kBlack, Form("mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
     histoutput->Write("leading_Evslambda");
     canvas->SaveAs(str_concat_converter(directory_name, "LeadingEvsLambda.png"));
     
@@ -89,9 +90,11 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
             }
         
         // Graph, save, and write
-        histoutput->SetTitle("Leading Pi0 Photon Energy vs lambda0; lambda0; Leading photon energy (GeV)");
+        histoutput->SetTitle("; lambda0; Leading photon energy (GeV)");
         histoutput->Draw("COLZ");
-        myText(.35,.9, kBlack, "Leading Pi0 Photon Energy vs lambda0");
+        myText(.20,.97, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
+        myText(.35,.92, kBlack, Form("mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
+        myText(.35,.9, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
         histoutput->Write(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
         canvas->SaveAs(str_concat_converter(directory_name, Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
 
@@ -117,9 +120,10 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
     }
 
     // Graph, save, and write
-    projoutput->SetTitle("Photons from Pi0 decay; lambda0; Leading photon energy (GeV)");
+    projoutput->SetTitle("; lambda0; Leading photon energy (GeV)");
     projoutput->Draw();
-    myText(.35,.9, kBlack, "Photons from Pi0 decay");
+    myText(.10, .97, kBlack, "Leading Pi0 Photon Energy vs lambda0, Pt 8-15 GeV");
+    myText(.35,.92, kBlack, Form("mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
     projoutput->Write("Lambda_projection");
     canvas->SaveAs(str_concat_converter(directory_name, "Lambda_vs_E_projection.png"));
     
@@ -143,9 +147,10 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
         }
         
         // Graph, save, and write
-        projoutput->SetTitle("Leading Pi0 Photon Energy vs lambda0; lambda0; Leading photon energy (GeV)");
+        projoutput->SetTitle("; lambda0; Leading photon energy (GeV)");
         projoutput->Draw();
-        myText(.35,.9, kBlack, "Leading Pi0 Photon Energy vs lambda0");
+        myText(.10,.97, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
+        myText(.35,.92, kBlack, Form("mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
         projoutput->Write(Form("Lambda_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
         canvas->SaveAs(str_concat_converter(directory_name, Form("Lambda_vs_E_projection.png_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
 
