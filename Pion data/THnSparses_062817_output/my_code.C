@@ -157,7 +157,7 @@ void my_code(int NumOfCuts) {
     
     //For the mass plot, restrict to mass between 0.08 and 0.25 and the momentum to between 5 GeV and 18 GeV
     //plot the data for the asymmetry, both lambdas, the angle, and number of cells
-    SetCut(h_Pion, axis_pionPt, 8.0, 15.0);
+    SetCut(h_Pion, axis_pionPt, 7.0, 20.0);
     SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
     
     
