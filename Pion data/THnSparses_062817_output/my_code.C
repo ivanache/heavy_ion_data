@@ -9,13 +9,14 @@
 #include "TH2F.h"
 #include <TGraphErrors.h>
 #include <TCanvas.h>
-#include <iostream>
 #include "atlasstyle-00-03-05/AtlasStyle.h"
 #include "atlasstyle-00-03-05/AtlasStyle.C"
 #include "atlasstyle-00-03-05/AtlasUtils.h"
 #include "atlasstyle-00-03-05/AtlasUtils.C"
 #include "atlasstyle-00-03-05/AtlasLabels.h"
 #include "atlasstyle-00-03-05/AtlasLabels.C"
+#include <iostream>
+#include <fstream>
 
 // The output file
 TFile* fOut;
@@ -157,7 +158,7 @@ void my_code(int NumOfCuts) {
     
     //For the mass plot, restrict to mass between 0.08 and 0.25 and the momentum to between 5 GeV and 18 GeV
     //plot the data for the asymmetry, both lambdas, the angle, and number of cells
-    SetCut(h_Pion, axis_pionPt, 7.0, 20.0);
+    SetCut(h_Pion, axis_pionPt, 8.0, 20.0);
     SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
     
     
@@ -240,7 +241,7 @@ void my_code(int NumOfCuts) {
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
     hMass->Rebin(2);
     TH1D* residual = (TH1D*)hMass->Clone("residual");
-    const double MASSWIDTH = hMass->GetBinWidth(1);
+    double MASSWIDTH = hMass->GetBinWidth(1);
     //hMass->SetAxisRange(0., 5000., "Y");
     hMass->GetYaxis()->SetTitle("Number of Entries");
     hMass->GetYaxis()->SetTitleSize(.05);
@@ -266,7 +267,7 @@ void my_code(int NumOfCuts) {
     func->SetParLimits(2, 0.01, 0.016); // width
     func->SetParLimits(3, 0.5, 1000.0); // alpha
     func->SetParLimits(4, 1.2, 1000.0); // n
-    func->SetParLimits(5, -100000.0, 0.0); // Quadric and quadratic factors
+    func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
     func->SetParLimits(7, -1000000.0, 0.0);
     //func->SetParLimits(8, 0.0, 1000000.0); // Linear
     //func->SetParLimits(9, -1000000.0, 0.0); //Constant
@@ -357,14 +358,14 @@ void my_code(int NumOfCuts) {
     graphcanvas->SaveAs(str_concat_converter(directory_name, "momentum_pion_plot.png"));
     
     // A collection of variables that is needed for the next steps
-    const int num_of_intervals = 5;
+    const int num_of_intervals = 6;
     TMultiGraph* peaks_over_totals = new TMultiGraph();
-    Color_t graph_colors[num_of_intervals] = {kRed, kBlue, kGreen, kYellow, kBlack};
+    Color_t graph_colors[num_of_intervals] = {kRed, kBlue, kGreen, kYellow, kCyan, kBlack};
     
     double min;
     double max;
     
-    double intervals[num_of_intervals][2] = {{8.0, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}};
+    double intervals[num_of_intervals][2] = {{8.0, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}, {15.0, 20.0}};
     double chisquares[num_of_intervals];
     double means[num_of_intervals];
     double mean_errors[num_of_intervals];
@@ -379,7 +380,7 @@ void my_code(int NumOfCuts) {
     
     //func->SetParLimits(0, 2, 30.0);
     
-    // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15
+    // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15, 15-20
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
         /**
@@ -394,10 +395,26 @@ void my_code(int NumOfCuts) {
         min = intervals[i][0];
         max = intervals[i][1]; // Interval bounds
         
-        // Plot the data, load it into the root file
+        // Plot the data and load it into the root file, after rebinning it properly
         SetCut(h_Pion, axis_pionPt, min, max);
-        
         hMass = h_Pion->Projection(axis_pionMass);
+        if (i == num_of_intervals - 1) {
+            hMass->Rebin(4);
+            MASSWIDTH = hMass->GetBinWidth(1);
+            residual = (TH1D*)hMass->Clone("residual");
+            func->SetParLimits(1, 0.13, 0.165); //mean
+            func->SetParLimits(5, -100000.0, 0.0); // Quadric
+        }
+        else if (i == 0 || i == 4) {
+            hMass->Rebin(2);
+            func->SetParLimits(5, -100000.0, 0.0); // Quadric
+
+        }
+        else {
+            hMass->Rebin(2);
+            func->SetParLimits(5, -1000000.0, 0.0); // Quadric
+        }
+
         //hMass->SetAxisRange(0.0, 1400.0, "Y");
         graphcanvas->cd();
         pad[0]->Draw();
@@ -407,8 +424,7 @@ void my_code(int NumOfCuts) {
         
         // Find a fit just as you did for the entire data set and the reduced chi square of the fit into its respective array
         // Graph the fit and (separately) the Gaussian component of it
-        hMass->Rebin(2);
-        hMass->Fit(func, "0");
+        hMass->Fit(func);
         func->SetLineColor(kRed);
         chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
@@ -500,13 +516,14 @@ void my_code(int NumOfCuts) {
     peaks_over_totals->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
     //peaks_over_totals->GetYaxis()->SetRangeUser(0.4, 1.0);
     peaks_over_totals->SetMaximum(1.0);
-    peaks_over_totals->SetMinimum(0.4);
+    peaks_over_totals->SetMinimum(0.2);
     peaks_over_totals->Draw("Al");
-    myBoxText(0.25, 0.40, 0.05, 10, graph_colors[0], "8-10 GeV");
-    myBoxText(0.25, 0.35, 0.05, 10, graph_colors[1], "10-11 GeV");
-    myBoxText(0.25, 0.30, 0.05, 10, graph_colors[2], "11-12 GeV");
-    myBoxText(0.25, 0.25, 0.05, 10, graph_colors[3], "12-13 GeV");
-    myBoxText(0.25, 0.20, 0.05, 10, graph_colors[4], "13-15 GeV");
+    myBoxText(0.25, 0.45, 0.05, 10, graph_colors[0], "8-10 GeV");
+    myBoxText(0.25, 0.40, 0.05, 10, graph_colors[1], "10-11 GeV");
+    myBoxText(0.25, 0.35, 0.05, 10, graph_colors[2], "11-12 GeV");
+    myBoxText(0.25, 0.30, 0.05, 10, graph_colors[3], "12-13 GeV");
+    myBoxText(0.25, 0.25, 0.05, 10, graph_colors[4], "13-15 GeV");
+    myBoxText(0.25, 0.20, 0.05, 10, graph_colors[5], "15-20 GeV");
     peaks_over_totals->Write("signal-over-total");
     graphcanvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     graphcanvas->Clear();

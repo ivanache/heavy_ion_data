@@ -201,8 +201,8 @@ void pt_combiner() {
     
     // Repeat for each of the following momentum intervals: 8-10 GeV, 10-11 GeV, 11-12 GeV, 12-13 GeV, 13-15 GeV
     canvas->Clear();
-    const int num_of_intervals = 5;
-    double intervals[num_of_intervals][2] = {{8.0, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}};
+    const int num_of_intervals = 6;
+    double intervals[num_of_intervals][2] = {{8.0, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}, {15.0, 20.0}};
     for(int i = 0; i < num_of_intervals; i++) {
         // Set up the pads and the min and max momenta
         double min = intervals[i][0];
@@ -349,11 +349,11 @@ void pt_combiner() {
     cut4File->GetObject("mean-masses", mass_mom_4cut); */
     
     // Create the constant reference
-    TF1* real_mass = new TF1("real_mass_momentum", "[0]", 8, 15);
+    TF1* real_mass = new TF1("real_mass_momentum", "[0]", 8, 20);
     real_mass->SetParameter(0, 0.13498);
     real_mass->SetLineWidth(2);
     real_mass->SetLineColor(kBlack);
-    real_mass->GetYaxis()->SetRangeUser(.13, .15);
+    real_mass->GetYaxis()->SetRangeUser(.125, .165);
 
     // Graph everything
     real_mass->Draw();
@@ -374,13 +374,13 @@ void pt_combiner() {
     mass_mom_3cut->Draw("same");
     mass_mom_4cut->Draw("same");
     real_mass->Draw("same");*/
-    myBoxText(0.20, 0.41, 0.05, colClear, colors[0], "No cuts done");
-    myBoxText(0.20, 0.36, 0.05, colClear, colors[1], "Cuts: dR");
-    myBoxText(0.20, 0.31, 0.05, colClear, colors[2], "Cuts: dR and asymmetry");
-    myBoxText(0.20, 0.26, 0.05, colClear, colors[3], "Cuts: dR, asymmetry, and angle");
-    myBoxText(0.20, 0.21, 0.05, colClear, colors[4], "Cuts: dR, asymmetry, angle, and Ncells");
-    myBoxText(0.20, 0.16, 0.05, colClear, colors[5], "Cuts: dR, asymmetry, angle, Ncells, and DisToBorder");
-    myBoxText(0.20, 0.11, 0.05, colClear, colors[6], "Cuts: dR, asymmetry, angle, Ncells, DisToBorder, and lambda02");
+    myBoxText(0.20, 0.36, 0.05, colClear, colors[0], "No cuts done");
+    myBoxText(0.20, 0.33, 0.05, colClear, colors[1], "Cuts: dR");
+    myBoxText(0.20, 0.30, 0.05, colClear, colors[2], "Cuts: dR and asymmetry");
+    myBoxText(0.20, 0.27, 0.05, colClear, colors[3], "Cuts: dR, asymmetry, and angle");
+    myBoxText(0.20, 0.24, 0.05, colClear, colors[4], "Cuts: dR, asymmetry, angle, and Ncells");
+    myBoxText(0.20, 0.21, 0.05, colClear, colors[5], "Cuts: dR, asymmetry, angle, Ncells, and DisToBorder");
+    myBoxText(0.20, 0.18, 0.05, colClear, colors[6], "Cuts: dR, asymmetry, angle, Ncells, DisToBorder, and lambda02");
     /**
     myBoxText(0.50, 0.46, 0.05, colClear, colBlack, "Actual pion mass");
     myBoxText(0.50, 0.41, 0.05, colClear, colRed, "No cuts");

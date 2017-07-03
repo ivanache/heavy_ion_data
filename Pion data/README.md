@@ -8,4 +8,4 @@
 - pt_combiner: a comparator which compares graohs created by my_code (pt_combiner_old_comparison for Different_models")
 - my_code_old: a copy of the oldest version of my_code, and the only one that uses Ntuple.root
 - THnSparses_062717.root output: just like THnSparses 062017 Crystal Ball Cuts, but with THnSparses_062717.root. Used as a source of data for parts of Photon_data.
-- THnSparses_062817_output: just like THnSparses 062017 Crystal Ball Cuts, but with THnSparses_062817.root as its source of data. First to replace matched track cut with distance to charged particles cut
+- THnSparses_062817_output: just like THnSparses 062017 Crystal Ball Cuts, but with THnSparses_062817.root as its source of data. First to replace matched track cut with distance to charged particles cut. Also used to analyze the effects of various cuts
