@@ -339,6 +339,52 @@ void my_code(int NumOfCuts) {
     TGraph* total_sigtot = new TGraph(sig_over_tot_funct);
     total_sigtot->Write("Total_Sig_To_Total");
     
+    // Write to the table file
+    // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
+    const int cutnum_option_quantity = 7;
+    string headers[cutnum_option_quantity] = {"None ", "+dR $> 20$ mrad ", "+asymmetry $< 0.7$ ", "+angle $> 15$ mrad ", "+Ncells $> 1$", "+DisToBorder $>$ 2 ", "+$0.1 < \\lambda <$ 0.4 "};
+    ifstream table_file_input;
+    table_file_input.open("data/table_file.tex");
+    // Print an error message if file cannot be opened
+    if (!table_file_input)
+        cout << "ERROR: TABLE FILE CANNOT BE OPENED" << std::endl;
+    string before_in = "";
+    string after_in = "";
+    string current_line;
+    string line_component;
+    int order_num;
+    while (!table_file_input.eof()) {
+        std::getline(table_file_input, current_line);
+        istringstream linestream(current_line);
+        //cout << current_line << " is current line" << std::endl;
+        std::getline(linestream, line_component, '%');
+        //cout << line_component << " is line component" << std::endl;
+        std::getline(linestream, line_component, '%');
+        //cout << line_component << " is line component" << std::endl;
+        if (line_component == "")
+            break;
+        order_num = std::stoi(line_component);
+        cout << "Line originally in file: order number " << order_num << std::endl << std::endl;
+        if (order_num < NumOfCuts) {
+            before_in = before_in + current_line + "\n";
+            cout << "Line goes before input\n";
+        }
+        else if (order_num > NumOfCuts) {
+            after_in = after_in + current_line + "\n";
+            cout << "Line goes after input\n";
+        }
+        else
+            cout << "Line overwritten\n";
+        
+    }
+    table_file_input.close();
+    ofstream table_file_output;
+    table_file_output.open("data/table_file.tex");
+    if (!table_file_output)
+        cout << "ERROR: TABLE FILE CANNOT BE OPENED" << std::endl;
+    table_file_output << before_in << headers[NumOfCuts] << "& " << (func->GetParameter(0))/MASSWIDTH << " +/- " << (func->GetParError(0))/MASSWIDTH << " & " << sig_over_tot_funct->Eval(1) <<  " & " << sig_over_tot_funct->Eval(2) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in;
+    table_file_output.close();
+    
     // Plot the energies of the two photons against each other
     graphcanvas->Clear();
     auto h2D = h_Pion->Projection(axis_photon2E, axis_photon1E);
