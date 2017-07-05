@@ -355,7 +355,7 @@ void my_code(int NumOfCuts) {
     int order_num;
     while (!table_file_input.eof()) {
         std::getline(table_file_input, current_line);
-        istringstream linestream(current_line);
+        std::stringstream linestream(current_line);
         //cout << current_line << " is current line" << std::endl;
         std::getline(linestream, line_component, '%');
         //cout << line_component << " is line component" << std::endl;
