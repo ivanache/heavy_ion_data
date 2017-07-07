@@ -44,14 +44,14 @@ TStyle* AtlasStyle()
   // set title offsets (for axis label)
   atlasStyle->SetTitleXOffset(1.50);
   atlasStyle->SetTitleYOffset(1.50);
-  atlasStyle->SetLabelOffset(0.018,"X");
+  //atlasStyle->SetLabelOffset(0.018,"X");
   atlasStyle->SetLabelOffset(0.018,"Y");
   atlasStyle->SetTitleAlign();
   //atlasStyle->SetLabelOffset(10.4);
   // use large fonts
   //Int_t font=72; // Helvetica italics
   Int_t font=42; // Helvetica42
-  Double_t tsize=0.042;
+  Double_t tsize=0.072;
   atlasStyle->SetTextFont(font);
 
   atlasStyle->SetTextSize(tsize);

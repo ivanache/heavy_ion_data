@@ -1,20 +1,16 @@
+// set_atlas_style should be run before this macro
 /**
  my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses_070517.root
- the macro must be called with two bools, the first to tell if the lambda must be cut, the second to tell if asymmetry must be cut
+ the macro must be called with an int, which tells how many cuts to make cuts are made, in the following order: distance to charged particle > 0.02, asymmetry < 0.7, angle > 0.015, Ncells > 1, distance to border > 2, distance to bad cell > 1 , lambda02 is between 0.1 and 0.4
+ Programmer: Ivan Chernyshev
  */
-
+// Maybe include: (or > 2, for momentum is 7-20 or 15-20 GeV/c)
 #include "TFile.h"
 #include "TF1.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include <TGraphErrors.h>
 #include <TCanvas.h>
-#include "atlasstyle-00-03-05/AtlasStyle.h"
-#include "atlasstyle-00-03-05/AtlasStyle.C"
-#include "atlasstyle-00-03-05/AtlasUtils.h"
-#include "atlasstyle-00-03-05/AtlasUtils.C"
-#include "atlasstyle-00-03-05/AtlasLabels.h"
-#include "atlasstyle-00-03-05/AtlasLabels.C"
 #include <iostream>
 #include <fstream>
 
@@ -25,26 +21,26 @@ TFile* fOut;
 string directory_name;
 
 //variables of hPion
-const int axis_pion_Cen    = 0;
-const int axis_pion_Zvtx   = 1;
-const int axis_pionMass    = 2;
-const int axis_pionPt      = 3;
-const int axis_photon1E    = 7;
-const int axis_photon2E    = 8;
-const int axis_asymmetry   = 9;
-const int axis_pionAngle   = 16;
-const int axis_pionLambda1 = 17;
-const int axis_pionLambda2 = 18;
-const int axis_pionNcells1 = 19;
-const int axis_pionNcells2 = 20;
+const int axis_pion_Cen           = 0;
+const int axis_pion_Zvtx          = 1;
+const int axis_pionMass           = 2;
+const int axis_pionPt             = 3;
+const int axis_photon1E           = 7;
+const int axis_photon2E           = 8;
+const int axis_asymmetry          = 9;
+const int axis_pionAngle          = 16;
+const int axis_pionLambda1        = 17;
+const int axis_pionLambda2        = 18;
+const int axis_pionNcells1        = 19;
+const int axis_pionNcells2        = 20;
 const int axis_pionMatchedTracks1 = 21;
 const int axis_pionMatchedTracks2 = 22;
-const int axis_pionDisToCharged1 = 25;
-const int axis_pionDisToCharged2 = 26;
-const int axis_pionDisToBorder1 = 27;
-const int axis_pionDisToBorder2 = 28;
-const int axis_pionDisToBadChannel1 = 29;
-const int axis_pionDisToBadChannel2 = 30;
+const int axis_pionDisToCharged1  = 25;
+const int axis_pionDisToCharged2  = 26;
+const int axis_pionDisToBorder1   = 27;
+const int axis_pionDisToBorder2   = 28;
+const int axis_pionDisToBadCell1  = 29;
+const int axis_pionDisToBadCell2  = 30;
 
 // Concatenates two strings and gives a char array
 char* str_concat_converter(string str1, string str2){
@@ -126,6 +122,7 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
     can->Clear();
     TH1D* data_subset = data->Projection(hPion_var);
     data_subset->Draw();
+    myText(.20,.95, kBlack, str_concat_converter("#scale[1.5]{" + rootname, " vs entries}"));
     can->SaveAs(filename);
     data_subset->Write(rootname.c_str());
     can->Clear();
@@ -135,21 +132,15 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
  Main function
  */
 // Precondition: NumOfCuts is 0, 1, 2, 3, 4, 5, 6, or 7
-// Precondition: option is either "1" (for the cut on the distance to bad channel to be > 1) or "2" (for the cut on the distance to bad channel to be > 2)
-void my_code(int NumOfCuts, string option = "1") {
-    // If NumOfCuts or option is not one of the accepted values, print an error message
+void my_code(int NumOfCuts) {
+    // Headers for various cut nums, for use both for table output (another version is defined in the to-table input section and for titles
+    const int cutnum_option_quantity = 8;
+    string headers[cutnum_option_quantity] = {"None ", "dR > 20 mrad ", "asymmetry < 0.7 ", "angle > 15 mrad ", "Ncells > 1", "DisToBorder > 2 ", "DisToBadCell > 1", "0.1 < lambda < 0.4 "};
+    
     if (NumOfCuts < 0 || NumOfCuts > 7){
         std::cout << "ERROR: NumOfCuts must be:\n0, for no cuts,\n1, for distance to charged particles cut,\n2, for all of the above cuts plus asymmetry cut,\n3, for all of the above cuts plus angle cut,\n4, for all of the above cuts plus Ncells cut,\n5, for all of the above cuts plus distance to border cut, or\n6, for all of the above cuts plus lambda cut" << std::endl;
         return;
     }
-    if (option != "1" && option != "2") {
-        std::cout << "ERROR: option must be:\n\"1\", for distance to bad channel > 1, or\n\"2\", for distance to bad channel > 2" << std::endl;
-        return;
-    }
-    
-    // Set ATLAS style
-    gROOT->LoadMacro("AtlasStyle.C");
-    SetAtlasStyle();
     
     directory_name = Form("data/%icuts/", NumOfCuts);
     
@@ -165,14 +156,14 @@ void my_code(int NumOfCuts, string option = "1") {
     
     //The TCanvases and TPads (for sub-canvassing)
     TCanvas* graphcanvas = new TCanvas();
-    TPad *pad[2] = {new TPad("pad0","",0,0.38,1,1), new TPad("pad1","",0,0,1,0.46)};
+    TPad *pad[2] = {new TPad("pad0","",0,0.36,1,1), new TPad("pad1","",0,0.1,1,0.45)};
     TCanvas* logcanvas = new TCanvas();
     logcanvas->SetLogy();
     
     //For the mass plot, restrict to mass between 0.08 and 0.25 and the momentum to between 5 GeV and 18 GeV
     //plot the data for the asymmetry, both lambdas, the angle, and number of cells
     SetCut(h_Pion, axis_pionPt, 8.0, 20.0);
-    SetCut(h_Pion, axis_pionMass, 0.08, 0.25);
+    SetCut(h_Pion, axis_pionMass, 0.1, 0.22);
     
     
     //Apply cuts, as described in the cout output
@@ -231,15 +222,9 @@ void my_code(int NumOfCuts, string option = "1") {
         SetCut(h_Pion, axis_pionNcells2, 1.9, 30.0);
         SetCut(h_Pion, axis_pionDisToBorder1, 2.0, 6.0);
         SetCut(h_Pion, axis_pionDisToBorder2, 2.0, 6.0);
-        if (option == "1") {
-            SetCut(h_Pion, axis_pionDisToBadChannel1, 1.9, 10.0);
-            SetCut(h_Pion, axis_pionDisToBadChannel2, 1.9, 10.0);
-        }
-        if (option == "2") {
-            SetCut(h_Pion, axis_pionDisToBadChannel1, 2.9, 10.0);
-            SetCut(h_Pion, axis_pionDisToBadChannel2, 2.9, 10.0);
-        }
-        std::cout << "Cuts: distance to charged particles, asymmetry, angle, Ncells, DisToBorder, and distance to bad channel\n\n";
+        SetCut(h_Pion, axis_pionDisToBadCell1, 1.9, 10.0);
+        SetCut(h_Pion, axis_pionDisToBadCell2, 1.9, 10.0);
+        std::cout << "Cuts: distance to charged particles, asymmetry, angle, Ncells, DisToBorder, and distance to bad cell\n\n";
     }
     
     else if (NumOfCuts == 7) {
@@ -251,17 +236,11 @@ void my_code(int NumOfCuts, string option = "1") {
         SetCut(h_Pion, axis_pionNcells2, 1.9, 30.0);
         SetCut(h_Pion, axis_pionDisToBorder1, 2.0, 6.0);
         SetCut(h_Pion, axis_pionDisToBorder2, 2.0, 6.0);
-        if (option == "1") {
-            SetCut(h_Pion, axis_pionDisToBadChannel1, 1.9, 10.0);
-            SetCut(h_Pion, axis_pionDisToBadChannel2, 1.9, 10.0);
-        }
-        if (option == "2") {
-            SetCut(h_Pion, axis_pionDisToBadChannel1, 2.9, 10.0);
-            SetCut(h_Pion, axis_pionDisToBadChannel2, 2.9, 10.0);
-        }
+        SetCut(h_Pion, axis_pionDisToBadCell1, 1.9, 10.0);
+        SetCut(h_Pion, axis_pionDisToBadCell2, 1.9, 10.0);
         SetCut(h_Pion, axis_pionLambda1, 0.1, 0.4);
         SetCut(h_Pion, axis_pionLambda2, 0.1, 0.4);
-        std::cout << "Cuts: distance to charged particles, asymmetry, angle, Ncells, DisToBorder, distance to bad channel, and lambda02\n\n";
+        std::cout << "Cuts: distance to charged particles, asymmetry, angle, Ncells, DisToBorder, distance to bad cell, and lambda02\n\n";
     }
     
     // Graph the data with respect to all of the parameters
@@ -277,8 +256,8 @@ void my_code(int NumOfCuts, string option = "1") {
     graph_raw_data(h_Pion, axis_pionDisToBorder2, graphcanvas, str_concat_converter(directory_name, "DisToBorder2_pion_plot.png"), "DisToBorder2");
     graph_raw_data(h_Pion, axis_pionDisToCharged1, logcanvas, str_concat_converter(directory_name, "DisToChargedParticle1_pion_plot.png"), "DisToChargedParticle1");
     graph_raw_data(h_Pion, axis_pionDisToCharged2, logcanvas, str_concat_converter(directory_name, "DisToChargedParticle2_pion_plot.png"), "DisToChargdParticle2");
-    graph_raw_data(h_Pion, axis_pionDisToBadChannel1, graphcanvas, str_concat_converter(directory_name, "DisToBadChannel1_pion_plot.png"), "DisToBadChannel1");
-    graph_raw_data(h_Pion, axis_pionDisToBadChannel2, graphcanvas, str_concat_converter(directory_name, "DisToBadChannel2_pion_plot.png"), "DisToBadChannel2");
+    graph_raw_data(h_Pion, axis_pionDisToBadCell1, graphcanvas, str_concat_converter(directory_name, "DisToBadCell1_pion_plot.png"), "DisToBadCell1");
+    graph_raw_data(h_Pion, axis_pionDisToBadCell2, graphcanvas, str_concat_converter(directory_name, "DisToBadCell2_pion_plot.png"), "DisToBadCell2");
     
     // plot mass data, write it into the root file, and set up the fit function
     TH1D* hMass = h_Pion->Projection(axis_pionMass);
@@ -304,10 +283,10 @@ void my_code(int NumOfCuts, string option = "1") {
     func = new TF1("fit", crystal_ball_model,0.05,0.5,num_of_params);
     peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
     func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-    func->SetParameters(60,  0.14, 0.013, 1, 4.0,  -100000, 30000, -60000, 100, 10000);
-    func->SetParLimits(0, 0.1, 400.0);//integral
-    func->SetParLimits(1, 0.13, 0.151); //mean
-    func->SetParLimits(2, 0.01, 0.016); // width
+    func->SetParameters(60,  0.14, 0.013, 1, 4.0,  -500000, 10000, -60000, 10000, 10000);
+    func->SetParLimits(0, 0.01, 400.0);//integral
+    func->SetParLimits(1, 0.13, 0.155); //mean
+    func->SetParLimits(2, 0.008, 0.014); // width
     func->SetParLimits(3, 0.5, 1000.0); // alpha
     func->SetParLimits(4, 1.2, 1000.0); // n
     func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
@@ -345,6 +324,7 @@ void my_code(int NumOfCuts, string option = "1") {
     hMass->GetListOfFunctions()->Add(peak);
     hMass->GetListOfFunctions()->Add(background);
     hMass->Write("mass_pion");// Load into the ROOT file
+    myText(.20,.95, kBlack, Form("#scale[1.5]{Mass vs. Entries, Pt 8-20 GeV/c, latest cut: %s}", headers[NumOfCuts].c_str()));
     
     // Plot the residual; save as a PDF, print out the individual residuals
     std::cout << "Differences:\n";
@@ -360,15 +340,16 @@ void my_code(int NumOfCuts, string option = "1") {
     pad[1]->cd();
     residual->SetTitle("; Pion Mass (GeV); Residuals");
     residual->SetAxisRange(-4., 4., "Y");
-    residual->GetXaxis()->SetTitleSize(.06);
+    residual->GetXaxis()->SetTitle("Pion Mass (GeV)");
+    residual->GetXaxis()->SetTitleSize(.1);
     residual->GetYaxis()->SetTitleSize(.07);
     residual->GetYaxis()->SetTitleOffset(0.3);
-    residual->GetXaxis()->SetTitleOffset(0.5);
+    residual->GetXaxis()->SetTitleOffset(0.6);
     residual->SetMarkerStyle(20);
     residual->SetMarkerSize(1);
     residual->Draw("p");
     residual->Write("residual"); // Load into the ROOT file
-    graphcanvas->SaveAs(str_concat_converter(directory_name, "mass_pion_plot.png"));
+    graphcanvas->SaveAs(str_concat_converter(directory_name, "MyFit_.png"));
     
     
     // Plot signal to noise ratio for the entire sample over various distances from the mean, print out values for 1 sigma and 2 sigmas
@@ -376,21 +357,20 @@ void my_code(int NumOfCuts, string option = "1") {
     TF1* sig_over_tot_funct = new TF1("Signal over Total", signal_over_total, 0, 4, num_of_params);
     sig_over_tot_funct->SetParameters(func->GetParameters());
     sig_over_tot_funct->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
+    sig_over_tot_funct->GetYaxis()->SetRangeUser(0.5, 1.0);
     sig_over_tot_funct->Draw();
     std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
+    myText(.02,.95, kBlack, Form("#scale[1.5]{8-20 GeV/c Signal to Total, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "WholeSample_Signal_Over_Total.png"));
     TGraph* total_sigtot = new TGraph(sig_over_tot_funct);
     total_sigtot->Write("Total_Sig_To_Total");
     
     // Write to the table file
         // Common header: goes on top of the table content commands. Creates the frame and table, sets the frame title, table title, and frame and table formatting
-    string common_header = "\\frame\n{\n\\frametitle{Analysis of Cuts: Pt 7-20 GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n";
+    string common_header = "\\frame\n{\n\\frametitle{Analysis of Cuts: Pt 8-20 GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n";
         // Common footer: goes on the bottom of the table content commands. Closes up the frame and the table
     string common_footer = "[1ex]\n\\hline\n\\end{tabular}\n\\label{table:nonlin}\n\\end{table}\n}\n";
-    const int cutnum_option_quantity = 8;
-    string headers[cutnum_option_quantity] = {"None ", "+dR $> 20$ mrad ", "+asymmetry $< 0.7$ ", "+angle $> 15$ mrad ", "+Ncells $> 1$", "+DisToBorder $>$ 2 ", "+DisToBadChannel $>$ 1", "+$0.1 < \\lambda <$ 0.4 "};
-    if (option == "2")
-        headers[6] = "+DisToBadChannel $>$ 2";
+    string table_headers[cutnum_option_quantity] = {"None ", "+dR $> 20$ mrad ", "+asymmetry $< 0.7$ ", "+angle $> 15$ mrad ", "+Ncells $> 1$", "+DisToBorder $>$ 2 ", "+DisToBadCell $>$ 1", "+$0.1 < \\lambda <$ 0.4 "};
     // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
     ifstream table_file_input;
     table_file_input.open("data/table_file.tex");
@@ -432,7 +412,7 @@ void my_code(int NumOfCuts, string option = "1") {
     table_file_output.open("data/table_file.tex");
     if (!table_file_output)
         cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-    table_file_output << common_header << before_in << headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",(func->GetParError(0))/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
+    table_file_output << common_header << before_in << table_headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",(func->GetParError(0))/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
     table_file_output.close();
     
     // Plot the energies of the two photons against each other
@@ -442,7 +422,7 @@ void my_code(int NumOfCuts, string option = "1") {
     h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
     h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
     h2D->Draw("COLZ");
-    myText(.35,.9, kBlack, "Photon energies");
+    myText(.20,.95, kBlack, Form("#scale[1.5]{Photon energies, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "PhotonEs.png"));
     h2D->Write("Photon_Energies");
 
@@ -451,6 +431,7 @@ void my_code(int NumOfCuts, string option = "1") {
     TH1D* hPt = h_Pion->Projection(axis_pionPt);
     hPt->Draw();
     hPt->Write("Momentum-entries_chart");
+    myText(.20,.95, kBlack, Form("#scale[1.5]{Momentum vs. Entries, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "momentum_pion_plot.png"));
     
     // A collection of variables that is needed for the next steps
@@ -474,65 +455,59 @@ void my_code(int NumOfCuts, string option = "1") {
     double widths[num_of_intervals];
     graphcanvas->Clear();
     
+    //func->SetParameters(60,  0.14, 0.011, 1.3, 4.0,  -100000, 30000, -60000, 100, 10000);
+    //func->SetParLimits(2, 0.01, 0.016); // width
     // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15, 15-20
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
          
-        pad[0] = new TPad("pad0","",0,0.38,1,1);
-        pad[1] = new TPad("pad1","",0,0,1,0.46);
+        pad[0] = new TPad("pad0","",0,0.36,1,1);
+        pad[1] = new TPad("pad1","",0,0.05,1,0.45);
         min = intervals[i][0];
         max = intervals[i][1]; // Interval bounds
         
-        // Cut the momentum to withing the interval, and graph the parameter vs number of entries graphs for parameters whose cuts should potentially be momentum-dependent
+        // Cut the momentum to within the interval
         SetCut(h_Pion, axis_pionPt, min, max);
-            // lambda
-        graph_raw_data(h_Pion, axis_pionLambda1, graphcanvas, str_concat_converter(directory_name, Form("lambda1_pion_plot_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)), Form("lambda1_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
-        graph_raw_data(h_Pion, axis_pionLambda1, graphcanvas, str_concat_converter(directory_name, Form("lambda2_pion_plot_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)), Form("lambda2_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
-            // distance to bad channel
-        graph_raw_data(h_Pion, axis_pionDisToBadChannel1, graphcanvas, str_concat_converter(directory_name, Form("DisToBadChannel1_pion_plot.png_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)), Form("DisToBadChannel1_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
-        graph_raw_data(h_Pion, axis_pionDisToBadChannel2, graphcanvas, str_concat_converter(directory_name, Form("DisToBadChannel2_pion_plot.png_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)), Form("DisToBadChannel2_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
-
-        
         // Plot the data and load it into the root file, after rebinning it properly and applying adaptive cuts
         hMass = h_Pion->Projection(axis_pionMass);
+        TH1D* hMass = h_Pion->Projection(axis_pionMass);
+        hMass->Rebin(2);
+        TH1D* residual = (TH1D*)hMass->Clone("residual");
+        double MASSWIDTH = hMass->GetBinWidth(1);
         if (i == num_of_intervals - 1) {
-            hMass->Rebin(4);
-            MASSWIDTH = hMass->GetBinWidth(1);
-            residual = (TH1D*)hMass->Clone("residual");
-            func->SetParLimits(1, 0.13, 0.165); //mean
-            func->SetParLimits(5, -100000.0, 0.0); // Quadric
+            //hMass->Rebin(4);
+            //MASSWIDTH = hMass->GetBinWidth(1);
+            //residual = (TH1D*)hMass->Clone("residual");
+            func->SetParLimits(1, 0.13, 0.170); //mean
+            //func->SetParLimits(5, -100000.0, 0.0); // Quadric
         }
+        /**
         else if (i == 0 || i == 4) {
             hMass->Rebin(2);
             func->SetParLimits(5, -100000.0, 0.0); // Quadric
-            func->SetParLimits(2, 0.01, 0.016); // width
-            if (i == 0) {
-                func->SetParLimits(1, 0.13, 0.145); //mean
-                func->SetParLimits(2, 0.009, 0.016); // width
-            }
-        }
-        else if (i == 3) {
-            hMass->Rebin(2);
-            func->SetParLimits(2, 0.009, 0.016); // width
-            func->SetParLimits(5, -100000.0, 0.0); // Quadric
-        }
+        }*/
         else {
-            hMass->Rebin(2);
-            func->SetParLimits(5, -1000000.0, 0.0); // Quadric
-            func->SetParLimits(1, 0.13, 0.151); //mean
-            func->SetParLimits(2, 0.01, 0.016); // width
+            //hMass->Rebin(2);
+            //func->SetParLimits(5, -1000000.0, 0.0); // Quadric
         }
 
         //hMass->SetAxisRange(0.0, 1400.0, "Y");
         graphcanvas->cd();
         pad[0]->Draw();
         pad[0]->cd();
+        hMass->GetYaxis()->SetTitle("Number of Entries");
+        hMass->GetYaxis()->SetTitleOffset(0.8);
         hMass->Draw();
         hMass->Write(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max));
+        myText(.20,.95, kBlack, Form("#scale[1.5]{Mass vs Entries, Pt %2.2f-%2.2f, latest cut: %s}", min, max, headers[NumOfCuts].c_str()));
         
         // Find a fit just as you did for the entire data set and the reduced chi square of the fit into its respective array
         // Graph the fit and (separately) the Gaussian component of it
+        //func->SetParameters(0.5,  0.13, 0.010, 5, 400.0,  -100000, 300000, -1000000, 10000, -100);
         hMass->Fit(func);
+        hMass->Fit(func);
+        if (i == 0)
+            hMass->Fit(func);
         func->SetLineColor(kRed);
         chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
@@ -564,7 +539,9 @@ void my_code(int NumOfCuts, string option = "1") {
         }
         graphcanvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
-        //residual->SetTitle("; Pion Mass (GeV); Residuals");
+        residual->GetXaxis()->
+        residual->GetXaxis()->
+        residual->SetTitle("; Pion Mass (GeV); Residuals");
         pad[1]->Draw("p");
         pad[1]->cd();
         residual->Draw("p");
@@ -645,7 +622,7 @@ void my_code(int NumOfCuts, string option = "1") {
         table_file_output.open(Form("data/table_file_Ptmin_%2.2f_Ptmax_%2.2f.tex", min, max));
         if (!table_file_output)
             cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-        table_file_output << common_header << before_in << headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",(func->GetParError(0))/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
+        table_file_output << common_header << before_in << table_headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",func->GetParError(0)/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
         table_file_output.close();
 
         
@@ -662,7 +639,7 @@ void my_code(int NumOfCuts, string option = "1") {
         h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
         h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
         h2D->Draw("COLZ");
-        myText(.35,.9, kBlack, Form("Photon energies: Pion momenta %2.2f to %2.2f", min, max));
+        myText(.20,.95, kBlack, Form("#scale[1.5]{Photon energies: Pion momenta %2.2f to %2.2f, latest cut: %s}", min, max, headers[NumOfCuts].c_str()));
         graphcanvas->SaveAs(Form(str_concat_converter(directory_name, "PhotonEs_Ptmin_%2.2f_Ptmax_%2.2f.png"), min, max));
         h2D->Write(Form("Photon_Energies_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
     }// end of loop over pt
@@ -681,6 +658,7 @@ void my_code(int NumOfCuts, string option = "1") {
     myBoxText(0.25, 0.25, 0.05, 10, graph_colors[4], "13-15 GeV");
     myBoxText(0.25, 0.20, 0.05, 10, graph_colors[5], "15-20 GeV");
     peaks_over_totals->Write("signal-over-total");
+    myText(.10,.95, kBlack, Form("#scale[1.5]{Signal-to-total ratios, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     graphcanvas->Clear();
     
@@ -701,6 +679,7 @@ void my_code(int NumOfCuts, string option = "1") {
     g_mean->Draw("AP");
     mass_pdg->Draw("same");
     g_mean->Write("mean-masses");
+    myText(.20,.95, kBlack, Form("#scale[1.5]{Mean masses over Pt, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "meanMass_v_pT.png"));
     
     // Graph mass standard deviations with error bars
@@ -713,6 +692,7 @@ void my_code(int NumOfCuts, string option = "1") {
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Write("standard-dev-masses");
     g_sigma->Draw("AP");
+    myText(.20,.95, kBlack, Form("#scale[1.5]{Mass widths over Pt, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "massWidths_v_pT.png"));
     
     // Graph reduced chi squares over the momentum interval
@@ -725,6 +705,7 @@ void my_code(int NumOfCuts, string option = "1") {
     g_chisquare->GetYaxis()->SetRangeUser(2.0, 20.0);
     g_chisquare->Write("chi-square");
     g_chisquare->Draw("AP");
+    myText(.20,.95, kBlack, Form("#scale[1.5]{Reduced chi-squares over Pt, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "reduced_chisquare_v_pT.png"));
     
     // Graph the distribution integrals over momentum
@@ -735,6 +716,7 @@ void my_code(int NumOfCuts, string option = "1") {
     //g_integral->GetYaxis()->SetRangeUser(0.0, 6000.0);
     g_integral->Draw("AP");
     g_integral->Write("pion-integrals");
+    myText(.20,.95, kBlack, Form("#scale[1.5]{Integrals over Pt, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "peakIntegrals_v_pT.png"));
     
     graphcanvas->Close();
