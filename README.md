@@ -11,7 +11,8 @@ Creator: Ivan Chernyshev, June 20 2017
 
 ## Techical Specifications
 - Pion Data: the folder with all of the data that is directly from pions
-- Photon_data: the folder with all of the data that is about the photons with shich the pions are measured
+- Derived_Photon_data: the folder with all of the data that is about the photons with which the pions are measured and that at least partly comes out of the pion data analysis
+- Direct_Photon_data: the folder with all of the data about photons that comes directly from the THnSparses that I start with and is not associated with pions
 - Presentations: the folder with previously-presented presentations
 - old: a storage compartment for data created by older versions of the code, as well as old versions of the code
 - atlasstyle-00-03-05: the folder with the libraries for ATLAS's style
