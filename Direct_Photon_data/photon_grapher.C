@@ -45,6 +45,7 @@ void photon_grapher() {
     TF1* ratio1 = new TF1("ratio1", "[0]", 4, 20);
     ratio1->SetParameter(0, 1);
     ratio1->SetLineColor(kBlack);
+    ratio1->SetLineStyle(kDashed);
     
     // Get the momentum-photon data file
     TFile* fIn = new TFile("THnSparses_070517.root", "READ");
@@ -144,6 +145,7 @@ void photon_grapher() {
     myMarkerText(0.19, 0.35, colors[0], 20, "DisToBadCell=1/DisToBadCell>3 ratio", 1);
     myMarkerText(0.19, 0.30, colors[1], 20, "DisToBadCell=2/DisToBadCell>3 ratio", 1);
     myMarkerText(0.19, 0.25, colors[2], 20, "DisToBadCell=3/DisToBadCell>3 ratio", 1);
+    myText(0.15, 0.20, kBlack, "#scale[1.5]{...} Ratio = 1 line");
     canvas->SaveAs("photon_ratios_distobadcells.png");
     canvas->Clear();
     
@@ -208,6 +210,7 @@ void photon_grapher() {
     myMarkerText(0.19, 0.35, colors[0], 20, "DisToBorder=0/DisToBorder>2 ratio", 1);
     myMarkerText(0.19, 0.30, colors[1], 20, "DisToBorder=1/DisToBorder>2 ratio", 1);
     myMarkerText(0.19, 0.25, colors[2], 20, "DisToBorder=2/DisToBorder>2 ratio", 1);
+    myText(0.15, 0.20, kBlack, "#scale[1.5]{...} Ratio = 1 line");
     canvas->SaveAs("photon_ratios_distoborder.png");
     canvas->Clear();
     
