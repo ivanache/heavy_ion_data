@@ -539,8 +539,8 @@ void my_code(int NumOfCuts) {
         }
         graphcanvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
-        residual->GetXaxis()->
-        residual->GetXaxis()->
+        //residual->GetXaxis()->
+        //xwresidual->GetXaxis()->
         residual->SetTitle("; Pion Mass (GeV); Residuals");
         pad[1]->Draw("p");
         pad[1]->cd();

@@ -1,0 +1,34 @@
+\documentclass{beamer} 
+\usepackage{graphicx} 
+
+\title{Cut Data Tables} 
+\author{Ivan Chernyshev} 
+\date{\today} 
+
+\begin{document} 
+
+\frame 
+{ 
+\frametitle{Analysis of Cuts: Pt 10-20 GeV} 
+\begin{table} 
+\caption{How cuts affect number of photons} 
+\centering 
+\begin{tabular}{c c c c} 
+\hline\hline 
+Cuts & Num of Photons\\ [0.5ex] 
+\hline
+None & 15251\\
++$0.1 < \lambda <$ 0.4 & 8937\\
++dR $> 20$ mrad & 7217\\
++DisToBorder $>$ 0 & 6690\\
++DisToBadCell $>$ 1 & 4950\\
++Ncells $> 1$ & 4950\\
++Exoticity $< 0.97$ & 4948\\
++$|Time| < 30$ ns & 4944\\
+[1ex] 
+\hline 
+\end{tabular} 
+\label{table:nonlin} 
+\end{table} 
+} 
+\end{document}

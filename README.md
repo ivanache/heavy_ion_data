@@ -16,7 +16,7 @@ Creator: Ivan Chernyshev, June 20 2017
 - Presentations: the folder with previously-presented presentations
 - old: a storage compartment for data created by older versions of the code, as well as old versions of the code
 - atlasstyle-00-03-05: the folder with the libraries for ATLAS's style
-- THnSparses: the data format from where the data is drawn. Versions include (in order of release): Ntuple.root, THnSparses.root (not in use), THnSparses_060717.root, THnSparses_062017.root (first one to be used outside of Pion Data), THnSparses_062717.root, THnSparses062817.root
+- THnSparses: the data format from where the data is drawn. Versions include (in order of release): Ntuple.root, THnSparses.root (not in use), THnSparses_060717.root, THnSparses_062017.root (first one to be used outside of Pion Data), THnSparses_062717.root, THnSparses_062817.root, THnSparses_070517 (first one to be used in Direct_Pion_data), THnSparses_071217.root.
 
 ## Guide to working with heavy_ion_data
 - To start, start up ROOT by entering "root" into Terminal after navigating to the desired directory (make sure that you have ROOT 6 installed and hooked up to Terminal). 

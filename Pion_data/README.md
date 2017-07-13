@@ -10,4 +10,5 @@
 - THnSparses_062717.root output: just like THnSparses 062017 Crystal Ball Cuts, but with THnSparses_062717.root. Used as a source of data for parts of Photon_data.
 - THnSparses_062817_output: just like THnSparses 062017 Crystal Ball Cuts, but with THnSparses_062817.root as its source of data. First to replace matched track cut with distance to charged particles cut. Also used to analyze the effects of various cuts. Is the first to output data to .tex files for conversion into tables
 - THnSparses_070517_output: has the same job description as THnSparses_062817_output, but it uses THnSparses_070517.root as its THnSparses and has perfected the C++ side of outputting data to .tex files
+- THnSparses_071217_output: has the same job description as THnSparses_070517_output, but it uses THnSparses_071217.root as its THnSparses. Also includes the exoticity and time cuts
 - table_file<other name parts go here>.tex - LaTeX files that contain table content data from my_code to be used by files in Presentations in tables
