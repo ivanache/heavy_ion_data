@@ -79,10 +79,10 @@ double crystal_ball_model(Double_t *x, Double_t *par) {
     double sigma = par[2];
     double alpha = par[3];
     double n = par[4];
-    //double B = par[5];
-    //double C = par[6];
-    double B = 0; // Try switching to quadratic to reduce degrees of freedom
-    double C = 0;
+    double B = par[5];
+    double C = par[6];
+    //double B = 0; // Try switching to quadratic to reduce degrees of freedom
+    //double C = 0;
     double D = par[7];
     double E = par[8];
     double F = par[9];
@@ -325,8 +325,8 @@ void my_code(int NumOfCuts) {
     func->SetParLimits(2, 0.008, 0.014); // width
     func->SetParLimits(3, 0.5, 1000.0); // alpha
     func->SetParLimits(4, 1.2, 1000.0); // n
-    //func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
-    func->SetParLimits(7, -1000000.0, 0.0);
+    func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
+    func->SetParLimits(7, -10000000.0, 0.0);
     //func->SetParLimits(8, 0.0, 1000000.0); // Linear
     //func->SetParLimits(9, -1000000.0, 0.0); //Constant
     

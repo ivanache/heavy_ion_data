@@ -249,7 +249,7 @@ void pt_combiner() {
     // Graph everything
     integral_mom_cuts[0]->SetLineColor(colors[0]);
     integral_mom_cuts[0]->SetMarkerColor(colors[0]);
-    integral_mom_cuts[0]->GetYaxis()->SetRangeUser(0.0, 2500.);
+    integral_mom_cuts[0]->GetYaxis()->SetRangeUser(0.0, 8000.);
     integral_mom_cuts[0]->Draw();
     for (int i = 1; i < num_of_samples; i++){
         integral_mom_cuts[i]->SetLineColor(colors[i]);

@@ -172,10 +172,10 @@ void photon_grapher(string lambda_option, string pT_option) {
         hMomentum_DisToBadCells_lower[i]->GetXaxis()->SetLimits(pTmin + bin_offsets[i], pTmax + bin_offsets[i]);
         hMomentum_DisToBadCells_lower[i]->Draw("same");
     }
-    myMarkerText(0.42, 0.87, colors[0], marker_styles[0], "Fraction of total photons, DisToBadCell=1", 1);
-    myMarkerText(0.42, 0.82, colors[1], marker_styles[1], "Fraction of total photons, DisToBadCell=2", 1);
-    myMarkerText(0.42, 0.77, colors[2], marker_styles[2], "Fraction of total photons, DisToBadCell=3", 1);
-    myMarkerText(0.42, 0.72, kBlack, 21, "Fraction of total photons. DisToBadCell>3", 1);
+    myMarkerText(0.42, 0.87, colors[0], marker_styles[0], "DisToBadCell=1", 1);
+    myMarkerText(0.42, 0.82, colors[1], marker_styles[1], "DisToBadCell=2", 1);
+    myMarkerText(0.42, 0.77, colors[2], marker_styles[2], "DisToBadCell=3", 1);
+    myMarkerText(0.42, 0.72, kBlack, 21, "DisToBadCell>3", 1);
     logcanvas->SaveAs(str_concat_converter(directory_name, "pt_photon_distobadcell.png"));
     logcanvas->Clear();
     
@@ -262,10 +262,10 @@ void photon_grapher(string lambda_option, string pT_option) {
         hMomentum_DisToBorder_lower[i]->GetXaxis()->SetLimits(pTmin + bin_offsets[i], pTmax + bin_offsets[i]);
         hMomentum_DisToBorder_lower[i]->Draw("same");
     }
-    myMarkerText(0.42, 0.87, colors[0], marker_styles[0], "Fraction of total photons, DisToBorder=0", 1);
-    myMarkerText(0.42, 0.82, colors[1], marker_styles[1], "Fraction of total photons, DisToBorder=1", 1);
-    myMarkerText(0.42, 0.77, colors[2], marker_styles[2], "Fraction of total photons, DisToBorder=2", 1);
-    myMarkerText(0.42, 0.72, kBlack, 21, "Fraction of total photons. DisToBorder>2", 1);
+    myMarkerText(0.42, 0.87, colors[0], marker_styles[0], "DisToBorder=0", 1);
+    myMarkerText(0.42, 0.82, colors[1], marker_styles[1], "DisToBorder=1", 1);
+    myMarkerText(0.42, 0.77, colors[2], marker_styles[2], "DisToBorder=2", 1);
+    myMarkerText(0.42, 0.72, kBlack, 21, "DisToBorder>2", 1);
     logcanvas->SaveAs(str_concat_converter(directory_name, "pt_photon_distoborder.png"));
     logcanvas->Clear();
     

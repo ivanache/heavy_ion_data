@@ -1,0 +1,186 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{animate}
+\title{Update on $\gamma/\pi^0$ data cut analysis}
+\author{Ivan Chernyshev}
+\date{\today}
+
+\begin{document}
+\frame{\titlepage}
+
+%\section[Outline]{}
+%\frame{\tableofcontents}
+
+%\section{Introduction}
+%\subsection{Overview of the Beamer Class}
+
+\begin{frame}
+  \frametitle{Effects of distance to border and distance to bad cells cuts}
+  \framesubtitle{(Courtesy of Miguel Arratia)}
+  \animategraphics[loop,controls,width=\linewidth]{1}{effectofbadchannelcut-}{0}{6}
+\end{frame}
+
+\frame
+{
+  \frametitle{Effects of the distance to border and distance to bad cells cuts}
+  Since the distance to border and distance to bad cell cuts cut out significant amounts of data, I want to know at which distance we should draw the line 
+  \begin{itemize}
+  \item Applied all baseline cuts, except for the distance to border and distance to bad cell
+  \item Plotted the normalized transverse momentum spectra of the photons that have various distances to the bad cell and border
+  \item Quantified the difference in spectral shape between the data near the border or a bad cell and the rest of the data
+  %\item Plotted the ratios along with the theoretical fit that the spectrum ratios =1 
+  %\item Found the chi-square and p-value for the set of ratios for each spectrum
+  %\item Repeated the whole process for a distance to border of 0, 1, 2, and $>2$, respectively
+  \end{itemize}
+}
+
+\frame 
+{
+    \frametitle{Photon Spectrum Charts}
+    \framesubtitle{pT 4-20 GeV, 0.1$<\lambda_{02}<$0.4}
+    \includegraphics[width=0.5\textwidth]{{Direct_Photon_data/cut_comparisons/0.4<lambda/4<pT<20/pt_photon_distobadcell}.png}
+    \includegraphics[width=0.5\textwidth]{{Direct_Photon_data/cut_comparisons/0.4<lambda/4<pT<20/pt_photon_distoborder}.png}
+}
+
+\frame
+{
+  \frametitle{Effects of the distance to bad cells cut}
+  \framesubtitle{pT 4-20 GeV, 0.1$<\lambda_{02}<$0.4}
+ % Distance to Bad Cells Cut
+  %\noindent\hspace{2.0 cm} Distance to Border Cut\\
+   \includegraphics[width=1.0\textwidth]{{Direct_Photon_data/cut_comparisons/0.1<lambda<0.4/4<pT<20/photon_ratios_distobadcells}.png}\\
+   %\includegraphics[width=0.5\textwidth]{{Direct_Photon_data/cut_comparisons/0.4<lambda/4<pT<20/photon_ratios_distobadcells}.png}\\
+   %\includegraphics[width=0.5\textwidth]{{Direct_Photon_data/cut_comparisons/0.4<lambda/4<pT<20/photon_ratios_distoborder}.png}\\
+   Based on the p-values, only the photons with a distance to bad cell = 1 should be cut
+}
+
+\frame
+{
+  \frametitle{Effects of the distance to border cut}
+  \framesubtitle{pT 4-20 GeV, 0.1$<\lambda_{02}<$0.4}
+   \includegraphics[width=1.0\textwidth]{{Direct_Photon_data/cut_comparisons/0.1<lambda<0.4/4<pT<20/photon_ratios_distoborder}.png}\\
+   Based on the p-values, only the photons with a distance to border = 0 should be cut
+}
+
+\frame
+{
+   \frametitle{Distance to bad cell cut effect, $\lambda_{02} > $0.4}
+   \framesubtitle{pT 4-20 GeV}
+   \includegraphics[width=1.0\textwidth]{{Direct_Photon_data/cut_comparisons/0.4<lambda/4<pT<20/photon_ratios_distobadcells}.png}
+   Above  $\lambda_{02} > $0.4, the ratio is far worse for distance to bad cells = 1, and for the rest the ratios are better
+}
+
+\frame
+{
+   \frametitle{Distance to border cut effect, $\lambda_{02} > $0.4}
+   \framesubtitle{pT 4-20 GeV}
+   \includegraphics[width=1.0\textwidth]{{Direct_Photon_data/cut_comparisons/0.4<lambda/4<pT<20/photon_ratios_distoborder}.png}
+   Above  $\lambda_{02} > $0.4, the ratios are better across the board.
+}
+
+
+\frame 
+{
+    \frametitle{Photon Cutflow}
+    \begin{itemize}
+    \item Next, I graphed the non-normalized photon spectrum for a data sample with no cuts, then counted the number of photons in the spectrum between 10 and 20 GeV.\\
+    \item I repeated this six times, adding a baseline cut each time, in order to get a cutflow.
+    \end{itemize} 
+}
+
+\frame
+{
+    \frametitle{Photon Cutflow: pT 10-20 GeV}
+     \begin{table} 
+     \caption{How cuts affect number of photons} 
+     \centering 
+     \begin{tabular}{c c c c} 
+     \hline\hline 
+    Cuts & Num of Photons\\ [0.5ex] 
+    \hline
+    None & 15251\\
+    +$0.1 < \lambda <$ 0.4 & 8937\\
+    +dR $> 20$ mrad & 7217\\
+    +DisToBorder $>$ 0 & 6690\\
+    +DisToBadCell $>$ 1 & 4950\\
+    +Ncells $> 1$ & 4950\\
+    +Exoticity $< 0.97$ & 4948\\
+    +$|Time| < 30$ ns & 4944\\
+    [1ex] 
+    \hline 
+    \end{tabular} 
+    \label{table:nonlin} 
+    \end{table} 
+}
+
+\frame
+{
+	 \frametitle{Photon Cutflow: $\lambda_{02}$ vs Photons}
+	 \includegraphics[width=1.0\textwidth]{Direct_Photon_data/modeler/lambda_photon.png}
+}
+
+\frame
+{
+      \frametitle{Photon Cutflow: Distance to Charged Particle (dR) vs Photons}
+      \includegraphics[width=1.0\textwidth]{Direct_Photon_data/modeler/distance_to_charged_photon.png}
+}
+
+\frame
+{
+      \frametitle{Photon Cutflow: Distance to Border vs Photons}
+      \includegraphics[width=1.0\textwidth]{Direct_Photon_data/modeler/distance_to_border_photon.png}
+}
+
+\frame
+{
+      \frametitle{Photon Cutflow: Distance to Bad Cells vs Photons}
+      \includegraphics[width=1.0\textwidth]{Direct_Photon_data/modeler/distance_to_bad_cells_photon.png}
+}
+
+\frame
+{
+      \frametitle{Photon Cutflow: Ncells vs Photons}
+      \includegraphics[width=1.0\textwidth]{Direct_Photon_data/modeler/number_of_cells_photon.png}
+}
+
+\frame
+{
+      \frametitle{Photon Cutflow: Exoticity vs Photons}
+      \includegraphics[width=1.0\textwidth]{Direct_Photon_data/modeler/exoticity_photon.png}
+}
+
+\frame
+{
+      \frametitle{Photon Cutflow: Cluster Time vs Photons}
+      \includegraphics[width=1.0\textwidth]{Direct_Photon_data/modeler/time_photon.png}
+}
+
+\frame
+{
+	\frametitle{Summary}
+	\begin{itemize}
+	\item By quantitatively comparing the data from different cuts, I found that distance to bad cells should be cut to greater than 1 and the distance to border, to greater than 0
+	\item The $\lambda_{02}$ cut is by far the costliest cut in terms of number of particles, so for small data samples it may be useful to forego the use of this cut
+	\item The dR, distance to border, and distance to bad cell cuts all have a moderate effect on the number of photons, but the other three cuts have barely any effect
+	\end{itemize}
+}
+
+% Reserve Slides
+\frame
+{
+  \frametitle{Effects of the distance to bad cells cut}
+ % Distance to Bad Cells Cut
+  %\noindent\hspace{2.0 cm} Distance to Border Cut\\
+   \includegraphics[width=1.0\textwidth]{{Direct_Photon_data/cut_comparisons/0.1<lambda<0.4/4<pT<20/pt_photon_distobadcell}.png}
+   %\includegraphics[width=0.5\textwidth]{{Direct_Photon_data/cut_comparisons/0.4<lambda/4<pT<20/pt_photon_distobadcell}.png}\\
+   %\includegraphics[width=0.5\textwidth]{{Direct_Photon_data/cut_comparisons/0.4<lambda/4<pT<20/pt_photon_distoborder}.png}\\ 
+}
+
+\frame
+{
+  \frametitle{Effects of the distance to border cut}
+   \includegraphics[width=1.0\textwidth]{{Direct_Photon_data/cut_comparisons/0.1<lambda<0.4/4<pT<20/pt_photon_distoborder}.png}
+}
+
+
+\end{document}
