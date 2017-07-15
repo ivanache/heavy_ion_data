@@ -15,7 +15,7 @@ Creator: Ivan Chernyshev, June 20 2017
 - Direct_Photon_data: the folder with all of the data about photons that comes directly from the THnSparses that I start with and is not associated with pions
 - Presentations: the folder with previously-presented presentations
 - old: a storage compartment for data created by older versions of the code, as well as old versions of the code
-- atlasstyle-00-03-05: the folder with the libraries for ATLAS's style
+- atlasstyle-00-03-05: the folder with the libraries for ATLAS's style. This is the master copy.
 - THnSparses: the data format from where the data is drawn. Versions include (in order of release): Ntuple.root, THnSparses.root (not in use), THnSparses_060717.root, THnSparses_062017.root (first one to be used outside of Pion_data), THnSparses_062717.root, THnSparses_062817.root, THnSparses_070517 (first one to be used in Direct_Pion_data), THnSparses_071217.root, THnSparses_071417.root.
 
 ## Guide to working with heavy_ion_data
