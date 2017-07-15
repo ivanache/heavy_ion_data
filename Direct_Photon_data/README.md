@@ -1,7 +1,8 @@
 # Direct_Photon_data
 ## Technical specifications
 - THnSparses_070517.root: the first direct source of the data and the only current source of data for Cut Comparisons
-- THnSparses_071217.root: the current direct source of the data for Modeler
+- THnSparses_071217.root: an old direct source of the data for Modeler
+- THnSparses_071417.root: the current source of the data for Modeler
 - auto_run.C: the macro that auto-runs all possible combinations of the other macros
 - atlasstyle-00-03-05: the folder with all of the atlas style libraries
 - old: files that are probably not going to be currently used

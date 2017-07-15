@@ -92,9 +92,9 @@ TStyle* AtlasStyle()
   // put tick marks on top and RHS of plots
   atlasStyle->SetPadTickX(0);
   atlasStyle->SetPadTickY(0);
-  atlasStyle->SetTickLength(0.00,"x");
-  atlasStyle->SetTickLength(0.00,"y");
-  atlasStyle->SetTickLength(0.00,"z");
+  //atlasStyle->SetTickLength(0.00,"x");
+  //atlasStyle->SetTickLength(0.00,"y");
+  //atlasStyle->SetTickLength(0.00,"z");
   atlasStyle->SetPalette(kViridis); //I want 112
   atlasStyle->SetOptStat("");
   atlasStyle->SetTitleAlign(4);
