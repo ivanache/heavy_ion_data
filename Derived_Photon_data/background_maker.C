@@ -41,7 +41,7 @@ void background_maker(int NumOfSigmasFromMean) {
     
     // Load the file with the 3-5 background sample, signal-to-total ratio, and data
     TFile* backIn = new TFile("3-5sigmaPhotonsOutput.root", "READ");
-    TFile* ratioIn = new TFile("Pion7CutsSparsesOutput.root", "READ");
+    TFile* ratioIn = new TFile("Pion3CutsSparsesOutput.root", "READ");
     TFile* totalIn = new TFile(Form("%isigmaPhotonsOutput.root", NumOfSigmasFromMean), "READ");
     
     // Load data

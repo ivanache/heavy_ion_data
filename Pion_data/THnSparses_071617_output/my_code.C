@@ -138,20 +138,17 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
  Main function
  */
 // Precondition: NumOfCuts is 0, 1, 2, 3, 4
-// Precondition: background_eq is either "quadratic" or "quadric"
-void my_code(int NumOfCuts, string background_fit) {
+void my_code(int NumOfCuts) {
     // Headers for various cut nums, for use both for table output (another version is defined in the to-table input section and for titles
     const int cutnum_option_quantity = 5;
-    string headers[cutnum_option_quantity] = {"None ", "dR > 20 mrad ", "asymmetry < 0.7 ", "angle > 15 mrad ",  "0.1 < lambda < 0.4 "};
+    string headers[cutnum_option_quantity] = {"None ", "angle > 15 mrad ", "0.1 < lambda < 0.4 ", "dR > 20 mrad ", "asymmetry < 0.7 "};
     
     if (NumOfCuts < 0 || NumOfCuts > 4){
-        std::cout << "ERROR: NumOfCuts must be:\n0, for no cuts except the built-in ones,\n1, for distance to charged particles cut,\n2, for all of the above cuts plus asymmetry cut,\n3, for all of the above cuts plus angle cut,\n4, for all of the above cuts plus lambda cut" << std::endl;
+        std::cout << "ERROR: NumOfCuts must be:\n0, for no cuts except the built-in ones,\n1, for angle cut,\n2, for all of the above cuts plus lambda cut,\n3, for all of the above cuts plus distance to charged particles cut,\n4, for all of the above cuts plus asymmetry cut" << std::endl;
         return;
     }
-    if (background_fit != "quadratic" && background_fit != "quadric") {
-        std::cout << "ERROR: background fit must be ether quadratic or quadric" << std::endl;
-        return;
-    }
+    if (NumOfCuts == 4)
+        std::cout << "Warning: asymmetry cut is deprecated" << std::endl;
     
     directory_name = Form("data/%icuts/", NumOfCuts);
     
@@ -171,9 +168,9 @@ void my_code(int NumOfCuts, string background_fit) {
     TCanvas* logcanvas = new TCanvas();
     logcanvas->SetLogy();
     
-    //For the mass plot, restrict to mass between 0.08 and 0.25 and the momentum to between 5 GeV and 18 GeV
+    //For the mass plot, restrict to mass between 0.08 and 0.25 and the momentum to between 6 GeV and 20 GeV
     //plot the data for the asymmetry, both lambdas, the angle, and number of cells
-    SetCut(h_Pion, axis_pionPt, 8.0, 20.0);
+    SetCut(h_Pion, axis_pionPt, 6.0, 20.0);
     SetCut(h_Pion, axis_pionMass, 0.1, 0.22);
     
     
@@ -183,34 +180,35 @@ void my_code(int NumOfCuts, string background_fit) {
         //fit_y_max = 1600.0;
     }
     else if (NumOfCuts == 1) {
-        SetCut(h_Pion, axis_pionDisToCharged1, 0.02, 0.14);
-        SetCut(h_Pion, axis_pionDisToCharged2, 0.02, 0.14);
-        std::cout << "Cuts: distance to charged particles\n\n";
+        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+        std::cout << "Cuts: angle\n\n";
         //fit_y_max = 1000.0;
     }
     else if (NumOfCuts == 2) {
-        SetCut(h_Pion, axis_pionDisToCharged1, 0.02, 0.14);
-        SetCut(h_Pion, axis_pionDisToCharged2, 0.02, 0.14);
-        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-        std::cout << "Cuts: distance to charged particles and asymmetry\n\n";
+        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+        SetCut(h_Pion, axis_pionLambda1, 0.1, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.1, 0.4);
+        std::cout << "Cuts: distance to angle and lambda\n\n";
         //fit_y_max = 1000.0;
     }
     else if (NumOfCuts == 3) {
         SetCut(h_Pion, axis_pionDisToCharged1, 0.02, 0.14);
         SetCut(h_Pion, axis_pionDisToCharged2, 0.02, 0.14);
-        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+        SetCut(h_Pion, axis_pionLambda1, 0.1, 0.4);
+        SetCut(h_Pion, axis_pionLambda2, 0.1, 0.4);
         SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
-        std::cout << "Cuts: distance to charged particles, asymmetry, and angle\n\n";
+        std::cout << "Cuts: distance to charged particles, lambda, and angle\n\n";
         //fit_y_max = 600.0;
     }
+    // Deprecated
     else if (NumOfCuts == 4) {
         SetCut(h_Pion, axis_pionDisToCharged1, 0.02, 0.14);
         SetCut(h_Pion, axis_pionDisToCharged2, 0.02, 0.14);
-        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
-        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
         SetCut(h_Pion, axis_pionLambda1, 0.1, 0.4);
         SetCut(h_Pion, axis_pionLambda2, 0.1, 0.4);
-        std::cout << "Cuts: distance to charged particles, asymmetry, angle, and lambda\n\n";
+        SetCut(h_Pion, axis_pionAngle, 0.015, 0.5);
+        SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+        std::cout << "Cuts: distance to charged particles, lambda, angle, and asymmetry\n\n";
         //fit_y_max = 600.0;
     }
 
@@ -245,13 +243,22 @@ void my_code(int NumOfCuts, string background_fit) {
     //num_of_peak_params = 5;
     func = new TF1("fit", crystal_ball_model_quadratic,0.05,0.5,num_of_params);
     peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
-    func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
-    func->SetParameters(68,  0.14, 0.015, 25, 19,  -10000, 140000, -120000, 28000, -1600);
-    func->SetParLimits(0, 0.01, 400.0);//integral
+    func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadratic coeff", "Linear coeff", "Constant");
+    if (NumOfCuts == 0)
+        func->SetParameters(100,  0.14, 0.015, 25, 19, -120000, 28000, -1600);
+    if (NumOfCuts == 1)
+        func->SetParameters(90,  0.14, 0.015, 25, 19, -120000, 28000, -1600);
+    if (NumOfCuts == 2)
+        func->SetParameters(50,  0.14, 0.015, 25, 19, -120000, 28000, -1600);
+    if (NumOfCuts == 3)
+        func->SetParameters(40,  0.14, 0.015, 25, 19, -120000, 28000, -1600);
+    if (NumOfCuts == 4)
+        func->SetParameters(25,  0.14, 0.015, 25, 19, -120000, 28000, -1600);
+    func->SetParLimits(0, 0.001, 400.0);//integral
     func->SetParLimits(1, 0.13, 0.165); //mean
     func->SetParLimits(2, 0.008, 0.016); // width
     func->SetParLimits(3, 0.5, 1000.0); // alpha
-    func->SetParLimits(4, 1.2, 1000.0); // n
+    func->SetParLimits(4, 1.2, 10000.0); // n
     func->SetParLimits(5, -1000000.0, 0.0); // Quadric and quadratic factors
     //func->SetParLimits(7, -10000000.0, 0.0);
     //func->SetParLimits(8, 0.0, 1000000.0); // Linear
@@ -259,6 +266,7 @@ void my_code(int NumOfCuts, string background_fit) {
     
     // Plot the fit for the mass and (separately) the Gaussian and background components of it, print out the number of pions and the other parameters
     hMass->Fit(func, "0");
+    //hMass->Fit(func);
     //hMass->Fit(func);
     func->SetLineColor(kRed);
     std::cout << "\n\nNumber of pions:" << (func->GetParameter(0))/MASSWIDTH << std::endl << "Error:" << (func->GetParError(0))/MASSWIDTH << std::endl;
@@ -335,7 +343,7 @@ void my_code(int NumOfCuts, string background_fit) {
     string common_header = "\\frame\n{\n\\frametitle{Analysis of Cuts: Pt 8-20 GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n";
         // Common footer: goes on the bottom of the table content commands. Closes up the frame and the table
     string common_footer = "[1ex]\n\\hline\n\\end{tabular}\n\\label{table:nonlin}\n\\end{table}\n}\n";
-    string table_headers[cutnum_option_quantity] = {"None ", "+dR $> 20$ mrad ", "+asymmetry $< 0.7$ ", "+angle $> 15$ mrad ", "+$0.1 < \\lambda <$ 0.4 "};
+    string table_headers[cutnum_option_quantity] = {"None ", "+angle $> 15$ mrad ", "+$0.1 < \\lambda <$ 0.4 ", "+dR $> 20$ mrad ", "+asymmetry $< 0.7$ "};
     // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
     ifstream table_file_input;
     table_file_input.open("data/table_file.tex");
@@ -415,7 +423,7 @@ void my_code(int NumOfCuts, string background_fit) {
     double min;
     double max;
     
-    double intervals[num_of_intervals][2] = {{8.0, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}, {15.0, 20.0}};
+    double intervals[num_of_intervals][2] = {{6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, {16.0, 20.0}};
     //double initial_guesses[num_of_intervals][num_of_params] = {{5.5,  0.139, 0.009, 549, 19,  -740000, 54000, -14000, 16000, -640}, {37,  0.144, 0.011, 550, 19,  -80000, 270000, -160000, 30000, -1600}, {12,  0.142, 0.0096, 300, 19,  -170000, 380000, -170000, 26000, -1300}, {37,  0.144, 0.011, 300, 19,  -24, 250000, -160000, 32000, -1700}, {9.8,  0.146, 0.012, 300, 19,  -790000, 550000, -140000, 170000, -700}, {7.6,  0.154, 0.013, 300, 19,  -1000000, 610000, -140000, 14000, -550}};
     double chisquares[num_of_intervals];
     double means[num_of_intervals];
@@ -431,7 +439,8 @@ void my_code(int NumOfCuts, string background_fit) {
     
     //func->SetParameters(60,  0.14, 0.011, 1.3, 4.0,  -100000, 30000, -60000, 100, 10000);
     //func->SetParLimits(2, 0.01, 0.016); // width
-    // start cutting the data up; plot the mass data for momenta of 8-10, 10-11, 11-12, 12-13, 13-15, 15-20
+    // start cutting the data up; plot the mass data for momenta of 6-8, 8-10, 10-12, 12-14, 14-16, 16-18, 18-20
+    //func->SetParameter(0, 10);
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
          
@@ -463,9 +472,9 @@ void my_code(int NumOfCuts, string background_fit) {
         // Graph the fit and (separately) the Gaussian component of it
         //func->SetParameters(initial_guesses[i][0],  initial_guesses[i][1], initial_guesses[i][2], initial_guesses[i][3], initial_guesses[i][4], initial_guesses[i][5], initial_guesses[i][6], initial_guesses[i][7], initial_guesses[i][8], initial_guesses[i][9]);
         hMass->Fit(func);
-        hMass->Fit(func);
-        //if (i == 0)
-            //hMass->Fit(func);
+        //hMass->Fit(func);
+        if (i == 0 || i == 3)
+            hMass->Fit(func);
         func->SetLineColor(kRed);
         chisquares[i] = (func->GetChisquare())/10; //Reduced Chi Square (function has 18 degrees of freedom, 7 parameters)
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;

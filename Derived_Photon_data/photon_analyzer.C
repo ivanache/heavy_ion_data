@@ -15,22 +15,16 @@
 
 
 //variables of hPion
-const int axis_pion_Cen    = 0;
-const int axis_pion_Zvtx   = 1;
-const int axis_pionMass    = 2;
-const int axis_pionPt      = 3;
-const int axis_photon1E    = 7;
-const int axis_photon2E    = 8;
-const int axis_asymmetry   = 9;
-const int axis_pionAngle   = 16;
-const int axis_pionLambda1 = 17;
-const int axis_pionLambda2 = 18;
-const int axis_pionNcells1 = 19;
-const int axis_pionNcells2 = 20;
-const int axis_pionMatchedTracks1 = 21;
-const int axis_pionMatchedTracks2 = 22;
-const int axis_pionDisToBorder1 = 27;
-const int axis_pionDisToBorder2 = 28;
+const int axis_pion_Cen           = 0;
+const int axis_pion_Zvtx          = 1;
+const int axis_pionMass           = 2;
+const int axis_pionPt             = 3;
+const int axis_asymmetry          = 5;
+const int axis_pionAngle          = 8;
+const int axis_pionLambda1        = 9;
+const int axis_pionLambda2        = 10;
+const int axis_pionDisToCharged1  = 11;
+const int axis_pionDisToCharged2  = 12;
 
 // Concatenates two strings and gives a char array
 char* str_concat_converter(string str1, string str2){
@@ -62,7 +56,7 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     SetAtlasStyle();
     
     // Load the THnSparses file, print its content, and get the data from it
-    TFile* fIn = new TFile("THnSparses_062817.root","READ");
+    TFile* fIn = new TFile("THnSparses_071617.root","READ");
     fIn->Print();
     THnSparse* h_photon = 0;
     fIn->GetObject("h_Pion", h_photon);
@@ -72,17 +66,15 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     SetCut(h_photon, axis_pionPt, 8.0, 15.0);
     
     // Cut the matched tracks, the asymmetry, the angle, and the Ncells
-    SetCut(h_photon, axis_pionMatchedTracks1, -1.5, -0.75);
-    SetCut(h_photon, axis_pionMatchedTracks2, -1.5, -0.75);
-    SetCut(h_photon, axis_asymmetry, 0.0, 0.7);
+    SetCut(h_photon, axis_pionDisToCharged1, 0.02, 0.14);
+    SetCut(h_photon, axis_pionDisToCharged2, 0.02, 0.14);
+    SetCut(h_photon, axis_pionLambda1, 0.1, 0.4);
+    SetCut(h_photon, axis_pionLambda2, 0.1, 0.4);
     SetCut(h_photon, axis_pionAngle, 0.015, 0.5);
-    SetCut(h_photon, axis_pionNcells1, 1.0, 30.0);
-    SetCut(h_photon, axis_pionNcells2, 1.0, 30.0);
-    
     
     // Load the THnSparses with the pion data
-    // Use it to cut the mass to within 1 sigma of the mean pion mass
-    TFile* pionIn = new TFile("Pion7CutsSparsesOutput.root", "READ");
+    // Use it to cut the mass to within NumOfSigmasFromMeanMax sigma of the mean pion mass
+    TFile* pionIn = new TFile("Pion3CutsSparsesOutput.root", "READ");
     TH1D* piondata = 0;
     pionIn->GetObject("mass_pion", piondata);
     TF1* peakfunct = (TF1*) piondata->GetListOfFunctions()->FindObject("mass peak");
