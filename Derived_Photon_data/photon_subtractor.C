@@ -70,8 +70,8 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
     canvas->SaveAs(str_concat_converter(directory_name, "LeadingEvsLambda.png"));
     
     // Repeat for all intervals of momentum
-    const int num_of_intervals = 5;
-    double intervals[num_of_intervals][2] = {{8.0, 10.0}, {10.0, 11.0}, {11.0, 12.0}, {12.0, 13.0}, {13.0, 15.0}};
+    const int num_of_intervals = 6;
+    double intervals[num_of_intervals][2] = {{6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, {16.0, 20.0}};
     double ptmin;
     double ptmax;
     for(int i = 0; i < num_of_intervals; i++) {

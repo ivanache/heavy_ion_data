@@ -14,5 +14,6 @@
 - 0.4<lambda: the folder with data that has been cut to 0.4<lambda
 - 4<pT<20, 10<pT<20: folders inside 0.1<lambda<0.4 and 0.4<lambda which contain data whose transverse momentum range is 4-20 GeV/c and 10-20 GeV/c, respectively
 
-### Modeler, the part of the program that is responsible for examining the photon data in order to find out how many photons are in the sample
+### Modeler, the part of the program that is responsible for examining the photon data in order to find out how many photons are in the sample, as well as generating basic plots
 - photon_modeler.C: the macro that graphs and examines the pion data spectrum. Initially based on a specific iteration of photon_grapher.C from Cut Comparisons
+- photon_Elambda.C: the macro that graphs a correlation of energy readings and lambda
