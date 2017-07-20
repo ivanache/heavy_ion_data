@@ -61,13 +61,19 @@ void photon_Elambda() {
     SetCut(hPhoton, axis_photonLambda, 0, 1.54);
     //SetCut(hPhoton, axis_photonPseudoRapidity, -0.27, 0.27);
     
-    // Create the 2D histogram and graph
-    TH2D* e_lambda_hist = hPhoton->Projection(axis_photonIsolation, axis_photonLambda);
-    e_lambda_hist->GetYaxis()->SetTitle("#Sigma E^{cone}_{T} [GeV]");
-    e_lambda_hist->Draw("COLZ");
-    gPad->SetLogz(kTRUE);
-    myText(.35, .92, kBlack, "#scale[1.5]{Cone energy vs. Lambda}");
-    canvas->SaveAs("e_lambda_correlation.png");
-    
+    // Create the 2D histogram and graph, for all momentum intervals
+    const int num_of_intervals = 6;
+    double intervals[num_of_intervals][2] = {{5, 50} , {8.0, 10.0}, {10.0, 12.0}, {12.0, 15.0}, {15.0, 20.0}, {20.0, 40.0}};
+    for (int i = 0; i < num_of_intervals; i++) {
+        SetCut(hPhoton, axis_photonPt, intervals[i][0], intervals[i][1]);
+        
+        TH2D* e_lambda_hist = hPhoton->Projection(axis_photonIsolation, axis_photonLambda);
+        e_lambda_hist->GetYaxis()->SetTitle("#Sigma E^{cone}_{T} [GeV]");
+        e_lambda_hist->Draw("COLZ");
+        gPad->SetLogz(kTRUE);
+        myText(.20, .92, kBlack, Form("#scale[1.5]{Cone energy vs. Lambda, Pt %2.2f-%2.2f GeV}", intervals[i][0], intervals[i][1]));
+        canvas->SaveAs(Form("e_lambda_correlation_Ptmin_%2.2f_Ptmax_%2.2f.png", intervals[i][0], intervals[i][1]));
+        canvas->Clear();
+    }
     canvas->Close();
 }

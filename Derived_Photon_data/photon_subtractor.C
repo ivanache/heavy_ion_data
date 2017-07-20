@@ -30,8 +30,8 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
     TCanvas* canvas = new TCanvas();
     const double lambdamin = 0;
     const double lambdamax = 2;
-    const int y_min = 6;
-    const int y_max = 15;
+    const int y_min = 8;
+    const int y_max = 10;
     string directory_name = Form("%i-%isigma/", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax);
     
     //Grab the input root files, get the data
@@ -41,11 +41,11 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
     fInMax->Print();
     TH2D* histmin = 0;
     TH2D* histmax = 0;
-    fInMin->GetObject("leading_Evslambda", histmin);
-    fInMax->GetObject("leading_Evslambda", histmax);
+    fInMin->GetObject("total_Evslambda", histmin);
+    fInMax->GetObject("total_Evslambda", histmax);
     
     // Create a TH2D to store the data, use one of the input histograms as a template
-    TH2D* histoutput = (TH2D*)histmin->Clone("leading_Evslambda_subtracted");
+    TH2D* histoutput = (TH2D*)histmin->Clone("total_Evslambda_subtracted");
     // Loop through all bins in the two th2d histograms, take the difference, store in the output histogram
     double x_bin_min = histoutput->GetXaxis()->FindBin(lambdamin);
     double x_bin_max = histoutput->GetXaxis()->FindBin(lambdamax);
@@ -62,12 +62,12 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
     TFile* fOut = new TFile(Form("%i-%isigmaPhotonsOutput.root", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax),"RECREATE");
     
     // Graph, save, and write
-    histoutput->SetTitle("; lambda0; Leading photon energy (GeV)");
+    histoutput->SetTitle("; lambda0; Total photon energy (GeV)");
     histoutput->Draw("COLZ");
-    myText(.20,.97, kBlack, "Leading Pi0 Photon Energy vs lambda0, Pt 8-15 GeV");
+    myText(.20,.97, kBlack, "Total Pi0 Photon Energy vs lambda0, Pt 6-20 GeV");
     myText(.35,.92, kBlack, Form("mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
-    histoutput->Write("leading_Evslambda");
-    canvas->SaveAs(str_concat_converter(directory_name, "LeadingEvsLambda.png"));
+    histoutput->Write("total_Evslambda");
+    canvas->SaveAs(str_concat_converter(directory_name, "TotalEvsLambda.png"));
     
     // Repeat for all intervals of momentum
     const int num_of_intervals = 6;
@@ -79,8 +79,8 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
         ptmax = intervals[i][1];
         
         // get the data
-        fInMin->GetObject(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), histmin);
-        fInMax->GetObject(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), histmax);
+        fInMin->GetObject(Form("total_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), histmin);
+        fInMax->GetObject(Form("total_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), histmax);
         
         // Loop through all bins in the two th2d histograms, take the difference, store in the output histogram
         for (int i = x_bin_min; i <= x_bin_max; i++)
@@ -90,13 +90,13 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
             }
         
         // Graph, save, and write
-        histoutput->SetTitle("; lambda0; Leading photon energy (GeV)");
+        histoutput->SetTitle("; lambda0; Total photon energy (GeV)");
         histoutput->Draw("COLZ");
-        myText(.20,.97, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
+        myText(.20,.97, kBlack, Form("Total Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
         myText(.35,.92, kBlack, Form("mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
-        myText(.35,.9, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
-        histoutput->Write(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
-        canvas->SaveAs(str_concat_converter(directory_name, Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
+        //myText(.35,.9, kBlack, Form("Total Pi0 Photon Energy vs lambda0, mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
+        histoutput->Write(Form("total_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
+        canvas->SaveAs(str_concat_converter(directory_name, Form("total_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
 
     }
     
@@ -120,9 +120,9 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
     }
 
     // Graph, save, and write
-    projoutput->SetTitle("; lambda0; Leading photon energy (GeV)");
+    projoutput->SetTitle("; lambda0; Total photon energy (GeV)");
     projoutput->Draw();
-    myText(.10, .97, kBlack, "Leading Pi0 Photon Energy vs lambda0, Pt 8-15 GeV");
+    myText(.10, .97, kBlack, "Total Pi0 Photon Energy vs lambda0, Pt 8-15 GeV");
     myText(.35,.92, kBlack, Form("mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
     projoutput->Write("Lambda_projection");
     canvas->SaveAs(str_concat_converter(directory_name, "Lambda_vs_E_projection.png"));
@@ -147,9 +147,9 @@ void photon_subtractor(int NumOfSigmasFromMeanMin, int NumOfSigmasFromMeanMax) {
         }
         
         // Graph, save, and write
-        projoutput->SetTitle("; lambda0; Leading photon energy (GeV)");
+        projoutput->SetTitle("; lambda0; Total photon energy (GeV)");
         projoutput->Draw();
-        myText(.10,.97, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
+        myText(.10,.97, kBlack, Form("Total Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
         myText(.35,.92, kBlack, Form("mass %i-%i sigma from mean", NumOfSigmasFromMeanMin, NumOfSigmasFromMeanMax));
         projoutput->Write(Form("Lambda_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
         canvas->SaveAs(str_concat_converter(directory_name, Form("Lambda_vs_E_projection.png_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));

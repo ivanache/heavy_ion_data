@@ -29,8 +29,8 @@ char* str_concat_converter(string str1, string str2){
 void background_maker(int NumOfSigmasFromMean) {
     const double lambda_min = 0;
     const double lambda_max = 2;
-    const double energy_min = 6;
-    const double energy_max = 15;
+    const double energy_min = 8;
+    const double energy_max = 10;
     string background_directory_name = Form("%isigma/background/", NumOfSigmasFromMean);
     string total_directory_name = Form("%isigma/background+total/", NumOfSigmasFromMean);
     TCanvas* canvas = new TCanvas();
@@ -50,10 +50,10 @@ void background_maker(int NumOfSigmasFromMean) {
     TGraph* sig_tot_graph = 0;
     TH2D* back_lambda_E_graph = 0;
     TH1D* back_lambda_projection = 0;
-    totalIn->GetObject("leading_Evslambda", total_lambda_E_graph);
+    totalIn->GetObject("total_Evslambda", total_lambda_E_graph);
     totalIn->GetObject("Lambda_projection", total_lambda_projection);
     ratioIn->GetObject("Total_Sig_To_Total", sig_tot_graph);
-    backIn->GetObject("leading_Evslambda", back_lambda_E_graph);
+    backIn->GetObject("total_Evslambda", back_lambda_E_graph);
     backIn->GetObject("Lambda_projection", back_lambda_projection);
     
     // Take the integrals of the two backgrounds and the two totals
@@ -91,19 +91,19 @@ void background_maker(int NumOfSigmasFromMean) {
     back_lambda_E_graph->GetXaxis()->SetTitleOffset(0.9);
     back_lambda_E_graph->GetYaxis()->SetTitleOffset(0.9);
     back_lambda_E_graph->Draw("COLZ");
-    myText(0.10, 0.95, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
-    canvas->SaveAs(str_concat_converter(background_directory_name, "LeadingEvsLambda.png"));
+    myText(0.10, 0.95, kBlack, Form("Total Pi0 Photon Energy vs lambda0, Pt 6-20 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
+    canvas->SaveAs(str_concat_converter(background_directory_name, "TotalEvsLambda.png"));
     canvas->Clear();
     back_lambda_projection->GetXaxis()->SetTitleOffset(1.0);
-    back_lambda_projection->GetYaxis()->SetTitleOffset(1.0);
+    back_lambda_projection->GetYaxis()->SetTitleOffset(1.4);
     back_lambda_projection->Draw();
-    myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
+    myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt 6-20 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
     canvas->SaveAs(str_concat_converter(background_directory_name, "Lambda_vs_E_projection.png"));
     total_lambda_projection->SetMarkerColor(kRed);
     total_lambda_projection->Draw();
     total_lambda_projection->GetXaxis()->SetTitleOffset(1.0);
-    total_lambda_projection->GetYaxis()->SetTitleOffset(1.0);
-    myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
+    total_lambda_projection->GetYaxis()->SetTitleOffset(1.4);
+    myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt 6-20 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
     back_lambda_projection->Draw("same");
     myMarkerText(0.30, 0.85, kBlack, 20, Form("Background data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
     myMarkerText(0.30, 0.80, kRed, 20, Form("Total data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
@@ -124,10 +124,10 @@ void background_maker(int NumOfSigmasFromMean) {
         canvas->Clear();
         
         // Get Data
-        totalIn->GetObject(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), total_lambda_E_graph);
+        totalIn->GetObject(Form("total_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), total_lambda_E_graph);
         totalIn->GetObject(Form("Lambda_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), total_lambda_projection);
         sig_tot_graph = (TGraph*)listofgraphs->FindObject(Form("sig_to_tot_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
-        backIn->GetObject(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), back_lambda_E_graph);
+        backIn->GetObject(Form("total_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), back_lambda_E_graph);
         backIn->GetObject(Form("Lambda_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax), back_lambda_projection);
         //backIn->GetObject(Form("Lambda_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmin), back_lambda_projection);
         
@@ -165,23 +165,23 @@ void background_maker(int NumOfSigmasFromMean) {
         back_lambda_E_graph->GetXaxis()->SetTitleOffset(0.9);
         back_lambda_E_graph->GetYaxis()->SetTitleOffset(0.9);
         back_lambda_E_graph->Draw("COLZ");
-        myText(0.10, 0.95, kBlack, Form("Leading Pi0 Photon Energy vs lambda0, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
-        canvas->SaveAs(str_concat_converter(background_directory_name, Form("LeadingEvsLambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
+        myText(0.10, 0.95, kBlack, Form("Total Pi0 Photon Energy vs lambda0, Pt %2.2f-%2.2f GeV, mass within %i sigma of mean", ptmin, ptmax, NumOfSigmasFromMean));
+        canvas->SaveAs(str_concat_converter(background_directory_name, Form("TotalEvsLambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
         canvas->Clear();
         back_lambda_projection->GetXaxis()->SetTitleOffset(1.0);
-        back_lambda_projection->GetYaxis()->SetTitleOffset(1.0);
+        back_lambda_projection->GetYaxis()->SetTitleOffset(1.4);
         back_lambda_projection->Draw();
-        myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
+        myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt %2.2f-%2.2f GeV, mass within %i sigma of mean", ptmin, ptmax, NumOfSigmasFromMean));
         canvas->SaveAs(str_concat_converter(background_directory_name, Form("Lambda_vs_E_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
         total_lambda_projection->SetMarkerColor(kRed);
         total_lambda_projection->Draw();
         total_lambda_projection->GetXaxis()->SetTitleOffset(1.0);
-        total_lambda_projection->GetYaxis()->SetTitleOffset(1.0);
-        myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt 8-15 GeV, mass within %i sigma of mean", NumOfSigmasFromMean));
+        total_lambda_projection->GetYaxis()->SetTitleOffset(1.4);
+        myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt %2.2f-%2.2f GeV, mass within %i sigma of mean", ptmin, ptmax, NumOfSigmasFromMean));
         back_lambda_projection->Draw("same");
         myMarkerText(0.30, 0.85, kBlack, 20, Form("Background data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
         myMarkerText(0.30, 0.80, kRed, 20, Form("Total data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
-        canvas->SaveAs(str_concat_converter(total_directory_name, Form("Lambda_vs_E_projection.png_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
+        canvas->SaveAs(str_concat_converter(total_directory_name, Form("Lambda_vs_E_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
     }
     canvas->Close();
 }

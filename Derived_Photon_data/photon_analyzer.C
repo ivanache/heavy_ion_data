@@ -52,6 +52,10 @@ void SetCut(THnSparse* h, const int axis, double min, double max){
 // Precondition: NumOfSigmasFromMeanMax = 1, 2, 3, or 4
 void photon_analyzer(int NumOfSigmasFromMeanMax) {
     const string directory_name = Form("%isigma/", NumOfSigmasFromMeanMax);
+    const int x_min = 0;
+    const int x_max = 2;
+    const int y_min = 2;
+    const int y_max = 20;
     
     // Set ATLAS style
     gROOT->LoadMacro("AtlasStyle.C");
@@ -89,67 +93,98 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     TFile* fOut = new TFile(rootfilename.c_str(), "RECREATE");
     
     // Plot Pt vs. eigenvalue for the leading photon
-    TH2D* hPt = h_photon->Projection(axis_photon1Pt, axis_pionLambda1);
-    hPt->SetTitle("Leading Pi0 Photon Momentum vs lambda0; lambda0; Leading Photon Momentum (GeV/c)");
-    hPt->SetAxisRange(6, 20, "Y");
-    hPt->Draw("COLZ");
-    myText(.20,.97, kBlack, "Leading  Pi0 Photon Momentum vs lambda0, Pion Momentum 8-15 GeVc");
+    TH2D* hPt_leading = h_photon->Projection(axis_photon1Pt, axis_pionLambda1);
+    hPt_leading->SetTitle("Leading Pi0 Photon Momentum vs lambda0; lambda0; Leading Photon Momentum (GeV/c)");
+    hPt_leading->SetAxisRange(2, 20, "Y");
+    hPt_leading->Draw("COLZ");
+    myText(.20,.97, kBlack, "Leading  Pi0 Photon Momentum vs lambda0, Pion Momentum 6-20 GeVc");
     myText(.35,.92, kBlack, Form("Mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
-    hPt->Write("leading_Evslambda");
+    hPt_leading->Write("leading_Evslambda");
     canvas->SaveAs(str_concat_converter(directory_name, "LeadingEvsLambda.png"));
     canvas->Clear();
     
     // Do the same for the trailing photon
-    hPt = h_photon->Projection(axis_photon2Pt, axis_pionLambda2);
-    hPt->SetTitle("Trailing Pi0 Photon Momentum vs lambda0; lambda0; Trailing Photon Momentum (GeV/c)");
-    hPt->SetAxisRange(3, 15, "Y");
-    hPt->Draw("COLZ");
-    myText(.20,.97, kBlack, "Trailing Pi0 Photon Momentum vs lambda0, Pion Momentum 8-15 GeV,");
+    TH2D* hPt_trailing = h_photon->Projection(axis_photon2Pt, axis_pionLambda2);
+    hPt_trailing->SetTitle("Trailing Pi0 Photon Momentum vs lambda0; lambda0; Trailing Photon Momentum (GeV/c)");
+    hPt_trailing->SetAxisRange(2, 20, "Y");
+    hPt_trailing->Draw("COLZ");
+    myText(.20,.97, kBlack, "Trailing Pi0 Photon Momentum vs lambda0, Pion Momentum 6-20 GeV,");
     myText(.35,.92, kBlack, Form("mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
-    hPt->Write("trailing_Evslambda");
+    hPt_trailing->Write("trailing_Evslambda");
     canvas->SaveAs(str_concat_converter(directory_name, "TrailingEvsLambda.png"));
     canvas->Clear();
     
+    // Combine the results
+    TH2D* hPt_total = (TH2D*)hPt_trailing->Clone();
+    hPt_total->SetTitle("Total Pi0 Photon Momentum vs lambda0; lambda0; Photon Momentum (GeV/c)");
+    for (double x = x_min; x <= x_max; x += hPt_trailing->GetXaxis()->GetBinWidth(0))
+        for (double y = y_min; y <= y_max; y += hPt_trailing->GetYaxis()->GetBinWidth(0)) {
+            int x_leading_binnum = hPt_leading->GetXaxis()->FindBin(x);
+            int x_trailing_binnum = hPt_trailing->GetXaxis()->FindBin(x);
+            int y_leading_binnum = hPt_leading->GetYaxis()->FindBin(y);
+            int y_trailing_binnum = hPt_trailing->GetYaxis()->FindBin(y);
+            
+            double sum = hPt_leading->GetBinContent(x_leading_binnum, y_leading_binnum) + hPt_trailing->GetBinContent(x_trailing_binnum, y_trailing_binnum);
+            hPt_total->SetBinContent(x_leading_binnum, y_leading_binnum, sum);
+        }
+    hPt_total->Draw("COLZ");
+    myText(.20,.97, kBlack, "Total  Pi0 Photon Momentum vs lambda0, Pion Momentum 6-20 GeVc");
+    myText(.35,.92, kBlack, Form("Mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
+    hPt_total->Write("total_Evslambda");
+    canvas->SaveAs(str_concat_converter(directory_name, "TotalEvsLambda.png"));
+    canvas->Clear();
+    
     // Do both of the above for various momentum intervals
-    const int num_of_intervals = 6;
-    double intervals[num_of_intervals][2] = {{6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, {16.0, 20.0}};
+    const int num_of_intervals = 7;
+    double intervals[num_of_intervals][2] = {{6.0, 20.0}, {6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, {16.0, 20.0}};
     for(int i = 0; i < num_of_intervals; i++) {
+        
         double ptmin = intervals[i][0];
         double ptmax = intervals[i][1];
         
         // Cut the data
         SetCut(h_photon, axis_pionPt, ptmin, ptmax);
         
-        // Use the THnSparses with the pion data to cut the mass to within 1 sigma of the mean pion mass
-        pionIn->GetObject(Form("mass-pion-%2.2fGeV-%2.2fGeV", ptmin, ptmax), piondata);
-        TF1* peakfunct = (TF1*) piondata->GetListOfFunctions()->FindObject("mass peak");
-        double mean = peakfunct->GetParameter(1);
-        double sigma = peakfunct->GetParameter(2);
-        SetCut(h_photon, axis_pionMass, mean - NumOfSigmasFromMeanMax*sigma, mean + NumOfSigmasFromMeanMax*sigma);
-
-        
         // Plot Momentum vs. eigenvalue for the leading photon
-        TH2D* hPt = h_photon->Projection(axis_photon1Pt, axis_pionLambda1);
-        hPt->SetTitle("Leading Pi0 Photon Momentum vs lambda0; lambda0; Leading photon momentum (GeV/c)");
-        hPt->SetAxisRange(6, 20, "Y");
-        hPt->Draw("COLZ");
+        hPt_leading = h_photon->Projection(axis_photon1Pt, axis_pionLambda1);
+        hPt_leading->SetTitle("Leading Pi0 Photon Momentum vs lambda0; lambda0; Leading photon momentum (GeV/c)");
+        hPt_leading->SetAxisRange(6, 20, "Y");
+        hPt_leading->Draw("COLZ");
         myText(.20,.97, kBlack, Form("Leading Pi0 Photon Momentum vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
         myText(.35,.92, kBlack, Form("mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
-        hPt->Write(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
+        hPt_leading->Write(Form("leading_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
         canvas->SaveAs(str_concat_converter(directory_name, Form("LeadingEvsLambda_ptmin_%2.2f_ptmax_%2.2f.png", ptmin, ptmax)));
         canvas->Clear();
         
         // Do the same for the trailing photon
-        hPt = h_photon->Projection(axis_photon2Pt, axis_pionLambda2);
-        hPt->SetTitle("Trailing Pi0 Photon Momentum vs lambda0; lambda0; Trailing photon momentum (GeV/c)");
-        hPt->SetAxisRange(3, 15, "Y");
-        hPt->Draw("COLZ");
+        hPt_trailing = h_photon->Projection(axis_photon2Pt, axis_pionLambda2);
+        hPt_trailing->SetTitle("Trailing Pi0 Photon Momentum vs lambda0; lambda0; Trailing photon momentum (GeV/c)");
+        hPt_trailing->SetAxisRange(3, 15, "Y");
+        hPt_trailing->Draw("COLZ");
         myText(.20,.97, kBlack, Form("Trailing Pi0 Photon Momentum vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
         myText(.35,.92, kBlack, Form("mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
-        hPt->Write(Form("trailing_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
+        hPt_trailing->Write(Form("trailing_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
         canvas->SaveAs(str_concat_converter(directory_name, Form("TrailingEvsLambda_ptmin_%2.2f_ptmax_%2.2f.png", ptmin, ptmax)));
         canvas->Clear();
-
+        
+        // Combine the results
+        for (double x = x_min; x <= x_max; x += hPt_trailing->GetXaxis()->GetBinWidth(1))
+            for (double y = y_min; y <= y_max; y += hPt_trailing->GetYaxis()->GetBinWidth(1)) {
+                int x_leading_binnum = hPt_leading->GetXaxis()->FindBin(x);
+                int x_trailing_binnum = hPt_trailing->GetXaxis()->FindBin(x);
+                int y_leading_binnum = hPt_leading->GetYaxis()->FindBin(y);
+                int y_trailing_binnum = hPt_trailing->GetYaxis()->FindBin(y);
+                
+                double sum;
+                sum = hPt_leading->GetBinContent(x_leading_binnum, y_leading_binnum) + hPt_trailing->GetBinContent(x_trailing_binnum, y_trailing_binnum);
+                hPt_total->SetBinContent(x_leading_binnum, y_leading_binnum, sum);
+            }
+        hPt_total->Draw("COLZ");
+        myText(.20,.97, kBlack, Form("Total Pi0 Photon Momentum vs lambda0, Pt %2.2f-%2.2f GeV", ptmin, ptmax));
+        myText(.35,.92, kBlack, Form("mass within %i sigma of the mean", NumOfSigmasFromMeanMax));
+        hPt_total->Write(Form("total_Evslambda_ptmin_%2.2fGeV_ptmax_%2.2fGeV", ptmin, ptmax));
+        canvas->SaveAs(str_concat_converter(directory_name, Form("TotalEvsLambda_ptmin_%2.2f_ptmax_%2.2f.png", ptmin, ptmax)));
+        canvas->Clear();
     }
     canvas->Close();
     return;

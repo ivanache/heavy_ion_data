@@ -315,24 +315,24 @@ void my_code(int NumOfCuts) {
     
     // Create a new TH1D to measure the distribution of residuals, set all bin values to zero
     TH1D* residual_dist = new TH1D("residual_distribution", "Residual_Distribution", 10, -5, 5);
+    residual_dist->Sumw2();
     residual_dist->SetTitle("Residual Distribution; Residual value; Num of residuals");
-    for(int i = 0; i < residual_dist->GetSize(); i++) {
-        residual_dist->SetBinContent(i, 0);
-        std::cout << "Initial residual count for " << residual_dist->GetBinCenter(i) << " is " << residual_dist->GetBinContent(i) << std::endl;
-    }
     // Load the individual residuals into the residual histogram (the one that goes below the mass-pion graph), count the number of residuals in each bin of the residual histogram
     // In the meantime, sum up the squares of those residuals to make a chi-square
     double chisquare = 0;
     std::cout << "Differences:\n";
     for (int i = 0; i < hMass->GetSize(); i++) {
-        if (hMass->GetBinError(i))
-            residual->SetBinContent(i, ((hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i)));
-        residual->SetBinError(i, 0); //Residuals don't have errors
-        std::cout << hMass->GetBinCenter(i) << " GeV momentum: " << (hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i))) << std::endl;
-        int dist_bin_num = residual_dist->FindBin(residual->GetBinContent(i));
-        residual_dist->SetBinContent(dist_bin_num, residual_dist->GetBinContent(dist_bin_num) + 1);
         
-        chisquare += ((residual->GetBinContent(i))*(residual->GetBinContent(i)));
+        double residualvalue = (hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i);
+        if ((hMass->GetBinError(i)) != 0) {
+            residual->SetBinContent(i, residualvalue);
+        }
+        else
+            residual->SetBinContent(i, 0);
+        residual->SetBinError(i, 0); //Residuals don't have errors
+        
+        residual_dist->Fill(residualvalue);
+        chisquare += residualvalue*residualvalue;
     }
     std::cout << std::endl;
     for(int i = 0; i < residual_dist->GetSize(); i++) {
@@ -362,13 +362,16 @@ void my_code(int NumOfCuts) {
     // Fit and plot the residuals distribution
     graphcanvas->Clear();
     TF1* residual_dist_fit = new TF1("fit", gaussian_peak, -5, 5, 3);
+    residual_dist_fit->SetLineColor(2);
     residual_dist_fit->SetParameters(50,  0, 1);
+    residual_dist_fit->SetParLimits(0, 0, 10000);
+    residual_dist_fit->SetParLimits(1, 0, 10);
     residual_dist->Fit(residual_dist_fit);
     residual_dist->Draw();
     residual_dist_fit->Draw("same");
     myText(.20, .92, kBlack, "#scale[1.5]{Residual Distribution, Pt 6-20 GeV/c}");
-    myText(.3, .85, kBlack, Form("Mean: %2.2f", residual_dist_fit->GetParameter(1)));
-    myText(.3, .8, kBlack, Form("Sigma: %2.2f", residual_dist_fit->GetParameter(2)));
+    myText(.2, .85, kBlack, Form("Mean: %2.1f+/-%1.1f", residual_dist_fit->GetParameter(1), residual_dist_fit->GetParError(1)));
+    myText(.2, .8, kBlack, Form("Sigma: %2.1f+/-%1.1f", residual_dist_fit->GetParameter(2), residual_dist_fit->GetParError(2)));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "MyFit_residual_dist.png"));
     
     // Plot signal to noise ratio for the entire sample over various distances from the mean, print out values for 1 sigma and 2 sigmas
@@ -522,8 +525,6 @@ void my_code(int NumOfCuts) {
         if (i == 0 || i == 3)
             hMass->Fit(func);
         func->SetLineColor(kRed);
-        chisquares[i] = func->GetChisquare()/(hMass->GetSize() - (8 - 1) - 1); //Reduced Chi Square
-        std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         func->Draw("same");
         int j = 0;
         for(; j < num_of_peak_params; j++)
@@ -537,24 +538,32 @@ void my_code(int NumOfCuts) {
         hMass->Draw("same");
         
         // Reinitialize residual_dist
-        for(int i = 0; i < residual_dist->GetSize(); i++) {
-            residual_dist->SetBinContent(i, 0);
-        }
+        delete residual_dist;
+        residual_dist = new TH1D("residual_distribution", "Residual_Distribution", 10, -5, 5);
+        residual_dist->Sumw2();
+        residual_dist->SetTitle("Residual Distribution; Residual value; Num of residuals");
         chisquare = 0;
         // Now add the residuals, creating values for residual_dist and counting up the chi-square in the process
         for (int i = 0; i < hMass->GetSize(); i++) {
+            
+            double residualvalue = (hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i);
             if ((hMass->GetBinError(i)) != 0) {
-                residual->SetBinContent(i, (hMass->GetBinContent(i) - func->Eval(hMass->GetBinCenter(i)))/hMass->GetBinError(i));
+                residual->SetBinContent(i, residualvalue);
             }
             else
                 residual->SetBinContent(i, 0);
             residual->SetBinError(i, 0); //Residuals don't have errors
             
+            residual_dist->Fill(residualvalue);
+            /**
             int dist_bin_num = residual_dist->FindBin(residual->GetBinContent(i));
             residual_dist->SetBinContent(dist_bin_num, residual_dist->GetBinContent(dist_bin_num) + 1);
-            
-            chisquare += ((residual->GetBinContent(i))*(residual->GetBinContent(i)));
+            */
+            chisquare += residualvalue*residualvalue;
+            //chisquare += ((residual->GetBinContent(i))*(residual->GetBinContent(i)));
         }
+        chisquares[i] = func->GetChisquare()/(hMass->GetSize() - (8) - 1); //Reduced Chi Square
+        std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         myText(.7, .85, kBlack, Form("Reduced Chi-square: %2.1f", chisquare/(hMass->GetSize() - 8 - 1)));
         myText(.7, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(chisquare, (hMass->GetSize() - 8 - 1))));
         graphcanvas->cd();
@@ -586,12 +595,15 @@ void my_code(int NumOfCuts) {
         
         // Fit and plot the residuals distribution
         graphcanvas->Clear();
+        residual_dist_fit->SetLineColor(2);
         residual_dist->Fit(residual_dist_fit);
+        residual_dist_fit->SetParLimits(0, 0, 10000);
+        residual_dist_fit->SetParLimits(1, 0, 10);
         residual_dist->Draw();
         residual_dist_fit->Draw("same");
         myText(.20, .92, kBlack, Form("#scale[1.5]{Residual Distribution, Pt %2.2f-%2.2f GeV/c}", min, max));
-        myText(.3, .85, kBlack, Form("Mean: %2.2f", residual_dist_fit->GetParameter(1)));
-        myText(.3, .8, kBlack, Form("Sigma: %2.2f", residual_dist_fit->GetParameter(2)));
+        myText(.2, .85, kBlack, Form("Mean: %2.1f+/-%1.1f", residual_dist_fit->GetParameter(1), residual_dist_fit->GetParError(1)));
+        myText(.2, .8, kBlack, Form("Sigma: %2.1f+/-%1.1f", residual_dist_fit->GetParameter(2), residual_dist_fit->GetParError(2)));
         graphcanvas->SaveAs(str_concat_converter(directory_name, Form("MyFit_residual_dist_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)));
 
         
