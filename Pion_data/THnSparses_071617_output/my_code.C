@@ -4,7 +4,6 @@
  the macro must be called with an int, which tells how many cuts to make cuts are made, in the following order: distance to charged particle > 0.02, asymmetry < 0.7, angle > 0.015, Ncells > 1, distance to border > 2, distance to bad cell > 1 , lambda02 is between 0.1 and 0.4
  Programmer: Ivan Chernyshev
  */
-// Maybe include: (or > 2, for momentum is 7-20 or 15-20 GeV/c)
 #include "TFile.h"
 #include "TF1.h"
 #include "TH1F.h"
@@ -338,9 +337,9 @@ void my_code(int NumOfCuts) {
     for(int i = 0; i < residual_dist->GetSize(); i++) {
         std::cout << "Final residual count for " << residual_dist->GetBinCenter(i) << " is " << residual_dist->GetBinContent(i) << std::endl;
     }
-    myText(.7, .85, kBlack, Form("Reduced Chi-square: %2.1f", chisquare/(hMass->GetSize() - (8) - 1)));
-    myText(.7, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(chisquare, (hMass->GetSize() - (8) - 1))));
-    std::cout << "Reduced Chi Square " << chisquare/(hMass->GetSize() - (8 - 1) - 1) << std::endl;
+    myText(.7, .85, kBlack, Form("Reduced Chi-square: %2.1f", func->GetChisquare()/(hMass->GetSize() - (8) - 1)));
+    myText(.7, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (8) - 1))));
+    std::cout << "Reduced Chi Square " << func->GetChisquare()/(hMass->GetSize() - (8 - 1) - 1) << std::endl;
     
     // Plot the residual; save as a PDF, print out the individual residuals
     graphcanvas->cd();
@@ -564,8 +563,8 @@ void my_code(int NumOfCuts) {
         }
         chisquares[i] = func->GetChisquare()/(hMass->GetSize() - (8) - 1); //Reduced Chi Square
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
-        myText(.7, .85, kBlack, Form("Reduced Chi-square: %2.1f", chisquare/(hMass->GetSize() - 8 - 1)));
-        myText(.7, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(chisquare, (hMass->GetSize() - 8 - 1))));
+        myText(.7, .85, kBlack, Form("Reduced Chi-square: %2.1f", func->GetChisquare()/(hMass->GetSize() - 8 - 1)));
+        myText(.7, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - 8 - 1))));
         graphcanvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
         //residual->GetXaxis()->
@@ -706,12 +705,12 @@ void my_code(int NumOfCuts) {
     peaks_over_totals->SetMaximum(1.0);
     peaks_over_totals->SetMinimum(0.2);
     peaks_over_totals->Draw("Al");
-    myBoxText(0.25, 0.45, 0.05, 10, graph_colors[0], "8-10 GeV");
-    myBoxText(0.25, 0.40, 0.05, 10, graph_colors[1], "10-11 GeV");
-    myBoxText(0.25, 0.35, 0.05, 10, graph_colors[2], "11-12 GeV");
-    myBoxText(0.25, 0.30, 0.05, 10, graph_colors[3], "12-13 GeV");
-    myBoxText(0.25, 0.25, 0.05, 10, graph_colors[4], "13-15 GeV");
-    myBoxText(0.25, 0.20, 0.05, 10, graph_colors[5], "15-20 GeV");
+    myBoxText(0.25, 0.45, 0.05, 10, graph_colors[0], "6-8 GeV");
+    myBoxText(0.25, 0.40, 0.05, 10, graph_colors[1], "8-10 GeV");
+    myBoxText(0.25, 0.35, 0.05, 10, graph_colors[2], "10-12 GeV");
+    myBoxText(0.25, 0.30, 0.05, 10, graph_colors[3], "12-14 GeV");
+    myBoxText(0.25, 0.25, 0.05, 10, graph_colors[4], "14-16 GeV");
+    myBoxText(0.25, 0.20, 0.05, 10, graph_colors[5], "16-20 GeV");
     peaks_over_totals->Write("signal-over-total");
     myText(.10,.95, kBlack, Form("#scale[1.5]{Signal-to-total ratios, latest cut: %s}", headers[NumOfCuts].c_str()));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));

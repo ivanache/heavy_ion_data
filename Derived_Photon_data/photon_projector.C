@@ -35,8 +35,8 @@ void photon_projector(string NumOfSigmasFromMeanMax) {
     TCanvas* canvas = new TCanvas();
     
     // Set ATLAS Style
-    gROOT->LoadMacro("AtlasStyle.C");
-    SetAtlasStyle();
+    //gROOT->LoadMacro("AtlasStyle.C");
+    //SetAtlasStyle();
     
     // Open the root file, get the data
     TFile* fIn = new TFile(Form("%ssigmaPhotonsOutput.root", NumOfSigmasFromMeanMax.c_str()), "READ");
@@ -47,7 +47,7 @@ void photon_projector(string NumOfSigmasFromMeanMax) {
     int ymaxbin = hist->GetYaxis()->FindBin(y_max);
     
     // Create the TH1D object, using the lambda vs entries graph from the THnSparses as a template
-    TFile* TemplateSource = new TFile("THnSparses_071617.root", "READ");
+    TFile* TemplateSource = new TFile("THnSparses_072417.root", "READ");
     THnSparse* temp = 0;
     TemplateSource->GetObject("h_Pion", temp);
     TH1D* projection = temp->Projection(axis_pionLambda1);

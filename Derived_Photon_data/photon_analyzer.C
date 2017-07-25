@@ -58,11 +58,11 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     const int y_max = 20;
     
     // Set ATLAS style
-    gROOT->LoadMacro("AtlasStyle.C");
-    SetAtlasStyle();
+    //gROOT->LoadMacro("AtlasStyle.C");
+    //SetAtlasStyle();
     
     // Load the THnSparses file, print its content, and get the data from it
-    TFile* fIn = new TFile("THnSparses_071617.root","READ");
+    TFile* fIn = new TFile("THnSparses_072417.root","READ");
     fIn->Print();
     THnSparse* h_photon = 0;
     fIn->GetObject("h_Pion", h_photon);
@@ -80,7 +80,7 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     
     // Load the THnSparses with the pion data
     // Use it to cut the mass to within NumOfSigmasFromMeanMax sigma of the mean pion mass
-    TFile* pionIn = new TFile("Pion3CutsSparsesOutput.root", "READ");
+    TFile* pionIn = new TFile("PionSparsesOutput_angle_17mrad.root", "READ");
     TH1D* piondata = 0;
     pionIn->GetObject("mass_pion", piondata);
     TF1* peakfunct = (TF1*) piondata->GetListOfFunctions()->FindObject("mass peak");

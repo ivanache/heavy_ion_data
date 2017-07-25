@@ -2,7 +2,8 @@
 ## Technical specifications
 - THnSparses_070517.root: the first direct source of the data and the only current source of data for Cut Comparisons
 - THnSparses_071217.root: an old direct source of the data for Modeler
-- THnSparses_071617.root: the current source of the data for Modeler
+- THnSparses_071617.root: an old direct source of the data for Modeler
+- THnSparses_072417.root: the current source of the data for Modeler and the fitsr and only current source of data for 
 - auto_run.C: the macro that auto-runs all possible combinations of the other macros
 - atlasstyle-00-03-05: the folder with all of the atlas style libraries
 - old: files that are probably not going to be currently used
@@ -16,4 +17,8 @@
 
 ### Modeler, the part of the program that is responsible for examining the photon data in order to find out how many photons are in the sample, as well as generating basic plots
 - photon_modeler.C: the macro that graphs and examines the pion data spectrum. Initially based on a specific iteration of photon_grapher.C from Cut Comparisons
+
+### Correlator
 - photon_Elambda.C: the macro that graphs a correlation of energy readings and lambda
+- photon_isolation_correlation.C: the macro that correlates the two isolation variables (track and cluster)
+- momentum_correlator.C: the macro that correlates photon UE and isolation (and potentially other variables in the future) with photon momentum/energy

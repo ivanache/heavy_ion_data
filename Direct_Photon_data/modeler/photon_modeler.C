@@ -1,5 +1,5 @@
 /**
-   This macro is responsible for graphing a spectrum of the pion data from THnSparses_071617.root
+   This macro is responsible for graphing a spectrum of the pion data from THnSparses_072417.root
    It also outputs data on the integrals to a .tex file for representation on a table
 */
 // Programmer: Ivan Chernyshev
@@ -24,9 +24,9 @@ const int axis_photonNcells       =  7;
 const int axis_photonDisToBorder  =  9;
 const int axis_photonDisToBadCell = 10;
 const int axis_photonDisToCharged = 11;
-const int axis_photonExoticity    = 12;
-const int axis_photonTime         = 13;
-const int axis_photonIsolation    = 15;
+const int axis_photonExoticity    = 14;
+const int axis_photonTime         = 15;
+const int axis_photonIsolation    = 18;
 
 // The cutting function
 void SetCut(THnSparse* h, const int axis, double min, double max){
@@ -56,7 +56,7 @@ void photon_modeler() {
     SetAtlasStyle();
     
     // Get the momentum-photon data file
-    TFile* fIn = new TFile("THnSparses_071617.root", "READ");
+    TFile* fIn = new TFile("THnSparses_072417.root", "READ");
     THnSparse* hPhoton = 0;
     fIn->GetObject("h_Cluster", hPhoton);
     TCanvas* canvas = new TCanvas();
