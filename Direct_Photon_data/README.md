@@ -21,4 +21,4 @@
 ### Correlator
 - photon_Elambda.C: the macro that graphs a correlation of energy readings and lambda
 - photon_isolation_correlation.C: the macro that correlates the two isolation variables (track and cluster)
-- momentum_correlator.C: the macro that correlates photon UE and isolation (and potentially other variables in the future) with photon momentum/energy
+- momentum_correlator.C: the macro that correlates photon UE and isolation (and potentially other variables in the future) with photon momentum/energy, as well as reformatting the said data into something else, such as a graph of mean UEs over photon momentum/energy

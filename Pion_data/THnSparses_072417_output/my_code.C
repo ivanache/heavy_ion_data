@@ -294,7 +294,7 @@ void my_code(string option = "DEFAULT") {
     hMass->GetListOfFunctions()->Add(background);
     hMass->Write("mass_pion");// Load into the ROOT file
     myText(.20,.97, kBlack, "#scale[1.5]{Mass vs. Entries, Pt 6-20 GeV/c, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     
     // Create a new TH1D to measure the distribution of residuals, set all bin values to zero
     TH1D* residual_dist = new TH1D("residual_distribution", "Residual_Distribution", 10, -5, 5);
@@ -367,7 +367,7 @@ void my_code(string option = "DEFAULT") {
     sig_over_tot_funct->Draw();
     std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
     myText(.02,.97, kBlack, "#scale[1.5]{8-20 GeV/c Signal to Total, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "WholeSample_Signal_Over_Total.png"));
     TGraph* total_sigtot = new TGraph(sig_over_tot_funct);
     total_sigtot->Write("Total_Sig_To_Total");
@@ -450,7 +450,7 @@ void my_code(string option = "DEFAULT") {
     hPt->Draw();
     hPt->Write("Momentum-entries_chart");
     myText(.20,.97, kBlack, "#scale[1.5]{Momentum vs. Entries, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "momentum_pion_plot.png"));
     
     // A collection of variables that is needed for the next steps
@@ -505,7 +505,7 @@ void my_code(string option = "DEFAULT") {
         hMass->Draw();
         hMass->Write(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max));
         myText(.20,.97, kBlack, Form("#scale[1.5]{Mass vs Entries, Pt %2.2f-%2.2f, cuts:}", min, max));
-        myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+        myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
         
         // Input guesses for the values, thenfind a fit just as you did for the entire data set and the reduced chi square of the fit into its respective array
         // Graph the fit and (separately) the Gaussian component of it
@@ -705,7 +705,7 @@ void my_code(string option = "DEFAULT") {
     myBoxText(0.25, 0.20, 0.05, 10, graph_colors[5], "16-20 GeV");
     peaks_over_totals->Write("signal-over-total");
     myText(.10,.97, kBlack, "#scale[1.5]{Signal-to-total ratios, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     graphcanvas->Clear();
     
@@ -727,7 +727,7 @@ void my_code(string option = "DEFAULT") {
     mass_pdg->Draw("same");
     g_mean->Write("mean-masses");
     myText(.20,.97, kBlack, "#scale[1.5]{Mean masses over Pt, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "meanMass_v_pT.png"));
     
     // Graph mass standard deviations with error bars
@@ -741,7 +741,7 @@ void my_code(string option = "DEFAULT") {
     g_sigma->Write("standard-dev-masses");
     g_sigma->Draw("AP");
     myText(.20,.97, kBlack, "#scale[1.5]{Mass widths over Pt, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "massWidths_v_pT.png"));
     
     // Graph reduced chi squares over the momentum interval
@@ -755,7 +755,7 @@ void my_code(string option = "DEFAULT") {
     g_chisquare->Write("chi-square");
     g_chisquare->Draw("AP");
     myText(.20,.97, kBlack, "#scale[1.5]{Reduced chi-squares over Pt, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "reduced_chisquare_v_pT.png"));
     
     // Graph the distribution integrals over momentum
@@ -767,7 +767,7 @@ void my_code(string option = "DEFAULT") {
     g_integral->Draw("AP");
     g_integral->Write("pion-integrals");
     myText(.20,.97, kBlack, "#scale[1.5]{Integrals over Pt, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, dR > 20 mrad, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "peakIntegrals_v_pT.png"));
     
     graphcanvas->Close();
