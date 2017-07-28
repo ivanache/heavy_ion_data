@@ -249,7 +249,7 @@ void my_code(string option = "DEFAULT") {
     func = new TF1("fit", crystal_ball_model_quadratic,0.05,0.5,num_of_params);
     peak = new TF1("mass peak", crystal_ball_function_peak, 0.05, 0.5, num_of_peak_params);
     func->SetParNames("Integral", "Mean", "Sigma", "Alpha", "N", "Quadratic coeff", "Linear coeff", "Constant");
-    func->SetParameters(25,  0.13, 0.012, 25, 19, -120000, 28000, -1600);
+    func->SetParameters(40,  0.13, 0.012, 25, 19, -120000, 28000, -1600);
     func->SetParLimits(0, 0.001, 400.0);//integral
     func->SetParLimits(1, 0.13, 0.16); //mean
     func->SetParLimits(2, 0.008, 0.016); // width
@@ -321,8 +321,8 @@ void my_code(string option = "DEFAULT") {
     for(int i = 0; i < residual_dist->GetSize(); i++) {
         std::cout << "Final residual count for " << residual_dist->GetBinCenter(i) << " is " << residual_dist->GetBinContent(i) << std::endl;
     }
-    myText(.7, .85, kBlack, Form("Reduced Chi-square: %2.1f", func->GetChisquare()/(hMass->GetSize() - (8) - 1)));
-    myText(.7, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (8) - 1))));
+    myText(.6, .85, kBlack, Form("Reduced Chi-square: %2.1f/%i", func->GetChisquare(), (hMass->GetSize() - 8 - 1)));
+    myText(.6, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (8) - 1))));
     std::cout << "Reduced Chi Square " << func->GetChisquare()/(hMass->GetSize() - (8 - 1) - 1) << std::endl;
     
     // Plot the residual; save as a PDF, print out the individual residuals
@@ -348,7 +348,7 @@ void my_code(string option = "DEFAULT") {
     residual_dist_fit->SetLineColor(2);
     residual_dist_fit->SetParameters(50,  0, 1);
     residual_dist_fit->SetParLimits(0, 0, 10000);
-    residual_dist_fit->SetParLimits(1, 0, 10);
+    residual_dist_fit->SetParLimits(1, -10, 10);
     residual_dist_fit->SetParLimits(2, 0, 10);
     residual_dist->Fit(residual_dist_fit);
     residual_dist->Draw();
@@ -478,7 +478,7 @@ void my_code(string option = "DEFAULT") {
     //func->SetParameters(60,  0.14, 0.011, 1.3, 4.0,  -100000, 30000, -60000, 100, 10000);
     //func->SetParLimits(2, 0.01, 0.016); // width
     // start cutting the data up; plot the mass data for momenta of 6-8, 8-10, 10-12, 12-14, 14-16, 16-18, 18-20
-    //func->SetParameter(0, 10);
+    func->SetParameter(0, 30);
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
          
@@ -495,7 +495,15 @@ void my_code(string option = "DEFAULT") {
         //hMass->Rebin(2);
         TH1D* residual = (TH1D*)hMass->Clone("residual");
         double MASSWIDTH = hMass->GetBinWidth(1);
-        
+        // Rebin if the interval is 16-20 GeV
+        if (i == 5) {
+            func->SetParLimits(1, 0.13, 0.19); //mean
+            func->SetParLimits(2, 0.008, 0.018); // width
+            
+            hMass->Rebin(2);
+            MASSWIDTH = hMass->GetBinWidth(1);
+            residual = (TH1D*)hMass->Clone("residual");
+        }
         //hMass->SetAxisRange(0.0, 1400.0, "Y");
         graphcanvas->cd();
         pad[0]->Draw();
@@ -511,9 +519,9 @@ void my_code(string option = "DEFAULT") {
         // Graph the fit and (separately) the Gaussian component of it
         //func->SetParameters(initial_guesses[i][0],  initial_guesses[i][1], initial_guesses[i][2], initial_guesses[i][3], initial_guesses[i][4], initial_guesses[i][5], initial_guesses[i][6], initial_guesses[i][7], initial_guesses[i][8], initial_guesses[i][9]);
         hMass->Fit(func);
-        hMass->Fit(func);
-        //if (i == 0 || i == 3)
-            //hMass->Fit(func);
+        //hMass->Fit(func);
+        if (i == 3 || i == 4)
+            hMass->Fit(func);
         func->SetLineColor(kRed);
         func->Draw("same");
         int j = 0;
@@ -554,8 +562,8 @@ void my_code(string option = "DEFAULT") {
         }
         chisquares[i] = func->GetChisquare()/(hMass->GetSize() - (8) - 1); //Reduced Chi Square
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
-        myText(.7, .85, kBlack, Form("Reduced Chi-square: %2.1f", func->GetChisquare()/(hMass->GetSize() - 8 - 1)));
-        myText(.7, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - 8 - 1))));
+        myText(.6, .85, kBlack, Form("Reduced Chi-square: %2.1f/%i", func->GetChisquare(), (hMass->GetSize() - 8 - 1)));
+        myText(.6, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - 8 - 1))));
         graphcanvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
         //residual->GetXaxis()->
@@ -588,7 +596,7 @@ void my_code(string option = "DEFAULT") {
         residual_dist_fit->SetLineColor(2);
         residual_dist->Fit(residual_dist_fit);
         residual_dist_fit->SetParLimits(0, 0, 10000);
-        residual_dist_fit->SetParLimits(1, 0, 10);
+        residual_dist_fit->SetParLimits(1, -10, 10);
         residual_dist->Draw();
         residual_dist_fit->Draw("same");
         myText(.20, .92, kBlack, Form("#scale[1.5]{Residual Distribution, Pt %2.2f-%2.2f GeV/c}", min, max));
@@ -720,7 +728,7 @@ void my_code(string option = "DEFAULT") {
     graphcanvas->Clear();
     g_mean->Print();
     g_mean->SetTitle("Mean Masses for Various Momenta; Momentum (GeV); Mass (GeV/c^2)");
-    g_mean->GetYaxis()->SetRangeUser(0.125, 0.156);
+    g_mean->GetYaxis()->SetRangeUser(0.125, 0.157);
     //g_mean->SetMarkerSize(2);
     //g_mean->SetMarkerStyle(20);
     g_mean->Draw("AP");
@@ -735,7 +743,8 @@ void my_code(string option = "DEFAULT") {
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass Width (MeV/c^2)");
-    g_sigma->GetYaxis()->SetRangeUser(3.0, 16.0);
+    g_sigma->GetYaxis()->SetRangeUser(3.0, 15.7);
+    g_sigma->GetXaxis()->SetRangeUser(6.0, 16.0);
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Write("standard-dev-masses");
@@ -763,6 +772,7 @@ void my_code(string option = "DEFAULT") {
     TGraphErrors* g_integral = new TGraphErrors(num_of_intervals, center, gaussian_integrals, widths, integral_errors);
     g_integral->Print();
     g_integral->SetTitle("Peak integrals for Various Momenta; Momentum (GeV); Number of Pions");
+    g_integral->GetXaxis()->SetRangeUser(6.0, 16.0);
     //g_integral->GetYaxis()->SetRangeUser(0.0, 6000.0);
     g_integral->Draw("AP");
     g_integral->Write("pion-integrals");
