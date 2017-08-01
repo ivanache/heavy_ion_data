@@ -159,7 +159,7 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
     can->Clear();
     TH1D* data_subset = data->Projection(hPion_var);
     data_subset->Draw();
-    myText(.20,.95, kBlack, str_concat_converter("#scale[1.5]{" + rootname, " vs entries}"));
+    myText(.20,.95, kBlack, str_concat_converter("#scale[1]{" + rootname, " vs entries}"));
     can->SaveAs(filename);
     data_subset->Write(rootname.c_str());
     can->Clear();
@@ -276,7 +276,7 @@ void my_code(string option = "DEFAULT") {
     //func->SetParLimits(8, 0.0, 1000000.0); // Linear
     //func->SetParLimits(9, -1000000.0, 0.0); //Constant
     
-    // Plot the fit for the mass and (separately) the Gaussian and background components of it, print out the number of pions and the other parameters
+    // Plot the fit for the mass and (separately) the Gaussian and background components of it, print out the number of pions and the other parameters, write them on the graph
     hMass->Fit(func, "0");
     hMass->Fit(func);
     //hMass->Fit(func);
@@ -284,21 +284,25 @@ void my_code(string option = "DEFAULT") {
     std::cout << "\n\nNumber of pions:" << (func->GetParameter(0))/MASSWIDTH << std::endl << "Error:" << (func->GetParError(0))/MASSWIDTH << std::endl;
     std::cout << "\nMean:" << func->GetParameter(1) << std::endl << "Error:" << func->GetParError(1) << std::endl;
     std::cout << "\nSigma:" << func->GetParameter(2) << std::endl << "Error:" << func->GetParError(2) << std::endl;
-    std::cout << "\nAlpha:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(3) << std::endl;
-    std::cout << "\nN:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(4) << std::endl;
+    //std::cout << "\nAlpha:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(3) << std::endl;
+    //std::cout << "\nN:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(4) << std::endl;
     //std::cout << "\nQuadric:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(5) << std::endl;
     //std::cout << "\nCubic:" << func->GetParameter(6) << std::endl << "Error:" << func->GetParError(6) << std::endl;
-    std::cout << "\nQuadratic:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(5) << std::endl;
-    std::cout << "\nLinear:" << func->GetParameter(6) << std::endl << "Error:" << func->GetParError(6) << std::endl;
-    std::cout << "\nConstant:" << func->GetParameter(7) << std::endl << "Error:" << func->GetParError(7) << std::endl;
+    std::cout << "\nQuadratic:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(5) << std::endl;
+    std::cout << "\nLinear:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(6) << std::endl;
+    std::cout << "\nConstant:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(7) << std::endl;
     func->SetLineColor(kRed);
     func->Draw("same");
     
     int i = 0;
-    for(; i < num_of_peak_params; i++)
+    for(; i < num_of_peak_params; i++) {
         peak->SetParameter(i, func->GetParameter(i));
-    for(; i < num_of_params; i++)
+        peak->SetParError(i, func->GetParError(i));
+    }
+    for(; i < num_of_params; i++) {
         background->SetParameter(i - num_of_peak_params, func->GetParameter(i));
+        background->SetParError(i - num_of_peak_params, func->GetParError(i));
+    }
     peak->SetLineColor(kBlue);
     //peak->SetFillColor(kBlue);
     peak->Draw("same");
@@ -309,8 +313,10 @@ void my_code(string option = "DEFAULT") {
     hMass->GetListOfFunctions()->Add(peak);
     hMass->GetListOfFunctions()->Add(background);
     hMass->Write("mass_pion");// Load into the ROOT file
-    myText(.20,.97, kBlack, "#scale[1.5]{Mass vs. Entries, Pt 6-20 GeV/c, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.95, kBlack, "#scale[1]{Mass vs. Entries, Pt 6-20 GeV/c, cuts:}");
+    myText(.20,.90, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.6, .85, kBlack, Form("#scale[0.75]{Mean Mass: %3.3f +/- %3.4f GeV}", func->GetParameter(1), func->GetParError(1)));
+    myText(.6, .80, kBlack, Form("#scale[0.75]{Mass Width: %2.3f +/- %2.4f GeV}", func->GetParameter(2), func->GetParError(2)));
     
     // Create a new TH1D to measure the distribution of residuals, set all bin values to zero
     TH1D* residual_dist = new TH1D("residual_distribution", "Residual_Distribution", 10, -5, 5);
@@ -337,8 +343,8 @@ void my_code(string option = "DEFAULT") {
     for(int i = 0; i < residual_dist->GetSize(); i++) {
         std::cout << "Final residual count for " << residual_dist->GetBinCenter(i) << " is " << residual_dist->GetBinContent(i) << std::endl;
     }
-    myText(.6, .85, kBlack, Form("Reduced Chi-square: %2.1f/%i", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
-    myText(.6, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (num_of_params) - 1))));
+    myText(.6, .75, kBlack, Form("#scale[0.75]{Reduced Chi-square: %2.1f/%i}", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
+    myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (num_of_params) - 1))));
     std::cout << "Reduced Chi Square " << func->GetChisquare()/(hMass->GetSize() - (num_of_params) - 1) << std::endl;
     
     // Plot the residual; save as a PDF, print out the individual residuals
@@ -349,9 +355,9 @@ void my_code(string option = "DEFAULT") {
     residual->SetAxisRange(-4., 4., "Y");
     residual->GetXaxis()->SetTitle("Pion Mass (GeV)");
     residual->GetXaxis()->SetTitleSize(.1);
-    residual->GetYaxis()->SetTitleSize(.07);
+    residual->GetYaxis()->SetTitleSize(.1);
     residual->GetYaxis()->SetTitleOffset(0.3);
-    residual->GetXaxis()->SetTitleOffset(0.6);
+    residual->GetXaxis()->SetTitleOffset(0.3);
     residual->SetMarkerStyle(20);
     residual->SetMarkerSize(1);
     residual->Draw("p");
@@ -369,9 +375,9 @@ void my_code(string option = "DEFAULT") {
     residual_dist->Fit(residual_dist_fit);
     residual_dist->Draw();
     residual_dist_fit->Draw("same");
-    myText(.20, .92, kBlack, "#scale[1.5]{Residual Distribution, Pt 6-20 GeV/c}");
-    myText(.2, .85, kBlack, Form("Mean: %2.1f+/-%1.1f", residual_dist_fit->GetParameter(1), residual_dist_fit->GetParError(1)));
-    myText(.2, .8, kBlack, Form("Sigma: %2.1f+/-%1.1f", residual_dist_fit->GetParameter(2), residual_dist_fit->GetParError(2)));
+    myText(.20, .92, kBlack, "#scale[1]{Residual Distribution, Pt 6-20 GeV/c}");
+    myText(.2, .75, kBlack, Form("#scale[0.75]{Mean: %2.1f+/-%1.1f}", residual_dist_fit->GetParameter(1), residual_dist_fit->GetParError(1)));
+    myText(.2, .7, kBlack, Form("#scale[0.75]{Sigma: %2.1f+/-%1.1f}", residual_dist_fit->GetParameter(2), residual_dist_fit->GetParError(2)));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "MyFit_residual_dist.png"));
     
     // Plot signal to noise ratio for the entire sample over various distances from the mean, print out values for 1 sigma and 2 sigmas
@@ -382,8 +388,8 @@ void my_code(string option = "DEFAULT") {
     sig_over_tot_funct->GetYaxis()->SetRangeUser(0.5, 1.0);
     sig_over_tot_funct->Draw();
     std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
-    myText(.02,.97, kBlack, "#scale[1.5]{8-20 GeV/c Signal to Total, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.2,.95, kBlack, "#scale[1]{8-20 GeV/c Signal to Total, cuts:}");
+    myText(.20,.90, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "WholeSample_Signal_Over_Total.png"));
     TGraph* total_sigtot = new TGraph(sig_over_tot_funct);
     total_sigtot->Write("Total_Sig_To_Total");
@@ -465,8 +471,8 @@ void my_code(string option = "DEFAULT") {
     TH1D* hPt = h_Pion->Projection(axis_pionPt);
     hPt->Draw();
     hPt->Write("Momentum-entries_chart");
-    myText(.20,.97, kBlack, "#scale[1.5]{Momentum vs. Entries, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.95, kBlack, "#scale[1]{Momentum vs. Entries, cuts:}");
+    myText(.20,.90, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "momentum_pion_plot.png"));
     
     // A collection of variables that is needed for the next steps
@@ -528,12 +534,10 @@ void my_code(string option = "DEFAULT") {
         hMass->GetYaxis()->SetTitleOffset(0.8);
         hMass->Draw();
         hMass->Write(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max));
-        myText(.20,.97, kBlack, Form("#scale[1.5]{Mass vs Entries, Pt %2.2f-%2.2f, cuts:}", min, max));
-        myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+        myText(.20,.95, kBlack, Form("#scale[1]{Mass vs Entries, Pt %2.2f-%2.2f, cuts:}", min, max));
+        myText(.20,.90, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
         
-        // Input guesses for the values, thenfind a fit just as you did for the entire data set and the reduced chi square of the fit into its respective array
-        // Graph the fit and (separately) the Gaussian component of it
-        //func->SetParameters(initial_guesses[i][0],  initial_guesses[i][1], initial_guesses[i][2], initial_guesses[i][3], initial_guesses[i][4], initial_guesses[i][5], initial_guesses[i][6], initial_guesses[i][7], initial_guesses[i][8], initial_guesses[i][9]);
+        // Graph the fit and (separately) the Gaussian component of it, write the measured mean mass and the mass width (standard deviation) on the graph
         hMass->Fit(func);
         //hMass->Fit(func);
         if (i == 3 || i == 4)
@@ -541,15 +545,35 @@ void my_code(string option = "DEFAULT") {
         func->SetLineColor(kRed);
         func->Draw("same");
         int j = 0;
-        for(; j < num_of_peak_params; j++)
+        for(; j < num_of_peak_params; j++) {
             peak->SetParameter(j, func->GetParameter(j));
-        for(; j < num_of_params; j++)
+            peak->SetParError(j, func->GetParError(j));
+        }
+        for(; j < num_of_params; j++) {
             background->SetParameter(j - num_of_peak_params, func->GetParameter(j));
+            peak->SetParError(j - num_of_peak_params, func->GetParError(j));
+        }
         peak->SetLineColor(kBlue);
         peak->Draw("same");
         background->SetLineColor(kGreen);
         background->Draw("same");
-        hMass->Draw("same");
+        //hMass->Draw("same");
+        myText(.6, .85, kBlack, Form("#scale[0.75]{Mean Mass: %3.3f +/- %3.4f GeV}", func->GetParameter(1), func->GetParError(1)));
+        myText(.6, .80, kBlack, Form("#scale[0.75]{Mass Width: %2.3f +/- %2.4f GeV}", func->GetParameter(2), func->GetParError(2)));
+        
+        /**
+        // Print out all parameters
+        std::cout << "\n\nNumber of pions:" << (func->GetParameter(0))/MASSWIDTH << std::endl << "Error:" << (func->GetParError(0))/MASSWIDTH << std::endl;
+        std::cout << "\nMean:" << func->GetParameter(1) << std::endl << "Error:" << func->GetParError(1) << std::endl;
+        std::cout << "\nSigma:" << func->GetParameter(2) << std::endl << "Error:" << func->GetParError(2) << std::endl;
+        //std::cout << "\nAlpha:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(3) << std::endl;
+        //std::cout << "\nN:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(4) << std::endl;
+        //std::cout << "\nQuadric:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(5) << std::endl;
+        //std::cout << "\nCubic:" << func->GetParameter(6) << std::endl << "Error:" << func->GetParError(6) << std::endl;
+        std::cout << "\nQuadratic:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(5) << std::endl;
+        std::cout << "\nLinear:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(6) << std::endl;
+        std::cout << "\nConstant:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(7) << std::endl;
+        */
         
         // Reinitialize residual_dist
         delete residual_dist;
@@ -578,16 +602,19 @@ void my_code(string option = "DEFAULT") {
         }
         chisquares[i] = func->GetChisquare()/(hMass->GetSize() - (num_of_params) - 1); //Reduced Chi Square
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
-        myText(.6, .85, kBlack, Form("Reduced Chi-square: %2.1f/%i", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
-        myText(.6, .80, kBlack, Form("P-val: %2.2f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        myText(.6, .75, kBlack, Form("#scale[0.75]{Reduced Chi-square: %2.1f/%i}", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
+        myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
         graphcanvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
-        //residual->GetXaxis()->
-        //residual->GetXaxis()->
+        residual->GetXaxis()->SetTitleSize(.08);
+        residual->GetYaxis()->SetTitleSize(.1);
+        residual->GetYaxis()->SetTitleOffset(0.3);
+        residual->GetXaxis()->SetTitleOffset(0.8);
         residual->SetTitle("; Pion Mass (GeV); Residuals");
         pad[1]->Draw("p");
         pad[1]->cd();
         residual->Draw("p");
+        graphcanvas->SaveAs(str_concat_converter(directory_name, Form("MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)));
         
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
@@ -603,9 +630,15 @@ void my_code(string option = "DEFAULT") {
         center[i] = (min+max)/2.0;
         widths[i] = max - center[i];
         
+        // Print out the number of pions and the signal to noise ratio
+        std::cout << "\nNumber of pions: " << func->GetParameter(0)/MASSWIDTH << "\nError: " << func->GetParError(0)/MASSWIDTH << std::endl;
+        std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
+        
+        /**
         // print out the mean, standard deviation, and their corresponding errors; and save the graph in a new file
         std::cout << "Mean: " << means[i] << std::endl << "Standard Deviation: " << sigmas[i] << std::endl << "Standard Deviation Error: " << sigma_errors[i] << std::endl;
         graphcanvas->SaveAs(Form(str_concat_converter(directory_name, "MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png"), min, max));
+         */
         
         // Fit and plot the residuals distribution
         graphcanvas->Clear();
@@ -615,9 +648,9 @@ void my_code(string option = "DEFAULT") {
         residual_dist_fit->SetParLimits(1, -10, 10);
         residual_dist->Draw();
         residual_dist_fit->Draw("same");
-        myText(.20, .92, kBlack, Form("#scale[1.5]{Residual Distribution, Pt %2.2f-%2.2f GeV/c}", min, max));
-        myText(.2, .85, kBlack, Form("Mean: %2.1f+/-%1.1f", residual_dist_fit->GetParameter(1), residual_dist_fit->GetParError(1)));
-        myText(.2, .8, kBlack, Form("Sigma: %2.1f+/-%1.1f", residual_dist_fit->GetParameter(2), residual_dist_fit->GetParError(2)));
+        myText(.20, .92, kBlack, Form("#scale[1]{Residual Distribution, Pt %2.2f-%2.2f GeV/c}", min, max));
+        myText(.2, .85, kBlack, Form("#scale[0.5]{Mean: %2.1f+/-%1.1f}", residual_dist_fit->GetParameter(1), residual_dist_fit->GetParError(1)));
+        myText(.2, .8, kBlack, Form("#scale[0.5]{Sigma: %2.1f+/-%1.1f}", residual_dist_fit->GetParameter(2), residual_dist_fit->GetParError(2)));
         graphcanvas->SaveAs(str_concat_converter(directory_name, Form("MyFit_residual_dist_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)));
 
         
@@ -633,9 +666,6 @@ void my_code(string option = "DEFAULT") {
         g_sig_over_tot->SetName(Form("sig_to_tot_ptmin_%2.2fGeV_ptmax_%2.2fGeV", min, max));
         peaks_over_totals->Add(g_sig_over_tot);
         
-        // Print out the number of pions and the signal to noise ratio
-        std::cout << "\nNumber of pions: " << func->GetParameter(0)/MASSWIDTH << "\nError: " << func->GetParError(0)/MASSWIDTH << std::endl;
-        std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
         
         /**
         // Write data on number of pions and signal to total to the table file
@@ -728,8 +758,8 @@ void my_code(string option = "DEFAULT") {
     myBoxText(0.25, 0.25, 0.05, 10, graph_colors[4], "14-16 GeV");
     myBoxText(0.25, 0.20, 0.05, 10, graph_colors[5], "16-20 GeV");
     peaks_over_totals->Write("signal-over-total");
-    myText(.10,.97, kBlack, "#scale[1.5]{Signal-to-total ratios, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.10,.97, kBlack, "#scale[1]{Signal-to-total ratios, cuts:}");
+    myText(.20,.92, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     graphcanvas->Clear();
     
@@ -750,8 +780,8 @@ void my_code(string option = "DEFAULT") {
     g_mean->Draw("AP");
     mass_pdg->Draw("same");
     g_mean->Write("mean-masses");
-    myText(.20,.97, kBlack, "#scale[1.5]{Mean masses over Pt, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.97, kBlack, "#scale[1]{Mean masses over Pt, cuts:}");
+    myText(.20,.92, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "meanMass_v_pT.png"));
     
     // Graph mass standard deviations with error bars
@@ -759,14 +789,16 @@ void my_code(string option = "DEFAULT") {
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass Width (MeV/c^2)");
+    g_sigma->GetYaxis()->SetTitleOffset(.7);
+    g_sigma->GetXaxis()->SetTitleOffset(.9);
     g_sigma->GetYaxis()->SetRangeUser(3.0, 15.7);
     g_sigma->GetXaxis()->SetRangeUser(6.0, 16.0);
     //g_sigma->SetMarkerSize(2);
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Write("standard-dev-masses");
     g_sigma->Draw("AP");
-    myText(.20,.97, kBlack, "#scale[1.5]{Mass widths over Pt, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.97, kBlack, "#scale[1]{Mass widths over Pt, cuts:}");
+    myText(.20,.92, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "massWidths_v_pT.png"));
     
     // Graph reduced chi squares over the momentum interval
@@ -779,8 +811,8 @@ void my_code(string option = "DEFAULT") {
     g_chisquare->GetYaxis()->SetRangeUser(2.0, 20.0);
     g_chisquare->Write("chi-square");
     g_chisquare->Draw("AP");
-    myText(.20,.97, kBlack, "#scale[1.5]{Reduced chi-squares over Pt, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.97, kBlack, "#scale[1]{Reduced chi-squares over Pt, cuts:}");
+    myText(.20,.92, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "reduced_chisquare_v_pT.png"));
     
     // Graph the distribution integrals over momentum
@@ -792,8 +824,8 @@ void my_code(string option = "DEFAULT") {
     //g_integral->GetYaxis()->SetRangeUser(0.0, 6000.0);
     g_integral->Draw("AP");
     g_integral->Write("pion-integrals");
-    myText(.20,.97, kBlack, "#scale[1.5]{Integrals over Pt, cuts:}");
-    myText(.20,.92, kBlack, Form("#scale[1.5]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.97, kBlack, "#scale[1]{Integrals over Pt, cuts:}");
+    myText(.20,.92, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "peakIntegrals_v_pT.png"));
     
     graphcanvas->Close();

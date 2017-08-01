@@ -90,22 +90,6 @@ void momentum_correlator() {
     myText(.20, .92, kBlack, "Track UE density-photon energy correlation");
     canvas->SaveAs("Track_UE_energy_density_correlation.png");
     
-    // Now, take a projection of the mean UE in every photon energy bin
-    canvas->Clear();
-    TH1D* pt_UEmeans_hist_track = new TH1D("mean_UE_histogram", "Mean track UE densities over photon energy; Photon energy (GeV); Mean Track UE Density (GeV)", pt_UE_hist_track->GetXaxis()->GetNbins(), pt_UE_hist_track->GetXaxis()->GetXmin(), pt_UE_hist_track->GetXaxis()->GetXmax());
-    for (int i = 0; i < pt_UEmeans_hist_track->GetSize(); i++) {
-        // Create another histogram, for storing UE-entry data for each photon energy bin so that its mean could be put into the mean histogram
-        TH1D* ptbin_UE_hist = pt_UE_hist_track->ProjectionY("transitional_storage", i, i + 1);
-        //for (int j = 0; j < ptbin_UE_hist->GetSize(); j++)
-            //ptbin_UE_hist->SetBinContent(j, pt_UEmeans_hist_track->GetBinContent(i, j));
-        pt_UEmeans_hist_track->SetBinContent(i, ptbin_UE_hist->GetMean());
-        std::cout << "Mean UE for bin " << i << " is " << ptbin_UE_hist->GetMean() << std::endl;
-        
-    }
-    pt_UEmeans_hist_track->Draw();
-    myText(.20, .92, kBlack, "Mean track UE densities over photon energy");
-    canvas->SaveAs("Mean_track_UEs_over_photonE.png");
-    
     // Repeat for UE vs. momentum for clusters, but scale UE by 1/0.57.
     scale_factor = 1/0.57;
     SetCut(hPhoton, axis_photonUE_cluster, 0, 25);
@@ -126,9 +110,23 @@ void momentum_correlator() {
     myText(.20, .92, kBlack, "Cluster UE density-photon energy correlation");
     canvas->SaveAs("Cluster_UE_energy_density_correlation.png");
     
-    // Now, take a projection of the mean UE in every photon energy bin
+    // Now, take a projection of the mean UE in every photon energy bin for tracks.
     canvas->Clear();
-    TH1D* pt_UEmeans_hist_cluster = new TH1D("mean_UE_histogram", "Mean cluster UE densities over photon energy; Photon energy (GeV); Mean Cluster UE Density (GeV)", pt_UE_hist_cluster->GetXaxis()->GetNbins(), pt_UE_hist_cluster->GetXaxis()->GetXmin(), pt_UE_hist_cluster->GetXaxis()->GetXmax());
+    TH1D* pt_UEmeans_hist_track = new TH1D("mean_UE_histogram", "Mean track UE densities over photon energy; Photon energy (GeV); #Sigma E_{T}^{UE}  / A_{UE} [GeV]", pt_UE_hist_track->GetXaxis()->GetNbins(), pt_UE_hist_track->GetXaxis()->GetXmin(), pt_UE_hist_track->GetXaxis()->GetXmax());
+    for (int i = 0; i < pt_UEmeans_hist_track->GetSize(); i++) {
+        // Create another histogram, for storing UE-entry data for each photon energy bin so that its mean could be put into the mean histogram
+        TH1D* ptbin_UE_hist = pt_UE_hist_track->ProjectionY("transitional_storage", i, i + 1);
+        //for (int j = 0; j < ptbin_UE_hist->GetSize(); j++)
+        //ptbin_UE_hist->SetBinContent(j, pt_UEmeans_hist_track->GetBinContent(i, j));
+        pt_UEmeans_hist_track->SetBinContent(i, ptbin_UE_hist->GetMean());
+        pt_UEmeans_hist_track->SetBinError(i, ptbin_UE_hist->GetMeanError());
+        std::cout << "Mean UE for bin " << i << " is " << ptbin_UE_hist->GetMean() << std::endl;
+        
+    }
+
+    // Now, take a projection of the mean UE in every photon energy bin for clusters
+    canvas->Clear();
+    TH1D* pt_UEmeans_hist_cluster = new TH1D("mean_UE_histogram", "Mean cluster UE densities over photon energy; Photon energy (GeV); #Sigma E_{T}^{UE}  / A_{UE} [GeV]", pt_UE_hist_cluster->GetXaxis()->GetNbins(), pt_UE_hist_cluster->GetXaxis()->GetXmin(), pt_UE_hist_cluster->GetXaxis()->GetXmax());
     for (int i = 0; i < pt_UEmeans_hist_cluster->GetSize(); i++) {
         // Create another histogram, for storing UE-entry data for each photon energy bin so that its mean could be put into the mean histogram
         TH1D* ptbin_UE_hist = pt_UE_hist_cluster->ProjectionY("transitional_storage", i, i + 1);
@@ -136,11 +134,20 @@ void momentum_correlator() {
         //for (int j = 0; j < ptbin_UE_hist->GetSize(); j++)
             //ptbin_UE_hist->SetBinContent(j, pt_UEmeans_hist_cluster->GetBinContent(i, j));
         pt_UEmeans_hist_cluster->SetBinContent(i, ptbin_UE_hist->GetMean());
+        pt_UEmeans_hist_cluster->SetBinError(i, ptbin_UE_hist->GetMeanError());
         std::cout << "Mean UE for bin " << i << " is " << ptbin_UE_hist->GetMean() << std::endl;
     }
-    pt_UEmeans_hist_cluster->Draw();
-    myText(.20, .92, kBlack, "Mean cluster UE densities over photon energy");
-    canvas->SaveAs("Mean_cluster_UEs_over_photonE.png");
+    pt_UEmeans_hist_cluster->SetMarkerColor(kRed);
+    
+    // Now, graph both
+    pt_UEmeans_hist_track->GetYaxis()->SetRangeUser(0,8);
+    pt_UEmeans_hist_track->Draw();
+    pt_UEmeans_hist_cluster->GetYaxis()->SetRangeUser(0,8);
+    pt_UEmeans_hist_cluster->Draw("same");
+    myText(.20, .92, kBlack, "Mean UE densities over photon energy");
+    myMarkerText(0.30, 0.80, kBlack, 8, "Track");
+    myMarkerText(0.30, 0.75, kRed, 8, "Cluster");
+    canvas->SaveAs("Mean_UEs_over_photonE.png");
 
     
     canvas->Close();

@@ -51,7 +51,7 @@ TStyle* AtlasStyle()
   // use large fonts
   //Int_t font=72; // Helvetica italics
   Int_t font=42; // Helvetica42
-  Double_t tsize=0.042;
+  Double_t tsize=0.06;
   atlasStyle->SetTextFont(font);
 
   atlasStyle->SetTextSize(tsize);

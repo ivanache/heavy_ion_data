@@ -263,8 +263,8 @@ void my_code(string option = "DEFAULT") {
     //Start making the fit, restrict the parameters to reasonable ranges, insert guess values, and give understandable names
     const int num_of_params = 8;
     int num_of_peak_params = 3;
-    //background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
-    background = new TF1("background curve", "[0]*x*x + [1]*x + [2]", 0.08, 0.26);
+    background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
+    //background = new TF1("background curve", "[0]*x*x + [1]*x + [2]", 0.08, 0.26);
     //num_of_peak_params = 5;
     func = new TF1("fit", gaussian_model,0.05,0.5,num_of_params);
     peak = new TF1("mass peak", gaussian_peak, 0.05, 0.5, num_of_peak_params);
