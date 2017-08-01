@@ -40,3 +40,6 @@
 *.log
 *.pdf
 *.synctex.gz
+
+# ROOT data files
+*.root
