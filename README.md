@@ -17,6 +17,7 @@ Creator: Ivan Chernyshev, June 20 2017
 - old: a storage compartment for data created by older versions of the code, as well as old versions of the code
 - atlasstyle-00-03-05: the folder with the libraries for ATLAS's style. This is the master copy.
 - THnSparses: the data format from where the data is drawn. Versions include (in order of release): Ntuple.root, THnSparses.root (not in use), THnSparses_060717.root, THnSparses_062017.root (first one to be used outside of Pion_data), THnSparses_062717.root, THnSparses_062817.root, THnSparses_070517 (first one to be used in Direct_Pion_data), THnSparses_071217.root, THnSparses_071417.root (only used in Direct_Photon_Data), THnSparses_071617.root (first to include more than one run, has Ncells>1, distance to border > 0, and distance to bad cell > 1 cuts built-in to its pion data), THnSparses_072417.root (An improvement over THnSparses_071617.root. Includes smaller bin widths and a fix of the double-counting problem in THnSparses_071617.root, as well as a built-in R < 0.4 and R < 0.2 cuts on some variables in hCluster)
+- monte_carlo: versions of the rest of the data analysis that uses a THnSparses file with Monte Carlo simulation data. These THnSparses include: THnSparses_080117_MC.root (which unfortunately is too big for GitHub to hold).
 
 ## Guide to working with heavy_ion_data
 - To start, start up ROOT by entering "root" into Terminal after navigating to the desired directory (make sure that you have ROOT 6 installed and hooked up to Terminal). 
