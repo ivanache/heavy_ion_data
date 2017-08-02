@@ -1,6 +1,6 @@
 // set_atlas_style should be run before this macro
 /**
- my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses_072417.root
+ my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses_080117_MC.root
  the macro must be called with an int, which tells how many cuts to make cuts are made, in the following order:  asymmetry < 0.7, angle > 17 (or 18, depending on the option), Ncells > 1, distance to border > 2, distance to bad cell > 1 , lambda02 is between 0.1 and 0.4
  Programmer: Ivan Chernyshev
  */
@@ -71,12 +71,14 @@ double gaussian_model(Double_t *x, Double_t *par) {
     double B = par[3];
     double C = par[4];
     double D = par[5];
+    double E = par[6];
+    double F = par[7];
     
     double arg;
     if (sigma != 0)
         arg = (x[0] - mean)/sigma;
     
-    double fitval = A*TMath::Exp(-0.5*arg*arg)/TMath::Sqrt(2*TMath::Pi()*sigma*sigma) + B*x[0]*x[0] + C*x[0] + D;
+    double fitval = A*TMath::Exp(-0.5*arg*arg)/TMath::Sqrt(2*TMath::Pi()*sigma*sigma) + B*TMath::Power(x[0], 4.0) + C*TMath::Power(x[0], 3.0) + D*x[0]*x[0] + E*x[0] + F;
     return fitval;
 }
 
@@ -174,7 +176,7 @@ void my_code(string option = "DEFAULT") {
     const int cutnum_option_quantity = 5;
     //string headers[cutnum_option_quantity] = {"None ", "angle > 17 mrad ", "0.1 < lambda < 0.4 ", "dR > 20 mrad ", "asymmetry < 0.7 "};
     //if (option == "TESTSENSITIVITY")
-        //headers[1] = "angle > 18 mrad";
+    //headers[1] = "angle > 18 mrad";
     
     
     // Make a directory based on the option for the angle cut; print an error message and exit the program if the
@@ -190,7 +192,7 @@ void my_code(string option = "DEFAULT") {
     else if (option == "DOUBLETESTSENSITIVITY") {
         angle_cut_num = 19;
         directory_name = Form("data/angle_%imrad/", angle_cut_num);
-
+        
     }
     else {
         std::cout << "ERROR: the option with which my_code is launched must either be \"DEFAULT\" (for an angle cut of above 17 mrad) or \"TESTSENSITIVITY\" (for an angle cut of above 18 mrad)" << std::endl;
@@ -198,9 +200,9 @@ void my_code(string option = "DEFAULT") {
     }
     
     //Open the files
-    TFile* fIn = new TFile("THnSparses_072417.root","READ"); //get file
+    TFile* fIn = new TFile("THnSparses_080117_MC.root","READ"); //get file
     string rootfilename;
-    rootfilename = Form("data/PionSparsesOutput_angle_%imrad.root", angle_cut_num);
+    rootfilename = Form("data/BackgroundMC_PionSparsesOutput_angle_%imrad.root", angle_cut_num);
     fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
     fIn->Print(); //print file content
     
@@ -238,7 +240,7 @@ void my_code(string option = "DEFAULT") {
     else
         SetCut(h_Pion, axis_pionAngle, 19.5, 60);
     
-     graph_raw_data(h_Pion, axis_asymmetry, graphcanvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"), "asymmetry");
+    graph_raw_data(h_Pion, axis_asymmetry, graphcanvas, str_concat_converter(directory_name,"asymmetry_pion_plot.png"), "asymmetry");
     SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
     
     //std::cout << "Cuts: distance to charged particles, lambda, angle, and asymmetry\n\n";
@@ -259,24 +261,24 @@ void my_code(string option = "DEFAULT") {
     hMass->Write("unfitted_mass_pion");
     
     //Start making the fit, restrict the parameters to reasonable ranges, insert guess values, and give understandable names
-    const int num_of_params = 6;
+    const int num_of_params = 8;
     int num_of_peak_params = 3;
-    //background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
-    background = new TF1("background curve", "[0]*x*x + [1]*x + [2]", 0.08, 0.26);
+    background = new TF1("background curve", "[0]*TMath::Power(x, 4.0) + [1]*TMath::Power(x, 3.0) + [2]*x*x + [3]*x + [4]", 0.08, 0.26);
+    //background = new TF1("background curve", "[0]*x*x + [1]*x + [2]", 0.08, 0.26);
     //num_of_peak_params = 5;
     func = new TF1("fit", gaussian_model,0.05,0.5,num_of_params);
     peak = new TF1("mass peak", gaussian_peak, 0.05, 0.5, num_of_peak_params);
-    func->SetParNames("Integral", "Mean", "Sigma", "Quadratic coeff", "Linear coeff", "Constant");
-    func->SetParameters(40,  0.13, 0.012, 25, 19, -120000, 28000, -1600);
-    func->SetParLimits(0, 0.001, 400.0);//integral
+    func->SetParNames("Integral", "Mean", "Sigma", "Quadric coeff", "Cubic coeff", "Quadratic coeff", "Linear coeff", "Constant");
+    func->SetParameters(600,  0.13, 0.012, -120000, 28000, -1600);
+    func->SetParLimits(0, 0.001, 6000.0);//integral
     func->SetParLimits(1, 0.11, 0.16); //mean
     func->SetParLimits(2, 0.008, 0.016); // width
-    func->SetParLimits(3, -1000000.0, 0.0); // Quadric and quadratic factors
-    //func->SetParLimits(7, -10000000.0, 0.0);
+    func->SetParLimits(3, -10000000.0, 0.0); // Quadric and quadratic factors
+    func->SetParLimits(5, -10000000.0, 0.0);
     //func->SetParLimits(8, 0.0, 1000000.0); // Linear
     //func->SetParLimits(9, -1000000.0, 0.0); //Constant
     
-    // Plot the fit for the mass and (separately) the Gaussian and background components of it, print out the number of pions and the other parameters, write them on the graph
+    // Plot the fit for the mass and (separately) the Gaussian and background components of it, print out the number of pions and the other parameters
     hMass->Fit(func, "0");
     hMass->Fit(func);
     //hMass->Fit(func);
@@ -284,25 +286,21 @@ void my_code(string option = "DEFAULT") {
     std::cout << "\n\nNumber of pions:" << (func->GetParameter(0))/MASSWIDTH << std::endl << "Error:" << (func->GetParError(0))/MASSWIDTH << std::endl;
     std::cout << "\nMean:" << func->GetParameter(1) << std::endl << "Error:" << func->GetParError(1) << std::endl;
     std::cout << "\nSigma:" << func->GetParameter(2) << std::endl << "Error:" << func->GetParError(2) << std::endl;
-    //std::cout << "\nAlpha:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(3) << std::endl;
-    //std::cout << "\nN:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(4) << std::endl;
+    std::cout << "\nAlpha:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(3) << std::endl;
+    std::cout << "\nN:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(4) << std::endl;
     //std::cout << "\nQuadric:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(5) << std::endl;
     //std::cout << "\nCubic:" << func->GetParameter(6) << std::endl << "Error:" << func->GetParError(6) << std::endl;
-    std::cout << "\nQuadratic:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(5) << std::endl;
-    std::cout << "\nLinear:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(6) << std::endl;
-    std::cout << "\nConstant:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(7) << std::endl;
+    std::cout << "\nQuadratic:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(5) << std::endl;
+    std::cout << "\nLinear:" << func->GetParameter(6) << std::endl << "Error:" << func->GetParError(6) << std::endl;
+    std::cout << "\nConstant:" << func->GetParameter(7) << std::endl << "Error:" << func->GetParError(7) << std::endl;
     func->SetLineColor(kRed);
     func->Draw("same");
     
     int i = 0;
-    for(; i < num_of_peak_params; i++) {
+    for(; i < num_of_peak_params; i++)
         peak->SetParameter(i, func->GetParameter(i));
-        peak->SetParError(i, func->GetParError(i));
-    }
-    for(; i < num_of_params; i++) {
+    for(; i < num_of_params; i++)
         background->SetParameter(i - num_of_peak_params, func->GetParameter(i));
-        background->SetParError(i - num_of_peak_params, func->GetParError(i));
-    }
     peak->SetLineColor(kBlue);
     //peak->SetFillColor(kBlue);
     peak->Draw("same");
@@ -388,91 +386,91 @@ void my_code(string option = "DEFAULT") {
     sig_over_tot_funct->GetYaxis()->SetRangeUser(0.5, 1.0);
     sig_over_tot_funct->Draw();
     std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
-    myText(.2,.95, kBlack, "#scale[1]{8-20 GeV/c Signal to Total, cuts:}");
-    myText(.20,.90, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.02,.97, kBlack, "#scale[1]{8-20 GeV/c Signal to Total, cuts:}");
+    myText(.20,.92, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "WholeSample_Signal_Over_Total.png"));
     TGraph* total_sigtot = new TGraph(sig_over_tot_funct);
     total_sigtot->Write("Total_Sig_To_Total");
     
     /**
-    // Write to the table file
-        // Common header: goes on top of the table content commands. Creates the frame and table, sets the frame title, table title, and frame and table formatting
-    string common_header = "\\frame\n{\n\\frametitle{Analysis of Cuts: Pt 8-20 GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n";
-        // Common footer: goes on the bottom of the table content commands. Closes up the frame and the table
-    string common_footer = "[1ex]\n\\hline\n\\end{tabular}\n\\label{table:nonlin}\n\\end{table}\n}\n";
-    string table_headers[cutnum_option_quantity] = {"None ", "+angle $> 15$ mrad ", "+$0.1 < \\lambda <$ 0.4 ", "+dR $> 20$ mrad ", "+asymmetry $< 0.7$ "};
-    // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
-    ifstream table_file_input;
-    table_file_input.open("data/table_file.tex");
-    // Print an error message if file cannot be opened
-    if (!table_file_input)
-        cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-    string before_in = "";
-    string after_in = "";
-    string current_line;
-    string line_component;
-    int order_num;
-    while (!table_file_input.eof()) {
-        std::getline(table_file_input, current_line);
-        std::stringstream linestream(current_line);
-        //cout << current_line << " is current line" << std::endl;
-        std::getline(linestream, line_component, '%');
-        //cout << line_component << " is line component" << std::endl;
-        std::getline(linestream, line_component, '%');
-        //cout << line_component << " is line component" << std::endl;
-        // Continue to the next line if the line component's first character is not an integer
-        // If the table file is not found, then break out of the loop if the line component is improper
-        if (!table_file_input) {
-            if (!isdigit(line_component[0]))
-                break;
-        }
-        else {
-            if (!isdigit(line_component[0]))
-                continue;
-        }
-        order_num = std::stoi(line_component);
-        //cout << "Line originally in file: order number " << order_num << std::endl << std::endl;
-        if (order_num < NumOfCuts) {
-            before_in = before_in + current_line + "\n";
-            //cout << "Line goes before input\n";
-        }
-        else if (order_num > NumOfCuts) {
-            after_in = after_in + current_line + "\n";
-            //cout << "Line goes after input\n";
-        }
-        //else
-            //cout << "Line overwritten\n";
-        
-    }
-    table_file_input.close();
-    ofstream table_file_output;
-    table_file_output.open("data/table_file.tex");
-    if (!table_file_output)
-        cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-    table_file_output << common_header << before_in << table_headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",(func->GetParError(0))/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
-    table_file_output.close();
-    */
+     // Write to the table file
+     // Common header: goes on top of the table content commands. Creates the frame and table, sets the frame title, table title, and frame and table formatting
+     string common_header = "\\frame\n{\n\\frametitle{Analysis of Cuts: Pt 8-20 GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n";
+     // Common footer: goes on the bottom of the table content commands. Closes up the frame and the table
+     string common_footer = "[1ex]\n\\hline\n\\end{tabular}\n\\label{table:nonlin}\n\\end{table}\n}\n";
+     string table_headers[cutnum_option_quantity] = {"None ", "+angle $> 15$ mrad ", "+$0.1 < \\lambda <$ 0.4 ", "+dR $> 20$ mrad ", "+asymmetry $< 0.7$ "};
+     // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
+     ifstream table_file_input;
+     table_file_input.open("data/table_file.tex");
+     // Print an error message if file cannot be opened
+     if (!table_file_input)
+     cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
+     string before_in = "";
+     string after_in = "";
+     string current_line;
+     string line_component;
+     int order_num;
+     while (!table_file_input.eof()) {
+     std::getline(table_file_input, current_line);
+     std::stringstream linestream(current_line);
+     //cout << current_line << " is current line" << std::endl;
+     std::getline(linestream, line_component, '%');
+     //cout << line_component << " is line component" << std::endl;
+     std::getline(linestream, line_component, '%');
+     //cout << line_component << " is line component" << std::endl;
+     // Continue to the next line if the line component's first character is not an integer
+     // If the table file is not found, then break out of the loop if the line component is improper
+     if (!table_file_input) {
+     if (!isdigit(line_component[0]))
+     break;
+     }
+     else {
+     if (!isdigit(line_component[0]))
+     continue;
+     }
+     order_num = std::stoi(line_component);
+     //cout << "Line originally in file: order number " << order_num << std::endl << std::endl;
+     if (order_num < NumOfCuts) {
+     before_in = before_in + current_line + "\n";
+     //cout << "Line goes before input\n";
+     }
+     else if (order_num > NumOfCuts) {
+     after_in = after_in + current_line + "\n";
+     //cout << "Line goes after input\n";
+     }
+     //else
+     //cout << "Line overwritten\n";
      
-    /**
-    // Plot the energies of the two photons against each other
-    graphcanvas->Clear();
-    auto h2D = h_Pion->Projection(axis_photon2E, axis_photon1E);
-    h2D->SetTitle("Photon momentum correlation; Leading Photon Energy (GeV); Trailing Photon Energy (GeV)");
-    h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
-    h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
-    h2D->Draw("COLZ");
-    //myText(.20,.95, kBlack, Form("#scale[1.5]{Photon energies, latest cut: %s}", headers[NumOfCuts].c_str()));
-    graphcanvas->SaveAs(str_concat_converter(directory_name, "PhotonEs.png"));
-    h2D->Write("Photon_Energies"); 
+     }
+     table_file_input.close();
+     ofstream table_file_output;
+     table_file_output.open("data/table_file.tex");
+     if (!table_file_output)
+     cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
+     table_file_output << common_header << before_in << table_headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",(func->GetParError(0))/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
+     table_file_output.close();
      */
-
+    
+    /**
+     // Plot the energies of the two photons against each other
+     graphcanvas->Clear();
+     auto h2D = h_Pion->Projection(axis_photon2E, axis_photon1E);
+     h2D->SetTitle("Photon momentum correlation; Leading Photon Energy (GeV); Trailing Photon Energy (GeV)");
+     h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
+     h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
+     h2D->Draw("COLZ");
+     //myText(.20,.95, kBlack, Form("#scale[1.5]{Photon energies, latest cut: %s}", headers[NumOfCuts].c_str()));
+     graphcanvas->SaveAs(str_concat_converter(directory_name, "PhotonEs.png"));
+     h2D->Write("Photon_Energies");
+     */
+    
     // Plot the data for the momentum, save into the Root file
     graphcanvas->Clear();
     TH1D* hPt = h_Pion->Projection(axis_pionPt);
     hPt->Draw();
     hPt->Write("Momentum-entries_chart");
-    myText(.20,.95, kBlack, "#scale[1]{Momentum vs. Entries, cuts:}");
-    myText(.20,.90, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
+    myText(.20,.97, kBlack, "#scale[1]{Momentum vs. Entries, cuts:}");
+    myText(.20,.92, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "momentum_pion_plot.png"));
     
     // A collection of variables that is needed for the next steps
@@ -484,6 +482,7 @@ void my_code(string option = "DEFAULT") {
     double max;
     
     double intervals[num_of_intervals][2] = {{6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, {16.0, 20.0}};
+    double minmasses[num_of_intervals] = {0.1, 0.1, 0.1, 0.11, 0.115, 0.125};
     //double initial_guesses[num_of_intervals][num_of_params] = {{5.5,  0.139, 0.009, 549, 19,  -740000, 54000, -14000, 16000, -640}, {37,  0.144, 0.011, 550, 19,  -80000, 270000, -160000, 30000, -1600}, {12,  0.142, 0.0096, 300, 19,  -170000, 380000, -170000, 26000, -1300}, {37,  0.144, 0.011, 300, 19,  -24, 250000, -160000, 32000, -1700}, {9.8,  0.146, 0.012, 300, 19,  -790000, 550000, -140000, 170000, -700}, {7.6,  0.154, 0.013, 300, 19,  -1000000, 610000, -140000, 14000, -550}};
     double chisquares[num_of_intervals];
     double means[num_of_intervals];
@@ -500,15 +499,17 @@ void my_code(string option = "DEFAULT") {
     //func->SetParameters(60,  0.14, 0.011, 1.3, 4.0,  -100000, 30000, -60000, 100, 10000);
     //func->SetParLimits(2, 0.01, 0.016); // width
     // start cutting the data up; plot the mass data for momenta of 6-8, 8-10, 10-12, 12-14, 14-16, 16-18, 18-20
-    func->SetParameter(0, 30);
+    func->SetParameter(0, 300);
     for(int i = 0; i < num_of_intervals; i++) {
         //Adaptive Cuts go here
-         
+        
         pad[0] = new TPad("pad0","",0,0.36,1,1);
         pad[1] = new TPad("pad1","",0,0.05,1,0.45);
         min = intervals[i][0];
         max = intervals[i][1]; // Interval bounds
         
+        // Cut the pion mass to where there would actually be data
+        SetCut(h_Pion, axis_pionMass, minmasses[i], 0.22);
         // Cut the momentum to within the interval
         SetCut(h_Pion, axis_pionPt, min, max);
         // Plot the data and load it into the root file, after rebinning it properly and applying adaptive cuts
@@ -537,7 +538,9 @@ void my_code(string option = "DEFAULT") {
         myText(.20,.95, kBlack, Form("#scale[1]{Mass vs Entries, Pt %2.2f-%2.2f, cuts:}", min, max));
         myText(.20,.90, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
         
-        // Graph the fit and (separately) the Gaussian component of it, write the measured mean mass and the mass width (standard deviation) on the graph
+        // Input guesses for the values, thenfind a fit just as you did for the entire data set and the reduced chi square of the fit into its respective array
+        // Graph the fit and (separately) the Gaussian component of it
+        //func->SetParameters(initial_guesses[i][0],  initial_guesses[i][1], initial_guesses[i][2], initial_guesses[i][3], initial_guesses[i][4], initial_guesses[i][5], initial_guesses[i][6], initial_guesses[i][7], initial_guesses[i][8], initial_guesses[i][9]);
         hMass->Fit(func);
         //hMass->Fit(func);
         if (i == 3 || i == 4)
@@ -545,35 +548,15 @@ void my_code(string option = "DEFAULT") {
         func->SetLineColor(kRed);
         func->Draw("same");
         int j = 0;
-        for(; j < num_of_peak_params; j++) {
+        for(; j < num_of_peak_params; j++)
             peak->SetParameter(j, func->GetParameter(j));
-            peak->SetParError(j, func->GetParError(j));
-        }
-        for(; j < num_of_params; j++) {
+        for(; j < num_of_params; j++)
             background->SetParameter(j - num_of_peak_params, func->GetParameter(j));
-            peak->SetParError(j - num_of_peak_params, func->GetParError(j));
-        }
         peak->SetLineColor(kBlue);
         peak->Draw("same");
         background->SetLineColor(kGreen);
         background->Draw("same");
-        //hMass->Draw("same");
-        myText(.6, .85, kBlack, Form("#scale[0.75]{Mean Mass: %3.3f +/- %3.4f GeV}", func->GetParameter(1), func->GetParError(1)));
-        myText(.6, .80, kBlack, Form("#scale[0.75]{Mass Width: %2.3f +/- %2.4f GeV}", func->GetParameter(2), func->GetParError(2)));
-        
-        /**
-        // Print out all parameters
-        std::cout << "\n\nNumber of pions:" << (func->GetParameter(0))/MASSWIDTH << std::endl << "Error:" << (func->GetParError(0))/MASSWIDTH << std::endl;
-        std::cout << "\nMean:" << func->GetParameter(1) << std::endl << "Error:" << func->GetParError(1) << std::endl;
-        std::cout << "\nSigma:" << func->GetParameter(2) << std::endl << "Error:" << func->GetParError(2) << std::endl;
-        //std::cout << "\nAlpha:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(3) << std::endl;
-        //std::cout << "\nN:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(4) << std::endl;
-        //std::cout << "\nQuadric:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(5) << std::endl;
-        //std::cout << "\nCubic:" << func->GetParameter(6) << std::endl << "Error:" << func->GetParError(6) << std::endl;
-        std::cout << "\nQuadratic:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(5) << std::endl;
-        std::cout << "\nLinear:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(6) << std::endl;
-        std::cout << "\nConstant:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(7) << std::endl;
-        */
+        hMass->Draw("same");
         
         // Reinitialize residual_dist
         delete residual_dist;
@@ -594,14 +577,16 @@ void my_code(string option = "DEFAULT") {
             
             residual_dist->Fill(residualvalue);
             /**
-            int dist_bin_num = residual_dist->FindBin(residual->GetBinContent(i));
-            residual_dist->SetBinContent(dist_bin_num, residual_dist->GetBinContent(dist_bin_num) + 1);
-            */
+             int dist_bin_num = residual_dist->FindBin(residual->GetBinContent(i));
+             residual_dist->SetBinContent(dist_bin_num, residual_dist->GetBinContent(dist_bin_num) + 1);
+             */
             chisquare += residualvalue*residualvalue;
             //chisquare += ((residual->GetBinContent(i))*(residual->GetBinContent(i)));
         }
         chisquares[i] = func->GetChisquare()/(hMass->GetSize() - (num_of_params) - 1); //Reduced Chi Square
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
+        myText(.6, .85, kBlack, Form("#scale[0.75]{Mean Mass: %3.3f +/- %3.4f GeV}", func->GetParameter(1), func->GetParError(1)));
+        myText(.6, .80, kBlack, Form("#scale[0.75]{Mass Width: %2.3f +/- %2.4f GeV}", func->GetParameter(2), func->GetParError(2)));
         myText(.6, .75, kBlack, Form("#scale[0.75]{Reduced Chi-square: %2.1f/%i}", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
         myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
         graphcanvas->cd();
@@ -614,7 +599,6 @@ void my_code(string option = "DEFAULT") {
         pad[1]->Draw("p");
         pad[1]->cd();
         residual->Draw("p");
-        graphcanvas->SaveAs(str_concat_converter(directory_name, Form("MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)));
         
         // Add the mean mass parameter and its error to means and mean_errors, respectively; the standard deviation and
         // its error to sigmas and sigma_errors, the integral of the Gaussian peak and its error to gaussian_integrals
@@ -630,15 +614,9 @@ void my_code(string option = "DEFAULT") {
         center[i] = (min+max)/2.0;
         widths[i] = max - center[i];
         
-        // Print out the number of pions and the signal to noise ratio
-        std::cout << "\nNumber of pions: " << func->GetParameter(0)/MASSWIDTH << "\nError: " << func->GetParError(0)/MASSWIDTH << std::endl;
-        std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
-        
-        /**
         // print out the mean, standard deviation, and their corresponding errors; and save the graph in a new file
         std::cout << "Mean: " << means[i] << std::endl << "Standard Deviation: " << sigmas[i] << std::endl << "Standard Deviation Error: " << sigma_errors[i] << std::endl;
         graphcanvas->SaveAs(Form(str_concat_converter(directory_name, "MyFit_Ptmin_%2.2f_Ptmax_%2.2f.png"), min, max));
-         */
         
         // Fit and plot the residuals distribution
         graphcanvas->Clear();
@@ -652,7 +630,7 @@ void my_code(string option = "DEFAULT") {
         myText(.2, .85, kBlack, Form("#scale[0.5]{Mean: %2.1f+/-%1.1f}", residual_dist_fit->GetParameter(1), residual_dist_fit->GetParError(1)));
         myText(.2, .8, kBlack, Form("#scale[0.5]{Sigma: %2.1f+/-%1.1f}", residual_dist_fit->GetParameter(2), residual_dist_fit->GetParError(2)));
         graphcanvas->SaveAs(str_concat_converter(directory_name, Form("MyFit_residual_dist_Ptmin_%2.2f_Ptmax_%2.2f.png", min, max)));
-
+        
         
         //Now use the signal_over_total function to get a graph of sigma vs. signal/total
         graphcanvas->Clear();
@@ -666,62 +644,65 @@ void my_code(string option = "DEFAULT") {
         g_sig_over_tot->SetName(Form("sig_to_tot_ptmin_%2.2fGeV_ptmax_%2.2fGeV", min, max));
         peaks_over_totals->Add(g_sig_over_tot);
         
+        // Print out the number of pions and the signal to noise ratio
+        std::cout << "\nNumber of pions: " << func->GetParameter(0)/MASSWIDTH << "\nError: " << func->GetParError(0)/MASSWIDTH << std::endl;
+        std::cout << "\n\nS/T for 0 sigma: " << sig_over_tot_funct->Eval(0.000001) << "\n\nS/T for 1 sigma: " << sig_over_tot_funct->Eval(1) << "\nS/T for 2 sigma: " << sig_over_tot_funct->Eval(2) << std::endl;
         
         /**
-        // Write data on number of pions and signal to total to the table file
-        // Edit the common header to place the sub-interval's momentum bounds in the frame title
-        common_header = Form("\\frame\n{\n\\frametitle{Analysis of Cuts: Pt %2.0f-%2.0f GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n", min, max);
-        // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
-        ifstream table_file_input;
-        table_file_input.open(Form("data/table_file_Ptmin_%2.2f_Ptmax_%2.2f.tex", min, max));
-        // Print an error message if file cannot be opened
-        if (!table_file_input)
-            cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-        string before_in = "";
-        string after_in = "";
-        string current_line;
-        string line_component;
-        int order_num;
-        while (!table_file_input.eof()) {
-            std::getline(table_file_input, current_line);
-            std::stringstream linestream(current_line);
-            //cout << current_line << " is current line" << std::endl;
-            std::getline(linestream, line_component, '%');
-            //cout << line_component << " is line component" << std::endl;
-            std::getline(linestream, line_component, '%');
-            //cout << line_component << " is line component" << std::endl;
-            // Continue to the next line if the line component's first character is not an integer
-            // If the table file is not found, then break out of the loop if the line component is improper
-            if (!table_file_input) {
-                if (!isdigit(line_component[0]))
-                    break;
-            }
-            else {
-                if (!isdigit(line_component[0]))
-                    continue;
-            }
-
-            order_num = std::stoi(line_component);
-            //cout << "Line originally in file: order number " << order_num << std::endl << std::endl;
-            if (order_num < NumOfCuts) {
-                before_in = before_in + current_line + "\n";
-                //cout << "Line goes before input\n";
-            }
-            else if (order_num > NumOfCuts) {
-                after_in = after_in + current_line + "\n";
-                //cout << "Line goes after input\n";
-            }
-            //else
-              //  cout << "Line overwritten\n";
-            
-        }
-        table_file_input.close();
-        ofstream table_file_output;
-        table_file_output.open(Form("data/table_file_Ptmin_%2.2f_Ptmax_%2.2f.tex", min, max));
-        if (!table_file_output)
-            cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-        table_file_output << common_header << before_in << table_headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",func->GetParError(0)/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
-        table_file_output.close();
+         // Write data on number of pions and signal to total to the table file
+         // Edit the common header to place the sub-interval's momentum bounds in the frame title
+         common_header = Form("\\frame\n{\n\\frametitle{Analysis of Cuts: Pt %2.0f-%2.0f GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n", min, max);
+         // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
+         ifstream table_file_input;
+         table_file_input.open(Form("data/table_file_Ptmin_%2.2f_Ptmax_%2.2f.tex", min, max));
+         // Print an error message if file cannot be opened
+         if (!table_file_input)
+         cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
+         string before_in = "";
+         string after_in = "";
+         string current_line;
+         string line_component;
+         int order_num;
+         while (!table_file_input.eof()) {
+         std::getline(table_file_input, current_line);
+         std::stringstream linestream(current_line);
+         //cout << current_line << " is current line" << std::endl;
+         std::getline(linestream, line_component, '%');
+         //cout << line_component << " is line component" << std::endl;
+         std::getline(linestream, line_component, '%');
+         //cout << line_component << " is line component" << std::endl;
+         // Continue to the next line if the line component's first character is not an integer
+         // If the table file is not found, then break out of the loop if the line component is improper
+         if (!table_file_input) {
+         if (!isdigit(line_component[0]))
+         break;
+         }
+         else {
+         if (!isdigit(line_component[0]))
+         continue;
+         }
+         
+         order_num = std::stoi(line_component);
+         //cout << "Line originally in file: order number " << order_num << std::endl << std::endl;
+         if (order_num < NumOfCuts) {
+         before_in = before_in + current_line + "\n";
+         //cout << "Line goes before input\n";
+         }
+         else if (order_num > NumOfCuts) {
+         after_in = after_in + current_line + "\n";
+         //cout << "Line goes after input\n";
+         }
+         //else
+         //  cout << "Line overwritten\n";
+         
+         }
+         table_file_input.close();
+         ofstream table_file_output;
+         table_file_output.open(Form("data/table_file_Ptmin_%2.2f_Ptmax_%2.2f.tex", min, max));
+         if (!table_file_output)
+         cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
+         table_file_output << common_header << before_in << table_headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",func->GetParError(0)/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
+         table_file_output.close();
          */
         
         //Load onto the ROOT file
@@ -731,16 +712,16 @@ void my_code(string option = "DEFAULT") {
         residual->Write(Form("residual-%2.2fGeV-%2.2fGeV", min, max));
         
         /**
-        // Graph the photon energy ratio
-        graphcanvas->Clear();
-        auto h2D = h_Pion->Projection(axis_photon2E, axis_photon1E);
-        h2D->SetTitle("Photon energy correlation; Leading Photon Energy (GeV); Trailing Photon Energy (GeV)");
-        h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
-        h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
-        h2D->Draw("COLZ");
-        //myText(.20,.95, kBlack, Form("#scale[1.5]{Photon energies: Pion momenta %2.2f to %2.2f, latest cut: %s}", min, max, headers[NumOfCuts].c_str()));
-        graphcanvas->SaveAs(Form(str_concat_converter(directory_name, "PhotonEs_Ptmin_%2.2f_Ptmax_%2.2f.png"), min, max));
-        h2D->Write(Form("Photon_Energies_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
+         // Graph the photon energy ratio
+         graphcanvas->Clear();
+         auto h2D = h_Pion->Projection(axis_photon2E, axis_photon1E);
+         h2D->SetTitle("Photon energy correlation; Leading Photon Energy (GeV); Trailing Photon Energy (GeV)");
+         h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
+         h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
+         h2D->Draw("COLZ");
+         //myText(.20,.95, kBlack, Form("#scale[1.5]{Photon energies: Pion momenta %2.2f to %2.2f, latest cut: %s}", min, max, headers[NumOfCuts].c_str()));
+         graphcanvas->SaveAs(Form(str_concat_converter(directory_name, "PhotonEs_Ptmin_%2.2f_Ptmax_%2.2f.png"), min, max));
+         h2D->Write(Form("Photon_Energies_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
          */
     }// end of loop over pt
     
@@ -789,8 +770,6 @@ void my_code(string option = "DEFAULT") {
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass Width (MeV/c^2)");
-    g_sigma->GetYaxis()->SetTitleOffset(.7);
-    g_sigma->GetXaxis()->SetTitleOffset(.9);
     g_sigma->GetYaxis()->SetRangeUser(3.0, 15.7);
     g_sigma->GetXaxis()->SetRangeUser(6.0, 16.0);
     //g_sigma->SetMarkerSize(2);
