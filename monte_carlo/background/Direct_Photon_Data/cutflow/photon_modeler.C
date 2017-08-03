@@ -48,7 +48,7 @@ void photon_modeler() {
     const string title_cut_names_line1[num_of_cuts] = {"Cuts: .1<lambda<.4", "Cuts: .1<lambda<.4, dR>.02", "Cuts: .1<lambda<.4, dR>.02, dBorder>0", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1, Ncells>1", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1, Ncells>1, exo<.97", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1, Ncells>1, exo<.97, |t|<30ns", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1, Ncells>1, exo<.97, |t|<30ns,"};
     const string title_cut_names_line2[num_of_cuts] = {"", "", "", "", "", "", "", "isolation<4GeV" };
     const string table_line_headers[num_of_cuts] = {"\n+$0.1 < \\lambda <$ 0.4", "\n+dR $> 20$ mrad", "\n+DisToBorder $>$ 0", "\n+DisToBadCell $>$ 1", "\n+Ncells $> 1$", "\n+Exoticity $< 0.97$", "\n+$|Time| < 30$ ns", "\n+isolation $< 4 GeV/c$"};
-    const string table_header = "\\documentclass{beamer} \n\\usepackage{graphicx} \n\n\\title{Cut Data Tables} \n\\author{Ivan Chernyshev} \n\\date{\\today} \n\n\\begin{document} \n\n\\frame \n{ \n\\frametitle{Analysis of Cuts: Pt 10-50 GeV} \n\\begin{table} \n\\caption{How cuts affect number of photons} \n\\centering \n\\begin{tabular}{c c c c} \n\\hline\\hline \nCuts & Num of Photons & Percentage of Previous\\\\ [0.5ex] \n\\hline";
+    const string table_header = "\\documentclass{beamer} \n\\usepackage{graphicx} \n\n\\title{Cut Data Tables} \n\\author{Ivan Chernyshev} \n\\date{\\today} \n\n\\begin{document} \n\n\\frame \n{ \n\\frametitle{Analysis of Cuts: Pt 10-50 GeV, Monte-Carlo simulation} \n\\begin{table} \n\\caption{How cuts affect number of photons} \n\\centering \n\\begin{tabular}{c c c c} \n\\hline\\hline \nCuts & Num of Photons & Percentage of Previous\\\\ [0.5ex] \n\\hline";
     const string table_footer = "\n[1ex] \n\\hline \n\\end{tabular} \n\\label{table:nonlin} \n\\end{table} \n Final value's portion of the original: ";
     const string file_footer = "\n } \n\\end{document}";
     
@@ -99,7 +99,7 @@ void photon_modeler() {
                 myText(.5, .87, kBlack, Form("%s", title_cut_names_line2[i - 1].c_str()));
             }
             normalcanvas->SaveAs(Form("%s_photon.png", parameter_names[i].c_str()));
-            normalcanvas->Clear();
+            normalcanvas->Close();
             canvas->cd();
         }
         else {
@@ -132,14 +132,21 @@ void photon_modeler() {
         myText(.02, .92, kBlack, Form("%s", title_cut_names_line1[i].c_str()));
         myText(.5, .87, kBlack, Form("%s", title_cut_names_line2[i].c_str()));
         canvas->SaveAs(Form("pT_photon_%i_cuts.png", i + 1));
-        table_lines += Form("%s & %4.0f & %2.1f ", table_line_headers[i].c_str(), hpT->Integral(), (100*hpT->Integral())/previous_table_entries[i]);
-         table_lines += "$\\%$ \\\\";
+        // Put a "not applicable" message at the time cut, as time isn't well-modeled in this simulation.
+        if (i == 6) {
+            table_lines += Form("%s & n/a & (time is not well-modeled) ", table_line_headers[i].c_str());
+            table_lines += " \\\\";
+        }
+        else {
+            table_lines += Form("%s & %4.0f & %2.1f ", table_line_headers[i].c_str(), hpT->Integral(), (100*hpT->Integral())/previous_table_entries[i]);
+            table_lines += "$\\%$ \\\\";
+        }
         
         // Store the input for this table entry in an array for comparison to the values in the next data entries
         previous_table_entries[i + 1] = hpT->Integral();
     }
     
-    // Output to a .tex file, include the ratio between the
+    // Output to a .tex file, include the ratio between the initial and final values
     ofstream table_file_output;
     table_file_output.open("table_file.tex");
     table_file_output << table_header << table_lines << table_footer << Form("%2.1f",100*previous_table_entries[num_of_cuts]/previous_table_entries[0]) << "\\%" << file_footer;
