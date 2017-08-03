@@ -484,6 +484,10 @@ void my_code(string option = "DEFAULT") {
     double max;
     
     double intervals[num_of_intervals][2] = {{6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, {16.0, 20.0}};
+    double binwidths[num_of_intervals];
+    for (int i = 0; i < num_of_intervals; i++) {
+        binwidths[i] = intervals[i][1] - intervals[i][0];
+    }
     //double initial_guesses[num_of_intervals][num_of_params] = {{5.5,  0.139, 0.009, 549, 19,  -740000, 54000, -14000, 16000, -640}, {37,  0.144, 0.011, 550, 19,  -80000, 270000, -160000, 30000, -1600}, {12,  0.142, 0.0096, 300, 19,  -170000, 380000, -170000, 26000, -1300}, {37,  0.144, 0.011, 300, 19,  -24, 250000, -160000, 32000, -1700}, {9.8,  0.146, 0.012, 300, 19,  -790000, 550000, -140000, 170000, -700}, {7.6,  0.154, 0.013, 300, 19,  -1000000, 610000, -140000, 14000, -550}};
     double chisquares[num_of_intervals];
     double means[num_of_intervals];
@@ -786,8 +790,25 @@ void my_code(string option = "DEFAULT") {
     
     // Graph mass standard deviations with error bars
     graphcanvas->Clear();
+    /**
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
+    g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass Width (MeV/c^2)");
+    g_sigma->GetYaxis()->SetTitleOffset(.7);
+    g_sigma->GetXaxis()->SetTitleOffset(.9);
+    g_sigma->GetYaxis()->SetRangeUser(3.0, 15.7);
+    g_sigma->GetXaxis()->SetRangeUser(6.0, 16.0);
+    //g_sigma->SetMarkerSize(2);
+    //g_sigma->SetMarkerStyle(20);
+    g_sigma->Write("standard-dev-masses");
+    g_sigma->Draw("AP");
+     */
+    TH1D* g_sigma = new TH1D("standard-dev-masses", "standard-dev-masses", num_of_intervals, binwidths);
+    g_sigma->GetXaxis()->SetRangeUser(6, 20);
+    for (int i = 0; i < num_of_intervals; i++) {
+        g_sigma->SetBinContent(i, sigmas[i]);
+        g_sigma->SetBinError(i, sigma_errors[i]);
+    }
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass Width (MeV/c^2)");
     g_sigma->GetYaxis()->SetTitleOffset(.7);
     g_sigma->GetXaxis()->SetTitleOffset(.9);

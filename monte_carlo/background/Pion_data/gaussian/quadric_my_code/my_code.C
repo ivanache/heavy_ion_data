@@ -286,10 +286,10 @@ void my_code(string option = "DEFAULT") {
     std::cout << "\n\nNumber of pions:" << (func->GetParameter(0))/MASSWIDTH << std::endl << "Error:" << (func->GetParError(0))/MASSWIDTH << std::endl;
     std::cout << "\nMean:" << func->GetParameter(1) << std::endl << "Error:" << func->GetParError(1) << std::endl;
     std::cout << "\nSigma:" << func->GetParameter(2) << std::endl << "Error:" << func->GetParError(2) << std::endl;
-    std::cout << "\nAlpha:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(3) << std::endl;
-    std::cout << "\nN:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(4) << std::endl;
-    //std::cout << "\nQuadric:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(5) << std::endl;
-    //std::cout << "\nCubic:" << func->GetParameter(6) << std::endl << "Error:" << func->GetParError(6) << std::endl;
+    //std::cout << "\nAlpha:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(3) << std::endl;
+    //std::cout << "\nN:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(4) << std::endl;
+    std::cout << "\nQuadric:" << func->GetParameter(3) << std::endl << "Error:" << func->GetParError(5) << std::endl;
+    std::cout << "\nCubic:" << func->GetParameter(4) << std::endl << "Error:" << func->GetParError(6) << std::endl;
     std::cout << "\nQuadratic:" << func->GetParameter(5) << std::endl << "Error:" << func->GetParError(5) << std::endl;
     std::cout << "\nLinear:" << func->GetParameter(6) << std::endl << "Error:" << func->GetParError(6) << std::endl;
     std::cout << "\nConstant:" << func->GetParameter(7) << std::endl << "Error:" << func->GetParError(7) << std::endl;

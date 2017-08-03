@@ -48,8 +48,9 @@ void photon_modeler() {
     const string title_cut_names_line1[num_of_cuts] = {"Cuts: .1<lambda<.4", "Cuts: .1<lambda<.4, dR>.02", "Cuts: .1<lambda<.4, dR>.02, dBorder>0", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1, Ncells>1", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1, Ncells>1, exo<.97", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1, Ncells>1, exo<.97, |t|<30ns", "Cuts: .1<lambda<.4, dR>.02, dBorder>0, dBadCells>1, Ncells>1, exo<.97, |t|<30ns,"};
     const string title_cut_names_line2[num_of_cuts] = {"", "", "", "", "", "", "", "isolation<4GeV" };
     const string table_line_headers[num_of_cuts] = {"\n+$0.1 < \\lambda <$ 0.4", "\n+dR $> 20$ mrad", "\n+DisToBorder $>$ 0", "\n+DisToBadCell $>$ 1", "\n+Ncells $> 1$", "\n+Exoticity $< 0.97$", "\n+$|Time| < 30$ ns", "\n+isolation $< 4 GeV/c$"};
-    const string table_header = "\\documentclass{beamer} \n\\usepackage{graphicx} \n\n\\title{Cut Data Tables} \n\\author{Ivan Chernyshev} \n\\date{\\today} \n\n\\begin{document} \n\n\\frame \n{ \n\\frametitle{Analysis of Cuts: Pt 10-20 GeV} \n\\begin{table} \n\\caption{How cuts affect number of photons} \n\\centering \n\\begin{tabular}{c c c c} \n\\hline\\hline \nCuts & Num of Photons & Percentage of Previous\\\\ [0.5ex] \n\\hline";
-    const string table_footer = "\n[1ex] \n\\hline \n\\end{tabular} \n\\label{table:nonlin} \n\\end{table} \n} \n\\end{document}";
+    const string table_header = "\\documentclass{beamer} \n\\usepackage{graphicx} \n\n\\title{Cut Data Tables} \n\\author{Ivan Chernyshev} \n\\date{\\today} \n\n\\begin{document} \n\n\\frame \n{ \n\\frametitle{Analysis of Cuts: Pt 10-50 GeV} \n\\begin{table} \n\\caption{How cuts affect number of photons} \n\\centering \n\\begin{tabular}{c c c c} \n\\hline\\hline \nCuts & Num of Photons & Percentage of Previous\\\\ [0.5ex] \n\\hline";
+    const string table_footer = "\n[1ex] \n\\hline \n\\end{tabular} \n\\label{table:nonlin} \n\\end{table} \n Final value's portion of the original: ";
+    const string file_footer = "\n } \n\\end{document}";
     
     // Set ATLAS style
     gROOT->LoadMacro("AtlasStyle.C");
@@ -75,7 +76,7 @@ void photon_modeler() {
     string table_lines = Form("\nNone & %4.0f & n/a\\\\", hpT->Integral());
     
     // Store the input for this table entry in an array for comparison to the values in the next data entries
-    double previous_table_entries[num_of_cuts] = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
+    double previous_table_entries[num_of_cuts + 1] = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
     previous_table_entries[0] = hpT->Integral();
     
     // Repeat for every consequent cut added to the baseline, in the following order: 0.1<lambda<0.4,  DisToCharged>0.02, DisToBorder>0, DisToBadCells>1, Ncells>1
@@ -114,10 +115,18 @@ void photon_modeler() {
             canvas->SaveAs(Form("%s_photon.png", parameter_names[i].c_str()));
             canvas->Clear();
         }
+        //fIn->GetObject("h_Cluster", hPhoton);
+        // Cuts
         SetCut(hPhoton, cut_params[i][0], cut_params[i][1], cut_params[i][2]);
+        /**if (i == 6) {
+            hParam = hPhoton->Projection(axis_photonTime);
+            hParam->Draw();
+            canvas->SaveAs("after-cut-time.png");
+        }*/
         
         hpT = hPhoton->Projection(axis_photonPt);
         hpT->SetTitle("pT-Photon Spectrum; pT (GeV/c); Number of Entries");
+        //hpT->GetYaxis()->SetRangeUser(1, 1000000);
         hpT->Draw();
         myText(.20, .97, kBlack, "pT-Photon Spectrum");
         myText(.02, .92, kBlack, Form("%s", title_cut_names_line1[i].c_str()));
@@ -126,17 +135,17 @@ void photon_modeler() {
         table_lines += Form("%s & %4.0f & %2.1f ", table_line_headers[i].c_str(), hpT->Integral(), (100*hpT->Integral())/previous_table_entries[i]);
          table_lines += "$\\%$ \\\\";
         
-        // Store the input for this table entry in an array for comparison to the values in the next data entries, if there is a next data entry
-        if (i != num_of_cuts - 1) {
-            previous_table_entries[i + 1] = hpT->Integral();
-        }
+        // Store the input for this table entry in an array for comparison to the values in the next data entries
+        previous_table_entries[i + 1] = hpT->Integral();
     }
     
-    // Output to a .tex file
+    // Output to a .tex file, include the ratio between the
     ofstream table_file_output;
     table_file_output.open("table_file.tex");
-    table_file_output << table_header << table_lines << table_footer;
+    table_file_output << table_header << table_lines << table_footer << Form("%2.1f",100*previous_table_entries[num_of_cuts]/previous_table_entries[0]) << "\\%" << file_footer;
     table_file_output.close();
     
     canvas->Close();
+    TH1D* hParam = hPhoton->Projection(axis_photonTime);
+    hParam->Draw();
 }
