@@ -72,8 +72,8 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     SetCut(h_photon, axis_pionPt, 6.0, 20.0);
     
     // Cut the matched tracks, the asymmetry, the angle, and the Ncells
-    SetCut(h_photon, axis_pionDisToCharged1, 0.02, 0.14);
-    SetCut(h_photon, axis_pionDisToCharged2, 0.02, 0.14);
+    //SetCut(h_photon, axis_pionDisToCharged1, 0.02, 0.14);
+    //SetCut(h_photon, axis_pionDisToCharged2, 0.02, 0.14);
     //SetCut(h_photon, axis_pionLambda1, 0.1, 0.4);
     //SetCut(h_photon, axis_pionLambda2, 0.1, 0.4);
     SetCut(h_photon, axis_pionAngle, 0.015, 0.6);

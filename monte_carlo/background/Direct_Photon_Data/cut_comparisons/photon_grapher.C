@@ -18,9 +18,9 @@
 const int axis_photonPt           =  3;
 const int axis_photonLambda       =  6;
 const int axis_photonNcells       =  7;
-const int axis_photonDisToBorder  = 10;
-const int axis_photonDisToBadCell = 11;
-const int axis_photonDisToCharged = 12;
+const int axis_photonDisToBorder  = 9;
+const int axis_photonDisToBadCell = 10;
+const int axis_photonDisToCharged = 11;
 
 // The cutting function
 void SetCut(THnSparse* h, const int axis, double min, double max){

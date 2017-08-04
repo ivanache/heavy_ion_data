@@ -47,7 +47,7 @@ void pion_combiner() {
     
     // Get the data
     TFile* realIn = new TFile("PionSparsesOutput_angle_17mrad.root", "READ");
-    TFile* MCIn = new TFile("BackgroundMC_PionSparsesOutput_angle_17mrad.root", "READ");
+    TFile* MCIn = new TFile("BackgroundPionSparsesOutput_angle_17mrad.root", "READ");
     
     TGraphErrors* realPionIntegrals = 0;
     TGraphErrors* realPionMasses = 0;
@@ -93,12 +93,14 @@ void pion_combiner() {
     MCPionIntegrals->SetLineColor(kRed);
     //MCPionIntegrals->GetYaxis()->SetRangeUser(0, 30000);
     //realPionIntegrals->GetYaxis()->SetRangeUser(0, 30000);
-    realPionIntegrals->SetTitle("Number of Pions with respect to Pt; Transverse Momentum (GeV); Number of pions");
+    realPionIntegrals->SetTitle("Number of Pions with respect to Pt; Transverse Momentum (GeV); Normalized Number of pions");
     realPionIntegrals->Draw();
     MCPionIntegrals->Draw("same");
-    myText(.3, .95, kBlack, "Number of Pions with respect to Pt");
-    myBoxText(0.7, 0.8, 0.05, 10, kBlack, "Real data");
+    myText(.3, .95, kBlack, "Normalized Number of Pions with respect to Pt");
+    myBoxText(0.7, 0.8, 0.05, 10, kBlack, "ALICE data");
     myBoxText(0.7, 0.75, 0.05, 10, kRed, "Simulation data");
+    myText(0.05, .07, kBlack, Form("Total Photons in ALICE data: %5.0f", total_realPions));
+    myText(0.05, .02, kBlack, Form("Total Photons in Simulation data: %5.0f", total_MCPions));
     canvas->SaveAs("NumOfPionsGraph.png");
 
     // Mean Masses
@@ -112,13 +114,13 @@ void pion_combiner() {
     expectedMass->SetLineWidth(2);
     expectedMass->SetLineColor(kBlue);
     expectedMass->SetTitle("Measured Pion Mass with respect to Pt; Transverse Momentum (GeV); Mass (GeV)");
-    expectedMass->GetYaxis()->SetRangeUser(0.125, 0.155);
+    expectedMass->GetYaxis()->SetRangeUser(0.125, 0.160);
     expectedMass->Draw();
     
     realPionMasses->Draw("same");
     MCPionMasses->Draw("same");
     myText(.3, .95, kBlack, "Measured Pion Mass with respect to Pt");
-    myBoxText(0.25, 0.8, 0.05, 10, kBlack, "Real data");
+    myBoxText(0.25, 0.8, 0.05, 10, kBlack, "ALICE data");
     myBoxText(0.25, 0.75, 0.05, 10, kRed, "Simulation data");
     myBoxText(0.25, 0.7, 0.05, 10, kBlue, "Expected Mass, 134.98 MeV");
     canvas->SaveAs("MeanMasses.png");
@@ -130,7 +132,7 @@ void pion_combiner() {
     realPionMassWidths->Draw();
     MCPionMassWidths->Draw("same");
     myText(.3, .95, kBlack, "Pion Mass Standard Deviation with respect to Pt");
-    myBoxText(0.25, 0.8, 0.05, 10, kBlack, "Real data");
+    myBoxText(0.25, 0.8, 0.05, 10, kBlack, "ALICE data");
     myBoxText(0.25, 0.75, 0.05, 10, kRed, "Simulation data");
     canvas->SaveAs("MassWidths.png");
     
@@ -146,9 +148,9 @@ void pion_combiner() {
     }
     PionMassRatios->GetXaxis()->SetRangeUser(6,16);
     PionMassRatios->GetYaxis()->SetRangeUser(0.9, 1);
-    PionMassRatios->SetTitle("Simulation/real data pion mass ratios; Transverse momentum (GeV); Simulation mass/real mass");
+    PionMassRatios->SetTitle("Simulation/ALICE data pion mass ratios; Transverse momentum (GeV); Simulation mass/ALICE mass");
     PionMassRatios->Draw();
-    myText(.3, .95, kBlack, "Simulation/real data pion mass ratios");
+    myText(.3, .95, kBlack, "Simulation/ALICE data pion mass ratios");
     canvas->SaveAs("PionMassRatios.png");
     
     
@@ -163,9 +165,9 @@ void pion_combiner() {
     }
     PionMassWidthRatios->GetXaxis()->SetRangeUser(6,16);
     //PionMassWidthRatios->GetYaxis()->SetRangeUser(0.9, 1);
-    PionMassWidthRatios->SetTitle("Simulation/real data pion mass ratios; Transverse momentum (GeV); Simulation mass/real mass");
+    PionMassWidthRatios->SetTitle("Simulation/ALICE data pion mass ratios; Transverse momentum (GeV); Simulation mass/ALICE mass");
     PionMassWidthRatios->Draw();
-    myText(.3, .95, kBlack, "Simulation/real data pion mass ratios");
+    myText(.3, .95, kBlack, "Simulation/ALICE data pion mass ratios");
     canvas->SaveAs("PionMassWidthRatios.png");
 
     canvas->Clear();

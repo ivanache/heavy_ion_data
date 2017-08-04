@@ -342,7 +342,7 @@ void my_code(string option = "DEFAULT") {
         std::cout << "Final residual count for " << residual_dist->GetBinCenter(i) << " is " << residual_dist->GetBinContent(i) << std::endl;
     }
     myText(.6, .75, kBlack, Form("#scale[0.75]{Reduced Chi-square: %2.1f/%i}", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
-    myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (num_of_params) - 1))));
+    myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.10f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (num_of_params) - 1))));
     std::cout << "Reduced Chi Square " << func->GetChisquare()/(hMass->GetSize() - (num_of_params) - 1) << std::endl;
     
     // Plot the residual; save as a PDF, print out the individual residuals
@@ -588,7 +588,12 @@ void my_code(string option = "DEFAULT") {
         myText(.6, .85, kBlack, Form("#scale[0.75]{Mean Mass: %3.3f +/- %3.4f GeV}", func->GetParameter(1), func->GetParError(1)));
         myText(.6, .80, kBlack, Form("#scale[0.75]{Mass Width: %2.3f +/- %2.4f GeV}", func->GetParameter(2), func->GetParError(2)));
         myText(.6, .75, kBlack, Form("#scale[0.75]{Reduced Chi-square: %2.1f/%i}", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
-        myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        if (i == 2)
+            myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.10f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        if (i == 4)
+            myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.4f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        else
+            myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
         graphcanvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
         residual->GetXaxis()->SetTitleSize(.08);

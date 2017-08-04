@@ -200,7 +200,7 @@ void my_code(string option = "DEFAULT") {
     //Open the files
     TFile* fIn = new TFile("THnSparses_080117_MC.root","READ"); //get file
     string rootfilename;
-    rootfilename = Form("data/PionSparsesOutput_angle_%imrad.root", angle_cut_num);
+    rootfilename = Form("data/BackgroundPionSparsesOutput_angle_%imrad.root", angle_cut_num);
     fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
     fIn->Print(); //print file content
     
@@ -484,6 +484,7 @@ void my_code(string option = "DEFAULT") {
     double max;
     
     double intervals[num_of_intervals][2] = {{6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, {16.0, 20.0}};
+    double minmasses[num_of_intervals] = {0.1, 0.1, 0.1, 0.11, 0.115, 0.125};
     double binwidths[num_of_intervals];
     for (int i = 0; i < num_of_intervals; i++) {
         binwidths[i] = intervals[i][1] - intervals[i][0];
@@ -513,6 +514,8 @@ void my_code(string option = "DEFAULT") {
         min = intervals[i][0];
         max = intervals[i][1]; // Interval bounds
         
+        // Cut the pion mass to where there would actually be data
+        SetCut(h_Pion, axis_pionMass, minmasses[i], 0.22);
         // Cut the momentum to within the interval
         SetCut(h_Pion, axis_pionPt, min, max);
         // Plot the data and load it into the root file, after rebinning it properly and applying adaptive cuts
@@ -790,7 +793,6 @@ void my_code(string option = "DEFAULT") {
     
     // Graph mass standard deviations with error bars
     graphcanvas->Clear();
-    /**
     TGraphErrors* g_sigma = new TGraphErrors(num_of_intervals, center, sigmas, widths, sigma_errors);
     g_sigma->Print();
     g_sigma->SetTitle("Mass Peak Widths for Various Momenta; Momentum (GeV); Mass Width (MeV/c^2)");
@@ -802,7 +804,7 @@ void my_code(string option = "DEFAULT") {
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Write("standard-dev-masses");
     g_sigma->Draw("AP");
-     */
+    /**
     TH1D* g_sigma = new TH1D("standard-dev-masses", "standard-dev-masses", num_of_intervals, binwidths);
     g_sigma->GetXaxis()->SetRangeUser(6, 20);
     for (int i = 0; i < num_of_intervals; i++) {
@@ -818,6 +820,7 @@ void my_code(string option = "DEFAULT") {
     //g_sigma->SetMarkerStyle(20);
     g_sigma->Write("standard-dev-masses");
     g_sigma->Draw("AP");
+    */
     myText(.20,.97, kBlack, "#scale[1]{Mass widths over Pt, cuts:}");
     myText(.20,.92, kBlack, Form("#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}", angle_cut_num));
     graphcanvas->SaveAs(str_concat_converter(directory_name, "massWidths_v_pT.png"));

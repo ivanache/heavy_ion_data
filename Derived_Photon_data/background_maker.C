@@ -152,6 +152,9 @@ void background_maker(int NumOfSigmasFromMean) {
         std::cout << "\nCumulative background to total ratio: " << bt_ratio << "\nAdjustment factor, calculated from 2D histograms: " << h2d_adjustment_factor << "\nAdjustment factor, calculated from 1D histograms: " << h1d_adjustment_factor << std::endl;
         
         // For all points in both background graphs, multiply each point by the adjustment factor
+        // Also, sum up the total number of background entries and the number of total entries
+        double num_of_back_entries = 0;
+        double num_of_total_entries = 0;
         for (int i = x_bin_min; i <= x_bin_max; i++) {
             for (int j = y_bin_min; j <= y_bin_max; j++) {
                 value_3_4_sigma = back_lambda_E_graph->GetBinContent(i, j);
@@ -159,6 +162,8 @@ void background_maker(int NumOfSigmasFromMean) {
             }
             value_3_4_sigma = back_lambda_projection->GetBinContent(i);
             back_lambda_projection->SetBinContent(i, value_3_4_sigma * h1d_adjustment_factor);
+            num_of_back_entries += back_lambda_projection->GetBinContent(i);
+            num_of_total_entries += total_lambda_projection->GetBinContent(i);
         }
         
         // Graph out the two results and save them
@@ -172,6 +177,8 @@ void background_maker(int NumOfSigmasFromMean) {
         back_lambda_projection->GetYaxis()->SetTitleOffset(1.4);
         back_lambda_projection->Draw();
         myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt %2.2f-%2.2f GeV, mass within %i sigma of mean", ptmin, ptmax, NumOfSigmasFromMean));
+        myMarkerText(0.30, 0.85, kBlack, 20, Form("Background data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
+        myText(0.30, 0.80, kBlack, Form("Total entries = %4.0f", num_of_back_entries));
         canvas->SaveAs(str_concat_converter(background_directory_name, Form("Lambda_vs_E_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
         total_lambda_projection->SetMarkerColor(kRed);
         total_lambda_projection->Draw();
@@ -180,7 +187,9 @@ void background_maker(int NumOfSigmasFromMean) {
         myText(0.10, 0.95, kBlack, Form("Photons from Pi0 decay, Pt %2.2f-%2.2f GeV, mass within %i sigma of mean", ptmin, ptmax, NumOfSigmasFromMean));
         back_lambda_projection->Draw("same");
         myMarkerText(0.30, 0.85, kBlack, 20, Form("Background data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
-        myMarkerText(0.30, 0.80, kRed, 20, Form("Total data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
+        myText(0.30, 0.80, kBlack, Form("Total entries = %4.0f", num_of_back_entries));
+        myMarkerText(0.30, 0.75, kRed, 20, Form("Total data, from within %i sigma of the mean", NumOfSigmasFromMean), 1);
+        myText(0.30, 0.70, kBlack, Form("Total entries = %4.0f", num_of_total_entries));
         canvas->SaveAs(str_concat_converter(total_directory_name, Form("Lambda_vs_E_projection_ptmin_%2.2fGeV_ptmax_%2.2fGeV.png", ptmin, ptmax)));
     }
     canvas->Close();
