@@ -344,7 +344,7 @@ void my_code(string option = "DEFAULT") {
         std::cout << "Final residual count for " << residual_dist->GetBinCenter(i) << " is " << residual_dist->GetBinContent(i) << std::endl;
     }
     myText(.6, .75, kBlack, Form("#scale[0.75]{Reduced Chi-square: %2.1f/%i}", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
-    myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (num_of_params) - 1))));
+    myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.6f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - (num_of_params) - 1))));
     std::cout << "Reduced Chi Square " << func->GetChisquare()/(hMass->GetSize() - (num_of_params) - 1) << std::endl;
     
     // Plot the residual; save as a PDF, print out the individual residuals
@@ -610,7 +610,16 @@ void my_code(string option = "DEFAULT") {
         chisquares[i] = func->GetChisquare()/(hMass->GetSize() - (num_of_params) - 1); //Reduced Chi Square
         std::cout << Form("Reduced Chi Square: %2.2f", chisquares[i]) << std::endl;
         myText(.6, .75, kBlack, Form("#scale[0.75]{Reduced Chi-square: %2.1f/%i}", func->GetChisquare(), (hMass->GetSize() - num_of_params - 1)));
-        myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        if (i == 0 || i == 3)
+            myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.8f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        else if (i == 1)
+            myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.5f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        else if (i == 4)
+            myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.6f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        else if (i == 5)
+            myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.2f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
+        else
+            myText(.6, .70, kBlack, Form("#scale[0.75]{P-val: %2.11f}", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))));
         graphcanvas->cd();
         residual->SetAxisRange(-4., 4., "Y");
         residual->GetXaxis()->SetTitleSize(.08);

@@ -46,7 +46,7 @@ char* str_concat_converter(string str1, string str2){
     0.1 for all lambda between 0.1 and 0.4
     0.4 for all lambda greater than 0.4
  pT_min is used to denote which pT interval to use
-    5 for all pT between 4 and 20 GeV
+    5 for all pT between 5 and 20 GeV
     10 for all pT between 10 and 20 GeV
     All min values other than the above will result in the program shutting down
 */
@@ -98,7 +98,7 @@ void photon_grapher(double lambda_min, double pT_min) {
     ratio1->SetLineStyle(kDashed);
     
     // Get the momentum-photon data file
-    TFile* fIn = new TFile("THnSparses_080117_MC.root", "READ");
+    TFile* fIn = new TFile("THnSparses_JetJetMC.root", "READ");
     THnSparse* hPhoton = 0;
     fIn->GetObject("h_Cluster", hPhoton);
     TCanvas* canvas = new TCanvas();
@@ -187,6 +187,10 @@ void photon_grapher(double lambda_min, double pT_min) {
     for (int i = 0; i < num_of_distances; i++) {
         TH1D* hRatio = (TH1D*) hMomentum_DisToBadCells_upper->Clone("ratio");
         for (int j = 0; j < hMomentum_DisToBadCells_upper->GetSize(); j++) {      // Set the hRatio histogram's values to the photon count ratios
+            
+            if ((hMomentum_DisToBadCells_upper->GetBinContent(j)) == 0) // AVOID DIVIDING BY ZERO
+                continue;
+            
             double new_bin_content = (hMomentum_DisToBadCells_lower[i]->GetBinContent(j))/(hMomentum_DisToBadCells_upper->GetBinContent(j));
             //std::cout << "new ratio is " << new_bin_content << std::endl;
             hRatio->SetBinContent(j, new_bin_content);
@@ -281,6 +285,10 @@ void photon_grapher(double lambda_min, double pT_min) {
         TH1D* hRatio = (TH1D*) hMomentum_DisToBorder_upper->Clone("ratio");
         //cout << "\nDistance to border = " << distances_to_border[i] << std::endl;
         for (int j = 0; j < hMomentum_DisToBorder_upper->GetSize(); j++) { // Set the hRatio histogram's values to the photon count ratios
+            
+            if ((hMomentum_DisToBadCells_upper->GetBinContent(j)) == 0) // AVOID DIVIDING BY ZERO
+                continue;
+            
             double new_bin_content = (hMomentum_DisToBorder_lower[i]->GetBinContent(j))/(hMomentum_DisToBorder_upper->GetBinContent(j));
             //std::cout << "Upper distance is " << hMomentum_DisToBorder_upper->GetBinContent(j) << std::endl;
             //std::cout << "Lower distance is " << hMomentum_DisToBorder_lower[i]->GetBinContent(j) << std::endl;

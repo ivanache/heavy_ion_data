@@ -18,9 +18,9 @@
 const int axis_photonPt           =  3;
 const int axis_photonLambda       =  6;
 const int axis_photonNcells       =  7;
-const int axis_photonDisToBorder  = 10;
-const int axis_photonDisToBadCell = 11;
-const int axis_photonDisToCharged = 12;
+const int axis_photonDisToBorder  = 9;
+const int axis_photonDisToBadCell = 10;
+const int axis_photonDisToCharged = 11;
 
 // The cutting function
 void SetCut(THnSparse* h, const int axis, double min, double max){
@@ -98,10 +98,10 @@ void photon_grapher(string lambda_option, string pT_option) {
     ratio1->SetLineStyle(kDashed);
     
     // Get the momentum-photon data file
-    TFile* fIn = new TFile("THnSparses_070517.root", "READ");
+    TFile* fIn = new TFile("THnSparses_LHC13d.root", "READ");
     THnSparse* hPhoton = 0;
     fIn->GetObject("h_Cluster", hPhoton);
-    TCanvas* canvas = new TCanvas();
+    //TCanvas* canvas = new TCanvas();
     TCanvas* logcanvas = new TCanvas();
     //logcanvas->SetLogy();
     
@@ -136,7 +136,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     //Cut Distance to bad cells to greater than 3, then graph the momentum photon data again
     SetCut(hPhoton, axis_photonDisToBadCell, 4, 10);
     TH1D* hMomentum_DisToBadCells_upper = hPhoton->Projection(axis_photonPt);
-    hMomentum_DisToBadCells_upper->Rebin(4);
+    hMomentum_DisToBadCells_upper->Rebin(1);
     hMomentum_DisToBadCells_upper->SetTitle("Pt-Photon Plot; Pt (GeV/c); Fraction of total");
     // Normalize the plot
     hMomentum_DisToBadCells_upper->Scale(1/hMomentum_DisToBadCells_upper->Integral());
@@ -162,7 +162,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     for (int i = 0; i < num_of_distances; i++) {
         SetCut(hPhoton, axis_photonDisToBadCell, distances_to_bad_cells[i], distances_to_bad_cells[i] + 1);
         hMomentum_DisToBadCells_lower[i] = hPhoton->Projection(axis_photonPt);
-        hMomentum_DisToBadCells_lower[i]->Rebin(4);
+        hMomentum_DisToBadCells_lower[i]->Rebin(1);
         hMomentum_DisToBadCells_lower[i]->SetMarkerColor(colors[i]);
         hMomentum_DisToBadCells_lower[i]->SetMarkerStyle(marker_styles[i]);
         hMomentum_DisToBadCells_lower[i]->SetLineColor(colors[i]);
@@ -181,12 +181,16 @@ void photon_grapher(string lambda_option, string pT_option) {
     
     // Get a histogram of the ratio of the normalized photon count with a distance to bad cells over three
     // to the normalized photon count with a distance to bad cells of of 1, 2, and 3
-    canvas->cd();
+    logcanvas->cd();
     double chisquares[num_of_distances] = {0, 0, 0};
     int num_of_bins[num_of_distances] = {hMomentum_DisToBadCells_upper->GetSize(), hMomentum_DisToBadCells_upper->GetSize(), hMomentum_DisToBadCells_upper->GetSize()};
     for (int i = 0; i < num_of_distances; i++) {
         TH1D* hRatio = (TH1D*) hMomentum_DisToBadCells_upper->Clone("ratio");
         for (int j = 0; j < hMomentum_DisToBadCells_upper->GetSize(); j++) {      // Set the hRatio histogram's values to the photon count ratios
+            
+            if ((hMomentum_DisToBadCells_upper->GetBinContent(j)) == 0) // AVOID DIVIDING BY ZERO
+                continue;
+            
             double new_bin_content = (hMomentum_DisToBadCells_lower[i]->GetBinContent(j))/(hMomentum_DisToBadCells_upper->GetBinContent(j));
             //std::cout << "new ratio is " << new_bin_content << std::endl;
             hRatio->SetBinContent(j, new_bin_content);
@@ -204,7 +208,7 @@ void photon_grapher(string lambda_option, string pT_option) {
         hRatio->SetLineColor(colors[i]);
         // Draw the histogram
         hRatio->SetTitle(Form("Normalized Ratios of DisToBadCell>3 to DisToBadCell=%i photons; Pt (GeV/c); Ratio", distances_to_bad_cells[i]));
-        hRatio->SetAxisRange(0.0, 2.1, "Y");
+        hRatio->SetAxisRange(0.5, 1.4, "Y");
         hRatio->GetXaxis()->SetLimits(pTmin + bin_offsets[i], pTmax + bin_offsets[i]);
         if(i == 0)
             hRatio->Draw();
@@ -224,8 +228,8 @@ void photon_grapher(string lambda_option, string pT_option) {
     myMarkerText(0.19, 0.25, colors[2], marker_styles[2], "dBadCell=3/dBadCell>3 ratio;", 1);
     myText(0.19, 0.20, kBlack, Form("chi2_v = %3.1f; p-val = %2.2f", chisquares[2]/(num_of_bins[2] - 1), TMath::Prob(chisquares[2], (num_of_bins[2] - 1))));
     myText(0.15, 0.16, kBlack, "#scale[1.5]{...} Ratio = 1 fit");
-    canvas->SaveAs(str_concat_converter(directory_name, "photon_ratios_distobadcells.png"));
-    canvas->Clear();
+    logcanvas->SaveAs(str_concat_converter(directory_name, "photon_ratios_distobadcells.png"));
+    logcanvas->Clear();
     
     // Cut distance to border to greater than 2, and graph the result
     logcanvas->Clear();
@@ -233,7 +237,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     SetCut(hPhoton, axis_photonDisToBadCell, 0, 10); // Reset distance to bad cell cut to original value
     SetCut(hPhoton, axis_photonDisToBorder, 3, 5);
     TH1D* hMomentum_DisToBorder_upper = hPhoton->Projection(axis_photonPt);
-    hMomentum_DisToBorder_upper->Rebin(4);
+    hMomentum_DisToBorder_upper->Rebin(1);
     hMomentum_DisToBorder_upper->SetTitle("Pt-Photon Plot; Pt (GeV/c); Fraction of total");
     // Normalize the plot
     hMomentum_DisToBorder_upper->Scale(1/hMomentum_DisToBorder_upper->Integral());
@@ -252,7 +256,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     for (int i = 0; i < num_of_distances; i++) {
         SetCut(hPhoton, axis_photonDisToBorder, distances_to_border[i], distances_to_border[i] + 1);
         hMomentum_DisToBorder_lower[i] = hPhoton->Projection(axis_photonPt);
-        hMomentum_DisToBorder_lower[i]->Rebin(4);
+        hMomentum_DisToBorder_lower[i]->Rebin(1);
         hMomentum_DisToBorder_lower[i]->SetMarkerColor(colors[i]);
         hMomentum_DisToBorder_lower[i]->SetMarkerStyle(marker_styles[i]);
         hMomentum_DisToBorder_lower[i]->SetLineColor(colors[i]);
@@ -271,7 +275,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     
     // Get a histogram of the ratio of the normalized photon count with a distance to border over two
     // to the normalized photon count with a distance to bad cells of of 0, 1, and 2
-    canvas->cd();
+    logcanvas->cd();
     // Reassign chisquares and num_of_bins parameters to default values
     for (int k = 0; k < num_of_distances; k++)
         chisquares[k] = 0;
@@ -282,6 +286,10 @@ void photon_grapher(string lambda_option, string pT_option) {
         //cout << "\nDistance to border = " << distances_to_border[i] << std::endl;
         for (int j = 0; j < hMomentum_DisToBorder_upper->GetSize(); j++) { // Set the hRatio histogram's values to the photon count ratios
             double new_bin_content = (hMomentum_DisToBorder_lower[i]->GetBinContent(j))/(hMomentum_DisToBorder_upper->GetBinContent(j));
+            
+            if ((hMomentum_DisToBorder_upper->GetBinContent(j)) == 0) // AVOID DIVIDING BY ZERO
+                continue;
+            
             //std::cout << "Upper distance is " << hMomentum_DisToBorder_upper->GetBinContent(j) << std::endl;
             //std::cout << "Lower distance is " << hMomentum_DisToBorder_lower[i]->GetBinContent(j) << std::endl;
             //std::cout << "new ratio is " << new_bin_content << std::endl;
@@ -300,7 +308,7 @@ void photon_grapher(string lambda_option, string pT_option) {
         hRatio->SetMarkerStyle(marker_styles[i]);
         hRatio->SetLineColor(colors[i]);
         hRatio->SetTitle(Form("Normalized Ratios of DisToBorder>2 to DisToBorder=%i photons; Pt (GeV/c); Ratio", distances_to_border[i]));
-        hRatio->SetAxisRange(0.0, 2.1, "Y");
+        hRatio->SetAxisRange(0.5, 1.4, "Y");
         hRatio->GetXaxis()->SetLimits(pTmin + bin_offsets[i], pTmax + bin_offsets[i]);
         if(i == 0)
             hRatio->Draw();
@@ -317,9 +325,9 @@ void photon_grapher(string lambda_option, string pT_option) {
     myMarkerText(0.19, 0.25, colors[2], marker_styles[2], "dBorder=2/dBorder>2 ratio;", 1);
     myText(0.19, 0.20, kBlack, Form("chi2_v = %3.1f; p-val = %2.2f", chisquares[2]/(num_of_bins[2] - 1), TMath::Prob(chisquares[2], (num_of_bins[2] - 1))));
     myText(0.15, 0.16, kBlack, "#scale[1.5]{...} Ratio = 1 fit");
-    canvas->SaveAs(str_concat_converter(directory_name, "photon_ratios_distoborder.png"));
-    canvas->Clear();
+    logcanvas->SaveAs(str_concat_converter(directory_name, "photon_ratios_distoborder.png"));
+    logcanvas->Clear();
     
     logcanvas->Close();
-    canvas->Close();
+    //canvas->Close();
 }
