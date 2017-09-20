@@ -1,5 +1,8 @@
 # Pion Data Folder
 ## Technical Specifications
+- Before_August: The folder that stores everything that was made until August 5
+- Since_August: The folder that stores everyything made after August 5
+
 - Different_models: the data of the comparisons of various data models
 - Gaussian Model Cuts: the first tests of what effects data cuts have on the data, done before the switch from the Gaussian model to the Crystal Ball model. Includes no source code. Includes: lambda02 cut, asymmetry cut, angle cut, Ncells cut
 - THnSparses 060717 Crystal Ball Cuts: the tests of what effects data cuts have on the data, done after the switch from the Gaussian Model to the Crystal Ball Model but before the switch from THnSparses_060717 to THnSparses_062017. In addition to the Gaussian Model Cuts's cuts, this includes a Matched Tracks cut. 
