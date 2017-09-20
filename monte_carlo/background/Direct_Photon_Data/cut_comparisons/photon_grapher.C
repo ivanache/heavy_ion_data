@@ -208,7 +208,7 @@ void photon_grapher(double lambda_min, double pT_min) {
         hRatio->SetLineColor(colors[i]);
         // Draw the histogram
         hRatio->SetTitle(Form("Normalized Ratios of DisToBadCell>3 to DisToBadCell=%i photons; Pt (GeV/c); Ratio", distances_to_bad_cells[i]));
-        hRatio->SetAxisRange(0.0, 2.1, "Y");
+        hRatio->SetAxisRange(0.92, 1.05, "Y");
         hRatio->GetXaxis()->SetLimits(pTmin + bin_offsets[i], pTmax + bin_offsets[i]);
         if(i == 0)
             hRatio->Draw();
@@ -224,7 +224,10 @@ void photon_grapher(double lambda_min, double pT_min) {
     else
         myText(0.19, 0.38, kBlack, Form("chi2_v = %3.1f; p-val = %2.6f", chisquares[0]/(num_of_bins[0] - 1), TMath::Prob(chisquares[0], (num_of_bins[0] - 1))));
     myMarkerText(0.19, 0.34, colors[1], marker_styles[1], "dBadCell=2/dBadCell>3 ratio;", 1);
-    myText(0.19, 0.29, kBlack, Form("chi2_v = %3.1f; p-val = %2.2f", chisquares[1]/(num_of_bins[1] - 1), TMath::Prob(chisquares[1], (num_of_bins[1] - 1))));
+    if (lambda_min == 0.1 && pTmin == 10)
+        myText(0.19, 0.29, kBlack, Form("chi2_v = %3.1f; p-val = %2.5f", chisquares[1]/(num_of_bins[1] - 1), TMath::Prob(chisquares[1], (num_of_bins[1] - 1))));
+    else
+        myText(0.19, 0.29, kBlack, Form("chi2_v = %3.1f; p-val = %2.2f", chisquares[1]/(num_of_bins[1] - 1), TMath::Prob(chisquares[1], (num_of_bins[1] - 1))));
     myMarkerText(0.19, 0.25, colors[2], marker_styles[2], "dBadCell=3/dBadCell>3 ratio;", 1);
     myText(0.19, 0.20, kBlack, Form("chi2_v = %3.1f; p-val = %2.2f", chisquares[2]/(num_of_bins[2] - 1), TMath::Prob(chisquares[2], (num_of_bins[2] - 1))));
     myText(0.15, 0.16, kBlack, "#scale[1.5]{...} Ratio = 1 fit");
@@ -308,7 +311,7 @@ void photon_grapher(double lambda_min, double pT_min) {
         hRatio->SetMarkerStyle(marker_styles[i]);
         hRatio->SetLineColor(colors[i]);
         hRatio->SetTitle(Form("Normalized Ratios of DisToBorder>2 to DisToBorder=%i photons; Pt (GeV/c); Ratio", distances_to_border[i]));
-        hRatio->SetAxisRange(0.0, 2.1, "Y");
+        hRatio->SetAxisRange(0.6, 1.3, "Y");
         hRatio->GetXaxis()->SetLimits(pTmin + bin_offsets[i], pTmax + bin_offsets[i]);
         if(i == 0)
             hRatio->Draw();
