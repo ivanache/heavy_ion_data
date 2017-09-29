@@ -178,6 +178,7 @@ void my_code() {
     SetAtlasStyle();
     // Headers for various cut nums, for use both for table output (another version is defined in the to-table input section and for titles
     const int cutnum_option_quantity = 5;
+    const double asymmetry_cut_num = 0.6;
     directory_name = "data/";
     //string headers[cutnum_option_quantity] = {"None ", "angle > 17 mrad ", "0.1 < lambda < 0.4 ", "dR > 20 mrad ", "asymmetry < 0.7 "};
     //if (option == "TESTSENSITIVITY")
@@ -253,7 +254,7 @@ void my_code() {
     }
     // Set pt cut to what it originally was
     SetCut(h_Pion, axis_pionPt, 6, 20.0);
-    //SetCut(h_Pion, axis_asymmetry, 0.0, 0.7);
+    SetCut(h_Pion, axis_asymmetry, 0.0, asymmetry_cut_num);
     
     //std::cout << "Cuts: distance to charged particles, lambda, angle, and asymmetry\n\n";
     
@@ -407,65 +408,6 @@ void my_code() {
     graphcanvas->SaveAs(str_concat_converter(directory_name, "WholeSample_Signal_Over_Total.png"));
     TGraph* total_sigtot = new TGraph(sig_over_tot_funct);
     total_sigtot->Write("Total_Sig_To_Total");
-    
-    /**
-    // Write to the table file
-        // Common header: goes on top of the table content commands. Creates the frame and table, sets the frame title, table title, and frame and table formatting
-    string common_header = "\\frame\n{\n\\frametitle{Analysis of Cuts: Pt 8-20 GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n";
-        // Common footer: goes on the bottom of the table content commands. Closes up the frame and the table
-    string common_footer = "[1ex]\n\\hline\n\\end{tabular}\n\\label{table:nonlin}\n\\end{table}\n}\n";
-    string table_headers[cutnum_option_quantity] = {"None ", "+angle $> 15$ mrad ", "+$0.1 < \\lambda <$ 0.4 ", "+dR $> 20$ mrad ", "+asymmetry $< 0.7$ "};
-    // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
-    ifstream table_file_input;
-    table_file_input.open("data/table_file.tex");
-    // Print an error message if file cannot be opened
-    if (!table_file_input)
-        cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-    string before_in = "";
-    string after_in = "";
-    string current_line;
-    string line_component;
-    int order_num;
-    while (!table_file_input.eof()) {
-        std::getline(table_file_input, current_line);
-        std::stringstream linestream(current_line);
-        //cout << current_line << " is current line" << std::endl;
-        std::getline(linestream, line_component, '%');
-        //cout << line_component << " is line component" << std::endl;
-        std::getline(linestream, line_component, '%');
-        //cout << line_component << " is line component" << std::endl;
-        // Continue to the next line if the line component's first character is not an integer
-        // If the table file is not found, then break out of the loop if the line component is improper
-        if (!table_file_input) {
-            if (!isdigit(line_component[0]))
-                break;
-        }
-        else {
-            if (!isdigit(line_component[0]))
-                continue;
-        }
-        order_num = std::stoi(line_component);
-        //cout << "Line originally in file: order number " << order_num << std::endl << std::endl;
-        if (order_num < NumOfCuts) {
-            before_in = before_in + current_line + "\n";
-            //cout << "Line goes before input\n";
-        }
-        else if (order_num > NumOfCuts) {
-            after_in = after_in + current_line + "\n";
-            //cout << "Line goes after input\n";
-        }
-        //else
-            //cout << "Line overwritten\n";
-        
-    }
-    table_file_input.close();
-    ofstream table_file_output;
-    table_file_output.open("data/table_file.tex");
-    if (!table_file_output)
-        cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-    table_file_output << common_header << before_in << table_headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",(func->GetParError(0))/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
-    table_file_output.close();
-    */
      
     /**
     // Plot the energies of the two photons against each other
@@ -677,10 +619,11 @@ void my_code() {
         peaks_over_totals->Add(g_sig_over_tot);
         
         
-        /**
+        
         // Write data on number of pions and signal to total to the table file
         // Edit the common header to place the sub-interval's momentum bounds in the frame title
-        common_header = Form("\\frame\n{\n\\frametitle{Analysis of Cuts: Pt %2.0f-%2.0f GeV}\n\\begin{table}\n\\caption{How cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c}\n\\hline\\hline\nCuts & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ \\\\ [0.5ex]\n\\hline\n", min, max);
+        string common_header = Form("\\frame\n{\n\\frametitle{Analysis of Cuts: Pt %2.0f-%2.0f GeV}\nNote: asymmetry without cuts is always less than 1\n\\begin{table}\n\\caption{How asymmetry cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c c}\n\\hline\\hline\nAsymmetry Cut & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ & p-val \\\\ [0.5ex]\n\\hline\n", min, max);
+        string common_footer = "[1ex]\n\\hline\n\\end{tabular}\n\\label{table:nonlin}\n\\end{table}\n}\n";
         // First take in what is already in the file, put the string intended for input in its proper order, then write to the file
         ifstream table_file_input;
         table_file_input.open(Form("data/table_file_Ptmin_%2.2f_Ptmax_%2.2f.tex", min, max));
@@ -691,7 +634,7 @@ void my_code() {
         string after_in = "";
         string current_line;
         string line_component;
-        int order_num;
+        double order_num;
         while (!table_file_input.eof()) {
             std::getline(table_file_input, current_line);
             std::stringstream linestream(current_line);
@@ -711,13 +654,13 @@ void my_code() {
                     continue;
             }
 
-            order_num = std::stoi(line_component);
+            order_num = std::stod(line_component);
             //cout << "Line originally in file: order number " << order_num << std::endl << std::endl;
-            if (order_num < NumOfCuts) {
+            if (order_num > asymmetry_cut_num) {
                 before_in = before_in + current_line + "\n";
                 //cout << "Line goes before input\n";
             }
-            else if (order_num > NumOfCuts) {
+            else if (order_num < asymmetry_cut_num) {
                 after_in = after_in + current_line + "\n";
                 //cout << "Line goes after input\n";
             }
@@ -730,9 +673,9 @@ void my_code() {
         table_file_output.open(Form("data/table_file_Ptmin_%2.2f_Ptmax_%2.2f.tex", min, max));
         if (!table_file_output)
             cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
-        table_file_output << common_header << before_in << table_headers[NumOfCuts] << "& " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",func->GetParError(0)/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " \\\\ %" << NumOfCuts << "%" << std::endl << after_in << common_footer;
+        table_file_output << common_header << before_in << "asym $<$ " << asymmetry_cut_num << " & " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",func->GetParError(0)/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " & " << Form("%2.3f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))) << " \\\\ %" << asymmetry_cut_num << "%" << std::endl << after_in << common_footer;
         table_file_output.close();
-         */
+        
         
         //Load onto the ROOT file
         hMass->GetListOfFunctions()->Add(peak);
