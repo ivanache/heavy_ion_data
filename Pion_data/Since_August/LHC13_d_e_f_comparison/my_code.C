@@ -1,5 +1,5 @@
 /**
- my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses_LHC13d_090717.root
+ my_code is a data-processing macro meant for processing THnSparses root files, specifically the h_Pion one in THnSparses_LHC13d_090717.root, THnSparses_LHC13e_090717.root, THnSparses_LHC13f_090717.root
  Programmer: Ivan Chernyshev
  */
 #include "atlasstyle-00-03-05/AtlasStyle.h"
@@ -171,24 +171,28 @@ void graph_raw_data(THnSparse* data, const int hPion_var, TCanvas* can, char* fi
 
 /**
  Main function
- Manipulated by changing the value of asymmetry_cut_num, which is the value of the maximum asymmetry
+ Precondition: runletter, the one-letter string that denotes the run letter is either "d", "e", or "f"
  */
-void my_code() {
+void my_code(string runletter) {
+    // Leave the file if runletter is not "d", "e", or "f"
+    if (runletter != "d" && runletter != "e" && runletter != "f") {
+        cout << "ERROR: run letter must be \"d\", \"e\", or \"f\"" << endl;
+    }
+    
     // Set ATLAS style
     gROOT->LoadMacro("AtlasStyle.C");
     SetAtlasStyle();
     // Headers for various cut nums, for use both for table output (another version is defined in the to-table input section and for titles
     const int cutnum_option_quantity = 5;
-    const double asymmetry_cut_num = 1.0;
-    directory_name = "data/";
+    directory_name = Form("data/%s/", runletter.c_str());
     //string headers[cutnum_option_quantity] = {"None ", "angle > 17 mrad ", "0.1 < lambda < 0.4 ", "dR > 20 mrad ", "asymmetry < 0.7 "};
     //if (option == "TESTSENSITIVITY")
         //headers[1] = "angle > 18 mrad";
     
     //Open the files
-    TFile* fIn = new TFile("THnSparses_LHC13d_090717.root","READ"); //get file
+    TFile* fIn = new TFile(Form("THnSparses_LHC13%s_090717.root", runletter.c_str()),"READ"); //get file
     string rootfilename;
-    rootfilename = Form("PionDataOutput_asym<%1.1f.root", asymmetry_cut_num);
+    rootfilename = Form("PionDataOutput_LHC13%s.root", runletter.c_str());
     fOut = new TFile(rootfilename.c_str(), "RECREATE"); // Create an output file
     fIn->Print(); //print file content
     
@@ -227,6 +231,7 @@ void my_code() {
         SetCut(h_Pion, axis_pionAngle, 19.5, 60);*/
     
     // The asymmetry needs a separate graph per momentum interval
+    // The 14-16 GeV interval and above are the ones whose asymmetry is not cut at all
     double min;
     double max;
     const int num_of_intervals = 6;
@@ -255,7 +260,7 @@ void my_code() {
     }
     // Set pt cut to what it originally was
     SetCut(h_Pion, axis_pionPt, 6, 20.0);
-    SetCut(h_Pion, axis_asymmetry, 0.0, asymmetry_cut_num);
+    // Asymmetry cut will be applied in the individual pt bins
     
     //std::cout << "Cuts: distance to charged particles, lambda, angle, and asymmetry\n\n";
     
@@ -455,12 +460,17 @@ void my_code() {
     // start cutting the data up; plot the mass data for momenta of 6-8, 8-10, 10-12, 12-14, 14-16, 16-18, 18-20
     func->SetParameter(0, 30);
     for(int i = 0; i < num_of_intervals; i++) {
-        //Adaptive Cuts go here
          
         pad[0] = new TPad("pad0","",0,0.36,1,1);
         pad[1] = new TPad("pad1","",0,0.05,1,0.45);
         min = intervals[i][0];
         max = intervals[i][1]; // Interval bounds
+        
+        // Asymmetry cut
+        if (min >= 12)
+            SetCut(h_Pion, axis_asymmetry, 0.0, 0.9);
+        else
+            SetCut(h_Pion, axis_asymmetry, 0.0, 0.6);
         
         // Cut the momentum to within the interval
         SetCut(h_Pion, axis_pionPt, min, max);
@@ -620,7 +630,7 @@ void my_code() {
         peaks_over_totals->Add(g_sig_over_tot);
         
         
-        
+        /**
         // Write data on number of pions and signal to total to the table file
         // Edit the common header to place the sub-interval's momentum bounds in the frame title
         string common_header = Form("\\frame\n{\n\\frametitle{Analysis of Cuts: Pt %2.0f-%2.0f GeV}\nNote: asymmetry without cuts is always less than 1\n\\begin{table}\n\\caption{How asymmetry cuts affect data quality}\n\\centering\n\\begin{tabular}{c c c c c}\n\\hline\\hline\nAsymmetry Cut & \\# Pions1 & S/T at 1 $\\sigma$ & S/T at 2 $\\sigma$ & p-val \\\\ [0.5ex]\n\\hline\n", min, max);
@@ -676,7 +686,7 @@ void my_code() {
             cout << "WARNING: TABLE FILE NOT FOUND" << std::endl;
         table_file_output << common_header << before_in << "asym $<$ " << asymmetry_cut_num << " & " << Form("%4.0f",(func->GetParameter(0))/MASSWIDTH) << " +/- " << Form("%4.0f",func->GetParError(0)/MASSWIDTH) << " & " << Form("%2.2f", sig_over_tot_funct->Eval(1)) <<  " & " << Form("%2.2f", sig_over_tot_funct->Eval(2)) << " & " << Form("%2.3f", TMath::Prob(func->GetChisquare(), (hMass->GetSize() - num_of_params - 1))) << " \\\\ %" << asymmetry_cut_num << "%" << std::endl << after_in << common_footer;
         table_file_output.close();
-        
+        */
         
         //Load onto the ROOT file
         hMass->GetListOfFunctions()->Add(peak);
