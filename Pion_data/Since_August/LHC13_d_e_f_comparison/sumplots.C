@@ -85,7 +85,7 @@ void sumplots() {
     canvas->Clear();
     
     // Draw the mean mass curves for all 3 runs. Be sure to include a legend
-    d_mean_masses->GetYaxis()->SetTitle("Mean Masses");
+    d_mean_masses->GetYaxis()->SetTitle("Mean Masses (GeV)");
     d_mean_masses->GetYaxis()->SetRangeUser(0.13, 0.155);
     d_mean_masses->GetXaxis()->SetRangeUser(6, 16);
     d_mean_masses->GetYaxis()->SetTitleSize(.06);
@@ -96,7 +96,7 @@ void sumplots() {
     d_mean_masses->SetMarkerStyle(1);
     d_mean_masses->Draw();
     
-    e_mean_masses->GetYaxis()->SetTitle("Mean Masses");
+    e_mean_masses->GetYaxis()->SetTitle("Mean Masses (GeV)");
     e_mean_masses->GetYaxis()->SetTitleSize(.06);
     e_mean_masses->GetYaxis()->SetTitleOffset(1.3);
     e_mean_masses->GetXaxis()->SetTitleOffset(1.1);
@@ -104,7 +104,7 @@ void sumplots() {
     e_mean_masses->SetLineColor(kRed);
     e_mean_masses->Draw("same");
     
-    f_mean_masses->GetYaxis()->SetTitle("Mean Masses");
+    f_mean_masses->GetYaxis()->SetTitle("Mean Masses (GeV)");
     f_mean_masses->GetYaxis()->SetTitleSize(.06);
     f_mean_masses->GetYaxis()->SetTitleOffset(1.3);
     f_mean_masses->GetXaxis()->SetTitleOffset(1.1);
@@ -120,7 +120,7 @@ void sumplots() {
     canvas->Clear();
     
     // Draw the mass widths for all 3 runs. Be sure to include a legend
-    d_mass_widths->GetYaxis()->SetTitle("Mass Peak Std. Dev");
+    d_mass_widths->GetYaxis()->SetTitle("Mass Peak Std. Dev (MeV)");
     d_mass_widths->GetYaxis()->SetTitleSize(.07);
     d_mass_widths->GetYaxis()->SetTitleOffset(0.7);
     d_mass_widths->GetXaxis()->SetTitleOffset(1.1);
@@ -129,7 +129,7 @@ void sumplots() {
     d_mass_widths->SetMarkerStyle(1);
     d_mass_widths->Draw();
     
-    e_mass_widths->GetYaxis()->SetTitle("Mass Peak Std. Dev");
+    e_mass_widths->GetYaxis()->SetTitle("Mass Peak Std. Dev (MeV)");
     e_mass_widths->GetYaxis()->SetTitleSize(.07);
     e_mass_widths->GetYaxis()->SetTitleOffset(0.7);
     e_mass_widths->GetXaxis()->SetTitleOffset(1.1);
@@ -137,7 +137,7 @@ void sumplots() {
     e_mass_widths->SetLineColor(kRed);
     e_mass_widths->Draw("same");
     
-    f_mass_widths->GetYaxis()->SetTitle("Mass Peak Std. Dev");
+    f_mass_widths->GetYaxis()->SetTitle("Mass Peak Std. Dev (MeV)");
     f_mass_widths->GetYaxis()->SetTitleSize(.07);
     f_mass_widths->GetYaxis()->SetTitleOffset(0.7);
     f_mass_widths->GetXaxis()->SetTitleOffset(1.1);
