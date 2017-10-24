@@ -203,7 +203,7 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_mi
     // Graph the projection
     graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
     myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
-    canvas->SaveAs("projection_function_intensitychart.png");
+    canvas->SaveAs("correlation_function_projection.png");
     
     canvas->Close();
 }
