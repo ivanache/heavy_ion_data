@@ -75,6 +75,29 @@ void SetCut(THnSparse* h, const int axis, double min, double max){
     h->GetAxis(axis)->SetRange(binmin, binmax-1);
     return;
 }
+/**
+// Graphing and labeling function for TH2D histograms
+void graph2D(TH2D* graph, string title, string ylabel, string xlabel, double xseparation, double yseparation, TCanvas* canvas, string graph_option) {
+    // Set all titles, set all title separations
+    graph->SetTitle(Form("%s; %s; %s", title.c_str(), xlabel.c_str(), ylabel.c_str()));
+    graph->GetYaxis()->SetTitleOffset(yseparation);
+    graph->GetXaxis()->SetTitleOffset(xseparation);
+    
+    // Draw the graph
+    graph->Draw(graph_option.c_str());
+}
+*/
+// Graphing and labeling function for histograms
+void graph(TH1* graph, string title, string ylabel, string xlabel, double xseparation, double yseparation, TCanvas* canvas, string graph_option= "") {
+    // Set all titles, set all title separations
+    graph->SetTitle(Form("%s; %s; %s", title.c_str(), xlabel.c_str(), ylabel.c_str()));
+    graph->GetYaxis()->SetTitleOffset(yseparation);
+    graph->GetXaxis()->SetTitleOffset(xseparation);
+    
+    // Draw the graph
+    graph->Draw(graph_option.c_str());
+}
+
 
 // 2D histogram dividing function
 // Precondition: the two histograms must have the same y- and x-dimensions
@@ -99,19 +122,31 @@ TH2D* divide_histograms2D(TH2D* graph1, TH2D* graph2){
     return quotient;
 }
 
-// Graphing and labeling function for TH2D histograms
-void graph2D(TH2D* graph, string title, string ylabel, string xlabel, double xseparation, double yseparation, TCanvas* canvas, string graph_option) {
-    // Set all titles, set all title separations
-    graph->SetTitle(Form("%s; %s; %s", title.c_str(), xlabel.c_str(), ylabel.c_str()));
-    graph->GetYaxis()->SetTitleOffset(yseparation);
-    graph->GetXaxis()->SetTitleOffset(xseparation);
+// Projects a 2D histogram onto a 1D histogram by integrating its y-axis from a minimum to a maximum
+TH1D* project_2Dhistogram(TH2D* hist2D, double ymin, double ymax) {
+    // Make the 1D histogram by calling the project function of the TH2D
+    TH1D* projection = hist2D->ProjectionX();
     
-    // Draw the graph
-    graph->Draw(graph_option.c_str());
+    //Get the x-min and x-max bin numbers
+    double x_bin_min = hist2D->GetXaxis()->FindBin(hist2D->GetXaxis()->GetXmin());
+    double x_bin_max = hist2D->GetXaxis()->FindBin(hist2D->GetXaxis()->GetXmax());
+    //Get the y-min and y-max bin numbers
+    double y_bin_min = hist2D->GetYaxis()->FindBin(ymin);
+    double y_bin_max = hist2D->GetYaxis()->FindBin(ymax);
+    double* error;
+    
+    // Loop over the x-bins from x_bin_min to x_bin_max, replace each term in projection with the within-bin integral from
+    for(int i = x_bin_min; i <= x_bin_max; i++) {
+        projection->SetBinContent(i, hist2D->IntegralAndError(i, i, y_bin_min, y_bin_max, *error));
+        projection->SetBinError(i, *error);
+    }
+    
+    return projection;
 }
 
 // Main function
-void pion_hadron_corr() {
+// Must be called with the minimum and maximum values for the following parameters: trigger pT, mass, track pT
+void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_min, double mass_max, double trackpT_min, double trackpT_max) {
     SetAtlasStyle();
     TCanvas* canvas = new TCanvas();
     
@@ -126,25 +161,25 @@ void pion_hadron_corr() {
     input->GetObject("h_PionTrack_Mixed", hPionTrack_Mixed);
     
     // Cut the pion pT of both THnSparses to 10-12 GeV, the mass to 110-150 MeV, and track pT to 1-2 GeV
-    SetCut(hPionTrack, axis_corr_triggerpT, 10, 12);
-    SetCut(hPionTrack, axis_corr_mass, 0.11, 0.15);
-    SetCut(hPionTrack, axis_corr_trackpT, 1, 2);
+    SetCut(hPionTrack, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
+    SetCut(hPionTrack, axis_corr_mass, mass_min, mass_max);
+    SetCut(hPionTrack, axis_corr_trackpT, trackpT_min, trackpT_max);
     
-    SetCut(hPionTrack_Mixed, axis_corr_triggerpT, 10, 12);
-    SetCut(hPionTrack_Mixed, axis_corr_mass, 0.11, 0.15);
-    SetCut(hPionTrack_Mixed, axis_corr_trackpT, 1, 2);
+    SetCut(hPionTrack_Mixed, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
+    SetCut(hPionTrack_Mixed, axis_corr_mass, mass_min, mass_max);
+    SetCut(hPionTrack_Mixed, axis_corr_trackpT, trackpT_min, trackpT_max);
     
     // Make a 2D projection over both delta-phi and delta-eta for both THnSparses
     TH2D* Pion_Track_Projection = hPionTrack->Projection(axis_corr_deta, axis_corr_dphi);
     TH2D* Pion_Track_Mixed_Projection = hPionTrack_Mixed->Projection(axis_corr_deta, axis_corr_dphi);
     
     // Output the 2D projections
-    graph2D(Pion_Track_Projection, "Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+    graph(Pion_Track_Projection, "Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
     myText(.40,.92, kBlack, "Pion Track");
     canvas->SaveAs("pion_track_graph.png");
     canvas->Clear();
     
-    graph2D(Pion_Track_Mixed_Projection, "Mixed Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+    graph(Pion_Track_Mixed_Projection, "Mixed Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
     myText(.40,.92, kBlack, "Mixed Pion Track");
     canvas->SaveAs("mixed_pion_track_graph.png");
     canvas->Clear();
@@ -154,15 +189,21 @@ void pion_hadron_corr() {
     // Use both a surface plot and a 2D intensity chart
     TH2D* correlation_function = divide_histograms2D(Pion_Track_Projection, Pion_Track_Mixed_Projection);
     
-    graph2D(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+    graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
     myText(.40,.92, kBlack, "Correlation Function");
     canvas->SaveAs("correlation_function_intensitychart.png");
     
-    graph2D(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "SURF2");
+    graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "SURF2");
     myText(.40,.92, kBlack, "Correlation Function");
     canvas->SaveAs("correlation_function_surfaceplot.png");
     
+    // Get the projection of the correlation function over |delta eta| < 0.8
+    TH1D* correlation_projection = project_2Dhistogram(correlation_function, -0.8, 0.8);
     
+    // Graph the projection
+    graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
+    myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
+    canvas->SaveAs("projection_function_intensitychart.png");
     
     canvas->Close();
 }
