@@ -203,6 +203,10 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_mi
     // Graph the projection
     graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
     myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
+    // Label regarding pion pT, mass, track pT cuts
+    myText(.6, 0.75, kBlack, "#scale[0.5]{10 GeV < #pi^{0} pT < 12 GeV}");
+    myText(.6, 0.72, kBlack, "#scale[0.5]{110 MeV < #pi^{0} mass < 150 MeV}");
+    myText(.6, 0.69, kBlack, "#scale[0.5]{1 GeV < Track pT < 2 GeV}");
     canvas->SaveAs("correlation_function_projection.png");
     
     canvas->Close();
