@@ -145,7 +145,7 @@ TH1D* project_2Dhistogram(TH2D* hist2D, double ymin, double ymax) {
 }
 
 // Main function
-// Must be called with the minimum and maximum values for the following parameters: trigger pT, mass, track pT
+// Must be called with the minimum and maximum values for the following parameters: trigger pT, mass, track pT. All are in GeV except the mass-related terms
 void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_min, double mass_max, double trackpT_min, double trackpT_max) {
     SetAtlasStyle();
     TCanvas* canvas = new TCanvas();
@@ -162,11 +162,11 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_mi
     
     // Cut the pion pT of both THnSparses to 10-12 GeV, the mass to 110-150 MeV, and track pT to 1-2 GeV
     SetCut(hPionTrack, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
-    SetCut(hPionTrack, axis_corr_mass, mass_min, mass_max);
+    SetCut(hPionTrack, axis_corr_mass, mass_min/1000, mass_max/1000);
     SetCut(hPionTrack, axis_corr_trackpT, trackpT_min, trackpT_max);
     
     SetCut(hPionTrack_Mixed, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
-    SetCut(hPionTrack_Mixed, axis_corr_mass, mass_min, mass_max);
+    SetCut(hPionTrack_Mixed, axis_corr_mass, mass_min/1000, mass_max/1000);
     SetCut(hPionTrack_Mixed, axis_corr_trackpT, trackpT_min, trackpT_max);
     
     // Make a 2D projection over both delta-phi and delta-eta for both THnSparses
@@ -204,9 +204,9 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_mi
     graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
     myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
     // Label regarding pion pT, mass, track pT cuts
-    myText(.6, 0.75, kBlack, "#scale[0.5]{10 GeV < #pi^{0} pT < 12 GeV}");
-    myText(.6, 0.72, kBlack, "#scale[0.5]{110 MeV < #pi^{0} mass < 150 MeV}");
-    myText(.6, 0.69, kBlack, "#scale[0.5]{1 GeV < Track pT < 2 GeV}");
+    myText(.6, 0.75, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
+    myText(.6, 0.72, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
+    myText(.6, 0.69, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
     canvas->SaveAs("correlation_function_projection.png");
     
     canvas->Close();
