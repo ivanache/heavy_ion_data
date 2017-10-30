@@ -62,7 +62,7 @@ void photon_analyzer(int NumOfSigmasFromMeanMax) {
     //SetAtlasStyle();
     
     // Load the THnSparses file, print its content, and get the data from it
-    TFile* fIn = new TFile("THnSparses_072417.root","READ");
+    TFile* fIn = new TFile("PionSparsesOutput_angle_17mrad.root","READ");
     fIn->Print();
     THnSparse* h_photon = 0;
     fIn->GetObject("h_Pion", h_photon);

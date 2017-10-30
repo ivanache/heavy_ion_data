@@ -136,7 +136,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     //Cut Distance to bad cells to greater than 3, then graph the momentum photon data again
     SetCut(hPhoton, axis_photonDisToBadCell, 4, 10);
     TH1D* hMomentum_DisToBadCells_upper = hPhoton->Projection(axis_photonPt);
-    hMomentum_DisToBadCells_upper->Rebin(1);
+    hMomentum_DisToBadCells_upper->Rebin(2);
     hMomentum_DisToBadCells_upper->SetTitle("Pt-Photon Plot; Pt (GeV/c); Fraction of total");
     // Normalize the plot
     hMomentum_DisToBadCells_upper->Scale(1/hMomentum_DisToBadCells_upper->Integral());
@@ -162,7 +162,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     for (int i = 0; i < num_of_distances; i++) {
         SetCut(hPhoton, axis_photonDisToBadCell, distances_to_bad_cells[i], distances_to_bad_cells[i] + 1);
         hMomentum_DisToBadCells_lower[i] = hPhoton->Projection(axis_photonPt);
-        hMomentum_DisToBadCells_lower[i]->Rebin(1);
+        hMomentum_DisToBadCells_lower[i]->Rebin(2);
         hMomentum_DisToBadCells_lower[i]->SetMarkerColor(colors[i]);
         hMomentum_DisToBadCells_lower[i]->SetMarkerStyle(marker_styles[i]);
         hMomentum_DisToBadCells_lower[i]->SetLineColor(colors[i]);
@@ -237,7 +237,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     SetCut(hPhoton, axis_photonDisToBadCell, 0, 10); // Reset distance to bad cell cut to original value
     SetCut(hPhoton, axis_photonDisToBorder, 3, 5);
     TH1D* hMomentum_DisToBorder_upper = hPhoton->Projection(axis_photonPt);
-    hMomentum_DisToBorder_upper->Rebin(1);
+    hMomentum_DisToBorder_upper->Rebin(2);
     hMomentum_DisToBorder_upper->SetTitle("Pt-Photon Plot; Pt (GeV/c); Fraction of total");
     // Normalize the plot
     hMomentum_DisToBorder_upper->Scale(1/hMomentum_DisToBorder_upper->Integral());
@@ -256,7 +256,7 @@ void photon_grapher(string lambda_option, string pT_option) {
     for (int i = 0; i < num_of_distances; i++) {
         SetCut(hPhoton, axis_photonDisToBorder, distances_to_border[i], distances_to_border[i] + 1);
         hMomentum_DisToBorder_lower[i] = hPhoton->Projection(axis_photonPt);
-        hMomentum_DisToBorder_lower[i]->Rebin(1);
+        hMomentum_DisToBorder_lower[i]->Rebin(2);
         hMomentum_DisToBorder_lower[i]->SetMarkerColor(colors[i]);
         hMomentum_DisToBorder_lower[i]->SetMarkerStyle(marker_styles[i]);
         hMomentum_DisToBorder_lower[i]->SetLineColor(colors[i]);

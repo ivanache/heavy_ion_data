@@ -8,6 +8,7 @@
 #include "atlasstyle-00-03-05/AtlasUtils.C"
 #include "atlasstyle-00-03-05/AtlasLabels.h"
 #include "atlasstyle-00-03-05/AtlasLabels.C"
+#include "TAxis.h"
 #include "TFile.h"
 #include "TF1.h"
 #include "TH1F.h"
@@ -609,6 +610,8 @@ void my_code(string runletter) {
         residual_dist->Fit(residual_dist_fit);
         residual_dist_fit->SetParLimits(0, 0, 10000);
         residual_dist_fit->SetParLimits(1, -10, 10);
+        residual_dist->GetYaxis()->SetTitleOffset(0.8);
+        residual_dist->GetXaxis()->SetTitleOffset(0.9);
         residual_dist->Draw();
         residual_dist_fit->Draw("same");
         myText(.20, .92, kBlack, Form("#scale[1]{Residual Distribution, Pt %2.2f-%2.2f GeV/c}", min, max));
@@ -710,7 +713,7 @@ void my_code(string runletter) {
     
     // Graph the signal/total curves for each momentum increment
     graphcanvas->Clear();
-    peaks_over_totals->SetTitle("Signal over Total vs Distance From Mean; Num of Standard Deviations From Mean; Signal to Total Ratio");
+    peaks_over_totals->SetTitle("Signal over Total vs Distance From Mean; #scale[1]{Num of Standard Deviations From Mean}; #scale[1]{Signal to Total Ratio}");
     //peaks_over_totals->GetYaxis()->SetRangeUser(0.4, 1.0);
     peaks_over_totals->SetMaximum(1.0);
     peaks_over_totals->SetMinimum(0.2);
@@ -722,8 +725,8 @@ void my_code(string runletter) {
     myBoxText(0.25, 0.25, 0.05, 10, graph_colors[4], "14-16 GeV");
     myBoxText(0.25, 0.20, 0.05, 10, graph_colors[5], "16-20 GeV");
     peaks_over_totals->Write("signal-over-total");
-    myText(.10,.97, kBlack, "#scale[1]{Signal-to-total ratios, cuts:}");
-    myText(.20,.92, kBlack, "#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}");
+    myText(.30,.93, kBlack, "#scale[1]{Signal-to-total ratios}");
+    //myText(.20,.92, kBlack, "#scale[1]{angle > %i mrad, 0.1 < lambda < 0.4, asymmetry < 0.7}");
     graphcanvas->SaveAs(str_concat_converter(directory_name, "Overall_Signal_Over_Total.png"));
     graphcanvas->Clear();
     

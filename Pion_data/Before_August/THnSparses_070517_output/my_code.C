@@ -639,7 +639,7 @@ void my_code(int NumOfCuts) {
         h2D->GetXaxis()->SetRangeUser(6.0, 15.0);
         h2D->GetYaxis()->SetRangeUser(3.0, 10.0);
         h2D->Draw("COLZ");
-        myText(.20,.95, kBlack, Form("#scale[1.5]{Photon energies: Pion momenta %2.2f to %2.2f, latest cut: %s}", min, max, headers[NumOfCuts].c_str()));
+        myText(.1,.95, kBlack, Form("#scale[0.8]{Photon energies: Pion momenta %2.2f to %2.2f GeV          latest cut: %s}", min, max, headers[NumOfCuts].c_str()));
         graphcanvas->SaveAs(Form(str_concat_converter(directory_name, "PhotonEs_Ptmin_%2.2f_Ptmax_%2.2f.png"), min, max));
         h2D->Write(Form("Photon_Energies_Ptmin_%2.2f_Ptmax_%2.2f", min, max));
     }// end of loop over pt
