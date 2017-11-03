@@ -1,4 +1,4 @@
-# Direct_Photon_data
+# Direct_Photon_data ( Note: this does not have anything to do with direct photons in the sense used in particle physics)
 ## Technical specifications
 - THnSparses_070517.root: the first direct source of the data and the only current source of data for Cut Comparisons
 - THnSparses_071217.root: an old direct source of the data for Modeler

@@ -465,6 +465,9 @@ void my_code(int NumOfCuts) {
         graphcanvas->cd();
         pad[0]->Draw();
         pad[0]->cd();
+        hMass->GetYaxis()->SetTitle("Number of Entries");
+        hMass->GetYaxis()->SetTitleSize(.08);
+        hMass->GetYaxis()->SetTitleOffset(0.8);
         hMass->Draw();
         hMass->Write(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max));
         

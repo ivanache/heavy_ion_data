@@ -465,6 +465,7 @@ void my_code() {
         pad[0]->cd();
         hMass->GetYaxis()->SetTitle("Number of Entries");
         hMass->GetYaxis()->SetTitleOffset(0.8);
+        hMass->GetYaxis()->SetRangeUser(0, 560);
         hMass->Draw();
         hMass->Write(Form("unfitted_mass_pion-%2.2fGeV-%2.2fGeV", min, max));
         myText(.20,.95, kBlack, Form("#scale[1]{Mass vs Entries, Pt %2.2f-%2.2f, cuts:}", min, max));

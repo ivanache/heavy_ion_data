@@ -134,6 +134,7 @@ void photon_modeler() {
         }*/
         
         hpT = hPhoton->Projection(axis_photonPt);
+        hpT->GetYaxis()->SetRangeUser(1,20000);
         hpT->SetTitle("pT-Photon Spectrum; pT (GeV/c); Number of Entries");
         //hpT->GetYaxis()->SetRangeUser(1, 1000000);
         hpT->Draw();

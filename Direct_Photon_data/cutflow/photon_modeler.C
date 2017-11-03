@@ -127,6 +127,7 @@ void photon_modeler() {
         SetCut(hPhoton, cut_params[i][0], cut_params[i][1], cut_params[i][2]);
         
         hpT = hPhoton->Projection(axis_photonPt);
+        hpT->GetYaxis()->SetRangeUser(1,20000);
         hpT->SetTitle("pT-Photon Spectrum; pT (GeV/c); Number of Entries");
         hpT->Draw();
         hpT->Write(Form("%i_cumulativecuts_spectrum", i + 1));
