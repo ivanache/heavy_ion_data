@@ -1,6 +1,8 @@
 // Creates a correlation function and projection out of a .root data file and a pion pT range that is one of the following: (6 GeV, 8 GeV), (8 GeV, 10 GeV), (10 GeV, 12 GeV), (12 GeV, 14 GeV), (14 GeV, 16 GeV), and a track pT range over which the data in the .root file is defined
-// Does so by using the results obtained from mass_pion_modeler (which should have been called prior) to get the desred pion-hadron correlation from pion_hadron_corr
+// Does so by using the results obtained from mass_pion_modeler (which should have been called prior) to get the desired pion-hadron correlation from pion_hadron_corr
 // Programmer: Ivan Chernyshev; Date 10/25/17
+
+// Precodition: PionDataOutput.root exists in the same directory as this macro and comes from mass_pion_modeller.C
 
 #include "TFile.h"
 #include <TGraphErrors.h>

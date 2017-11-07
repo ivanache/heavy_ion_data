@@ -67,6 +67,34 @@ const int axis_Cluster_Exoticity = 14;
 const int axis_Cluster_time = 15;
 const int axis_Cluster_nTracks =16;
 
+// The 2Gaussians + constant fit
+// Must be called with one independent variable x and 7 parameters par
+double Two_Gaussian_fit(Double_t* x, Double_t* par) {
+    // Define which parameter is which
+    double A = par[0];
+    
+    double B = par[1];
+    double mean_1 = par[2];
+    double sigma_1 = par[3];
+    
+    double C = par[4];
+    double mean_2 = par[5];
+    double sigma_2 = par[6];
+    
+    //Set the exponents of the two Gaussian functios
+    double arg1;
+    if (sigma_1 != 0)
+        arg1 = -0.5*((x[0] - mean_1)/sigma_1)*((x[0] - mean_1)/sigma_1);
+    
+    double arg2;
+    if (sigma_2 != 0)
+        arg2 = -0.5*((x[0] - mean_2)/sigma_2)*((x[0] - mean_2)/sigma_2);
+    
+    double fitval = A + B*TMath::Exp(arg1)/TMath::Sqrt(2*TMath::Pi()*sigma_1*sigma_1) + C*TMath::Exp(arg2)/TMath::Sqrt(2*TMath::Pi()*sigma_2*sigma_2);
+    return fitval;
+}
+const int Two_Gaussian_params = 7;
+
 // Cutting function
 void SetCut(THnSparse* h, const int axis, double min, double max){
     
@@ -200,13 +228,23 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_mi
     // Get the projection of the correlation function over |delta eta| < 0.8
     TH1D* correlation_projection = project_2Dhistogram(correlation_function, -0.8, 0.8);
     
+    // Fit the projection to a 2Gaussians + constant curve
+    TF1* fitfunc = new TF1("fit", Two_Gaussian_fit, -0.4, 1.5, Two_Gaussian_params);
+    fitfunc->SetParNames("Constant", "Magnitude 1", "Mean 1", "Sigma 1", "Magnitude 2", "Mean 2", "Sigma 2");
+    fitfunc->SetParameters(150, 225, 0, 0.1, 75, 1, 0.3);
+    correlation_projection->Fit(fitfunc);
+    
     // Graph the projection
     graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
     myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
     // Label regarding pion pT, mass, track pT cuts
-    myText(.6, 0.75, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
-    myText(.6, 0.72, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
-    myText(.6, 0.69, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
+    myText(.6, 0.7, kBlack, "#scale[0.7]{Param Borders}");
+    myText(.6, 0.67, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
+    myText(.6, 0.64, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
+    myText(.6, 0.61, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
+    fitfunc->Print();
+    // myText(.35, 0.81, kBlack, "#scale[0.75]{Fit Function: A + #frac{B}{#sqrt{2 #pi #sigma_{1}^{2}}} e^{#frac{(x-#bar{x}_{1})^{2}}{2 #sigma_{1}^{2}}} + #frac{C}{#sqrt{2 #pi #sigma_{2}^{2}}} e^{#frac{(x-#bar{x}_{2})^{2}}{2 #sigma_{2}^{2}}}}");
+    myText(.18, 0.81, kBlack, Form("#scale[0.7]{Fit Function: %4.0f + #frac{%4.1f}{#sqrt{2 #pi %0.4f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2*%0.4f^{2}}} + #frac{%4.1f}{#sqrt{2 #pi %0.3f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2 * %0.3f^{2}}}}", fitfunc->GetParameter(0), fitfunc->GetParameter(1), fitfunc->GetParameter(3), fitfunc->GetParameter(2), fitfunc->GetParameter(3), fitfunc->GetParameter(4), fitfunc->GetParameter(6), fitfunc->GetParameter(5), fitfunc->GetParameter(6)));
     canvas->SaveAs("correlation_function_projection.png");
     
     canvas->Close();
