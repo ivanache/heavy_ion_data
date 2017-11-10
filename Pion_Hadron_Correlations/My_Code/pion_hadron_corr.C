@@ -1,4 +1,4 @@
-// This macro is my first attempt at pion-hadron correlations, inspired by the sample that Miguel sent me, Plotting.C in the Pion_hadron_correlations/Miguel_sample_code
+// This macro produces pion-hadron correlation functions at track pT intervals of 1-2 GeV, 2-3 GeV, 3-4 GeV, and 4-10 GeV; mass intervals composed of all masses within 2 sigma of the mean; and a user-specified pion pT range that is one of the following: (6 GeV, 8 GeV), (8 GeV, 10 GeV), (10 GeV, 12 GeV), (12 GeV, 14 GeV), or (14 GeV, 16 GeV). It then outputs them to a .root file
 //Author: Ivan Chernyhsev
 //Date: 10/19/17
 
@@ -137,10 +137,27 @@ TH2D* divide_histograms2D(TH2D* graph1, TH2D* graph2){
                 quotient->SetBinError(i, j, (quotient->GetBinContent(i, j)*TMath::Sqrt(( (graph2->GetBinError(i, j)/graph2->GetBinContent(i, j)) * (graph2->GetBinError(i, j)/graph2->GetBinContent(i, j)) ) )));
             else
                 quotient->SetBinError(i, j, (quotient->GetBinContent(i, j)*TMath::Sqrt(( (graph1->GetBinError(i, j)/graph1->GetBinContent(i, j)) * (graph1->GetBinError(i, j)/graph1->GetBinContent(i, j)) ) + ( (graph2->GetBinError(i, j)/graph2->GetBinContent(i, j)) * (graph2->GetBinError(i, j)/graph2->GetBinContent(i, j)) ) )));
-    }
+        }
     
     
     return quotient;
+}
+
+// Produces a 2D histogram of square errors for the project_2Dhistogram function to find errors with
+TH2D* produce_2Dsquare_error_chart(TH2D* hist2D) {
+    TH2D* errors_squared = new TH2D(*hist2D);
+    
+    double x_bin_min = hist2D->GetXaxis()->FindBin(hist2D->GetXaxis()->GetXmin());
+    double x_bin_max = hist2D->GetXaxis()->FindBin(hist2D->GetXaxis()->GetXmax());
+    double y_bin_min = hist2D->GetYaxis()->FindBin(hist2D->GetYaxis()->GetXmin());
+    double y_bin_max = hist2D->GetYaxis()->FindBin(hist2D->GetYaxis()->GetXmax());
+    
+    for(int i = x_bin_min; i <= x_bin_max; i++)
+        for(int j = y_bin_min; j <= y_bin_max; j++) {
+            errors_squared->SetBinContent(i, j, (hist2D->GetBinError(i, j))*(hist2D->GetBinError(i, j)));
+        }
+    
+    return errors_squared;
 }
 
 // Projects a 2D histogram onto a 1D histogram by integrating its y-axis from a minimum to a maximum
@@ -154,12 +171,16 @@ TH1D* project_2Dhistogram(TH2D* hist2D, double ymin, double ymax) {
     //Get the y-min and y-max bin numbers
     double y_bin_min = hist2D->GetYaxis()->FindBin(ymin);
     double y_bin_max = hist2D->GetYaxis()->FindBin(ymax);
-    double* error;
+    
+    //Get the histogram of the errors
+    TH2D* hist2Derrors = produce_2Dsquare_error_chart(hist2D);
     
     // Loop over the x-bins from x_bin_min to x_bin_max, replace each term in projection with the within-bin integral from
     for(int i = x_bin_min; i <= x_bin_max; i++) {
-        projection->SetBinContent(i, hist2D->IntegralAndError(i, i, y_bin_min, y_bin_max, *error));
-        projection->SetBinError(i, *error);
+        projection->SetBinContent(i, hist2D->Integral(i, i, y_bin_min, y_bin_max));
+        
+        // Propogate the error from the contents of the error histogram
+        projection->SetBinError(i, TMath::Sqrt(hist2Derrors->Integral(i, i, y_bin_min, y_bin_max)));
         
     }
     
@@ -196,14 +217,29 @@ const int Two_Gaussian_params = 7;
 
 // Main function
 // Must be called with the minimum and maximum values for the following parameters: trigger pT, mass, track pT. All are in GeV except the mass-related terms
-// Optional parameter of directory name
-void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_min, double mass_max, double trackpT_min, double trackpT_max, string directory_name = "") {
+// Optional parameters of directory name and root output option (the latter is set to a default of 'recreate and overwrite', but can be set to 'update'
+void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
+    
+    // Get the mass range from the .root file that mass_pion_modeller produced
+    TFile* read_data = new TFile("PionDataOutput.root", "READ");
+    TGraphErrors* masses_over_pT = 0;
+    read_data->GetObject("mean-masses", masses_over_pT);
+    TGraphErrors* masswidths_over_pT = 0;
+    read_data->GetObject("standard-dev-masses", masswidths_over_pT);
+    double triggerpT_center = (triggerpT_min + triggerpT_max)/2;
+    double mass_center = masses_over_pT->Eval(triggerpT_center);
+    double mass_width = masswidths_over_pT->Eval(triggerpT_center);
+    double mass_min = mass_center - 2*mass_width;
+    double mass_max = mass_center + 2*mass_width;
+    
     TCanvas* canvas = new TCanvas();
 
-    
     // Import data
     TFile* input = new TFile("THnSparses_LHC13d_101517.root", "READ");
     input->Print();
+    
+    // Create output file
+    TFile* output = new TFile("Pi0_Hadron_Corr_Output.root", "RECREATE");
     
     // Get the THnSparses
     THnSparse* hPionTrack = 0;
@@ -226,67 +262,83 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_mi
     
     SetAtlasStyle();
     
-    if (directory_name != "")
-        directory_name += "/";
+    //if (directory_name != "")
+        //directory_name += "/";
     
-    // Cut the pion pT of both THnSparses to 10-12 GeV, the mass to 110-150 MeV, and track pT to 1-2 GeV
-    SetCut(hPionTrack, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
-    SetCut(hPionTrack, axis_corr_mass, mass_min/1000, mass_max/1000);
-    SetCut(hPionTrack, axis_corr_trackpT, trackpT_min, trackpT_max);
+    // Loop over all track pT intervals: 1-2 GeV, 2-3 GeV, 3-4 GeV, 4-10 GeV
+    const int numOfIntervals = 4;
+    double trackpT_intervals[numOfIntervals][2] = {{1, 2}, {2, 3}, {3, 4}, {4, 10}};
+    for(int i = 0; i < numOfIntervals; i++) {
+        double trackpT_min = trackpT_intervals[i][0];
+        double trackpT_max = trackpT_intervals[i][1];
+        
+        // Get the directory name, form it from min and max pT bounds
+        string directory_name = Form("TrackpT_%1.0f-%1.0fGeV/PionpT_%2.0f-%2.0fGeV/", trackpT_min, trackpT_max, triggerpT_min, triggerpT_max);
+        std::cout << "Filename: " << directory_name << std::endl;
     
-    SetCut(hPionTrack_Mixed, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
-    SetCut(hPionTrack_Mixed, axis_corr_mass, mass_min/1000, mass_max/1000);
-    SetCut(hPionTrack_Mixed, axis_corr_trackpT, trackpT_min, trackpT_max);
+        // Cut the pion pT of both THnSparses to 10-12 GeV, the mass to 110-150 MeV, and track pT to 1-2 GeV
+        SetCut(hPionTrack, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
+        SetCut(hPionTrack, axis_corr_mass, mass_min/1000, mass_max/1000);
+        SetCut(hPionTrack, axis_corr_trackpT, trackpT_min, trackpT_max);
+        
+        SetCut(hPionTrack_Mixed, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
+        SetCut(hPionTrack_Mixed, axis_corr_mass, mass_min/1000, mass_max/1000);
+        SetCut(hPionTrack_Mixed, axis_corr_trackpT, trackpT_min, trackpT_max);
+        
+        // Make a 2D projection over both delta-phi and delta-eta for both THnSparses
+        TH2D* Pion_Track_Projection = hPionTrack->Projection(axis_corr_deta, axis_corr_dphi);
+        TH2D* Pion_Track_Mixed_Projection = hPionTrack_Mixed->Projection(axis_corr_deta, axis_corr_dphi);
+        
+        // Output the 2D projections
+        graph(Pion_Track_Projection, "Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+        myText(.40,.92, kBlack, "Pion Track");
+        canvas->SaveAs(str_concat_converter(directory_name, "pion_track_graph.png"));
+        canvas->Clear();
+        
+        graph(Pion_Track_Mixed_Projection, "Mixed Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+        myText(.40,.92, kBlack, "Mixed Pion Track");
+        canvas->SaveAs(str_concat_converter(directory_name, "mixed_pion_track_graph.png"));
+        canvas->Clear();
     
-    // Make a 2D projection over both delta-phi and delta-eta for both THnSparses
-    TH2D* Pion_Track_Projection = hPionTrack->Projection(axis_corr_deta, axis_corr_dphi);
-    TH2D* Pion_Track_Mixed_Projection = hPionTrack_Mixed->Projection(axis_corr_deta, axis_corr_dphi);
+        // Get and graph the quotient of all bins from the pion track divided by all bins from the mixed pion track
+        // This is the correlation function
+        // Use both a surface plot and a 2D intensity chart
+        TH2D* correlation_function = divide_histograms2D(Pion_Track_Projection, Pion_Track_Mixed_Projection);
     
-    // Output the 2D projections
-    graph(Pion_Track_Projection, "Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
-    myText(.40,.92, kBlack, "Pion Track");
-    canvas->SaveAs(str_concat_converter(directory_name, "pion_track_graph.png"));
-    canvas->Clear();
+        graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+        myText(.40,.92, kBlack, "Correlation Function");
+        canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_intensitychart.png"));
     
-    graph(Pion_Track_Mixed_Projection, "Mixed Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
-    myText(.40,.92, kBlack, "Mixed Pion Track");
-    canvas->SaveAs(str_concat_converter(directory_name, "mixed_pion_track_graph.png"));
-    canvas->Clear();
+        graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "SURF2");
+        myText(.40,.92, kBlack, "Correlation Function");
+        canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_surfaceplot.png"));
     
-    // Get and graph the quotient of all bins from the pion track divided by all bins from the mixed pion track
-    // This is the correlation function
-    // Use both a surface plot and a 2D intensity chart
-    TH2D* correlation_function = divide_histograms2D(Pion_Track_Projection, Pion_Track_Mixed_Projection);
+        // Get the projection of the correlation function over |delta eta| < 0.8
+        TH1D* correlation_projection = project_2Dhistogram(correlation_function, -0.8, 0.8);
     
-    graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
-    myText(.40,.92, kBlack, "Correlation Function");
-    canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_intensitychart.png"));
+        // Fit the projection to a 2Gaussians + constant curve
+        TF1* fitfunc = new TF1("fit", Two_Gaussian_fit, -0.4, 1.5, Two_Gaussian_params);
+        fitfunc->SetParNames("Constant", "Magnitude 1", "Mean 1", "Sigma 1", "Magnitude 2", "Mean 2", "Sigma 2");
+        fitfunc->SetParameters(150, 225, 0, 0.1, 75, 1, 0.3);
+        correlation_projection->Fit(fitfunc);
     
-    graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "SURF2");
-    myText(.40,.92, kBlack, "Correlation Function");
-    canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_surfaceplot.png"));
+        // Graph the projection
+        graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
+        myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
+        // Label regarding pion pT, mass, track pT cuts
+        myText(.6, 0.7, kBlack, "#scale[0.7]{Param Borders}");
+        myText(.6, 0.67, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
+        myText(.6, 0.64, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
+        myText(.6, 0.61, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
+        //fitfunc->Print();
+        // myText(.35, 0.81, kBlack, "#scale[0.75]{Fit Function: A + #frac{B}{#sqrt{2 #pi #sigma_{1}^{2}}} e^{#frac{(x-#bar{x}_{1})^{2}}{2 #sigma_{1}^{2}}} + #frac{C}{#sqrt{2 #pi #sigma_{2}^{2}}} e^{#frac{(x-#bar{x}_{2})^{2}}{2 #sigma_{2}^{2}}}}");
+        //myText(.18, 0.81, kBlack, Form("#scale[0.7]{Fit Function: %4.0f + #frac{%4.1f}{#sqrt{2 #pi %0.4f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2*%0.4f^{2}}} + #frac{%4.1f}{#sqrt{2 #pi %0.3f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2 * %0.3f^{2}}}}", fitfunc->GetParameter(0), fitfunc->GetParameter(1), fitfunc->GetParameter(3), fitfunc->GetParameter(2), fitfunc->GetParameter(3), fitfunc->GetParameter(4), fitfunc->GetParameter(6), fitfunc->GetParameter(5), fitfunc->GetParameter(6)));
+        canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_projection.png"));
     
-    // Get the projection of the correlation function over |delta eta| < 0.8
-    TH1D* correlation_projection = project_2Dhistogram(correlation_function, -0.8, 0.8);
-    
-    // Fit the projection to a 2Gaussians + constant curve
-    TF1* fitfunc = new TF1("fit", Two_Gaussian_fit, -0.4, 1.5, Two_Gaussian_params);
-    fitfunc->SetParNames("Constant", "Magnitude 1", "Mean 1", "Sigma 1", "Magnitude 2", "Mean 2", "Sigma 2");
-    fitfunc->SetParameters(150, 225, 0, 0.1, 75, 1, 0.3);
-    correlation_projection->Fit(fitfunc);
-    
-    // Graph the projection
-    graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
-    myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
-    // Label regarding pion pT, mass, track pT cuts
-    myText(.6, 0.7, kBlack, "#scale[0.7]{Param Borders}");
-    myText(.6, 0.67, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
-    myText(.6, 0.64, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
-    myText(.6, 0.61, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
-    //fitfunc->Print();
-    // myText(.35, 0.81, kBlack, "#scale[0.75]{Fit Function: A + #frac{B}{#sqrt{2 #pi #sigma_{1}^{2}}} e^{#frac{(x-#bar{x}_{1})^{2}}{2 #sigma_{1}^{2}}} + #frac{C}{#sqrt{2 #pi #sigma_{2}^{2}}} e^{#frac{(x-#bar{x}_{2})^{2}}{2 #sigma_{2}^{2}}}}");
-    //myText(.18, 0.81, kBlack, Form("#scale[0.7]{Fit Function: %4.0f + #frac{%4.1f}{#sqrt{2 #pi %0.4f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2*%0.4f^{2}}} + #frac{%4.1f}{#sqrt{2 #pi %0.3f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2 * %0.3f^{2}}}}", fitfunc->GetParameter(0), fitfunc->GetParameter(1), fitfunc->GetParameter(3), fitfunc->GetParameter(2), fitfunc->GetParameter(3), fitfunc->GetParameter(4), fitfunc->GetParameter(6), fitfunc->GetParameter(5), fitfunc->GetParameter(6)));
-    canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_projection.png"));
+        // Write the projection to the .root file
+        correlation_projection->Write(Form("correlation_function_%2.2f-%2.2fGeV", trackpT_min, trackpT_max));
+        canvas->Clear();
+    }
     
     canvas->Close();
 }
