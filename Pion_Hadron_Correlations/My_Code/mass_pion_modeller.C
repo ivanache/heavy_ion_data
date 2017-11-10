@@ -75,6 +75,7 @@ void mass_pion_modeller() {
     // Set ATLAS style
     gROOT->LoadMacro("AtlasStyle.C");
     SetAtlasStyle();
+    TH1::SetDefaultSumw2();
     
     //Open the files
     TFile* fIn = new TFile("THnSparses_LHC13d_101517.root","READ"); //get file

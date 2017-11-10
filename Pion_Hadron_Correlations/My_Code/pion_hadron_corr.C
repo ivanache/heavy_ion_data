@@ -117,7 +117,7 @@ TH2D* divide_histograms2D(TH2D* graph1, TH2D* graph2){
     double y_bin_min = quotient->GetYaxis()->FindBin(quotient->GetYaxis()->GetXmin());
     double y_bin_max = quotient->GetYaxis()->FindBin(quotient->GetYaxis()->GetXmax());
     
-    // Loop over all bins, divide the element from graph 1 by its counterpart on graph 2
+    // Loop over all bins, divide the element from graph 1 by its counterpart on graph 2. Manually propogate the error
     for(int i = x_bin_min; i <= x_bin_max; i++)
         for(int j = y_bin_min; j <= y_bin_max; j++) {
             if (graph2->GetBinContent(i, j) != 0)
@@ -125,7 +125,20 @@ TH2D* divide_histograms2D(TH2D* graph1, TH2D* graph2){
             // Failsafe
             else
                 quotient->SetBinContent(i, j, 0);
+            
+            // Error propogation
+            if (graph2->GetBinContent(i, j) == 0) {
+                if (graph1->GetBinContent(i, j) == 0)
+                    quotient->SetBinError(i, j, 0);
+                else
+                    quotient->SetBinError(i, j, (quotient->GetBinContent(i, j)*TMath::Sqrt(( (graph1->GetBinError(i, j)/graph1->GetBinContent(i, j)) * (graph1->GetBinError(i, j)/graph1->GetBinContent(i, j)) ) )));
+            }
+            else if (graph1->GetBinContent(i, j) == 0)
+                quotient->SetBinError(i, j, (quotient->GetBinContent(i, j)*TMath::Sqrt(( (graph2->GetBinError(i, j)/graph2->GetBinContent(i, j)) * (graph2->GetBinError(i, j)/graph2->GetBinContent(i, j)) ) )));
+            else
+                quotient->SetBinError(i, j, (quotient->GetBinContent(i, j)*TMath::Sqrt(( (graph1->GetBinError(i, j)/graph1->GetBinContent(i, j)) * (graph1->GetBinError(i, j)/graph1->GetBinContent(i, j)) ) + ( (graph2->GetBinError(i, j)/graph2->GetBinContent(i, j)) * (graph2->GetBinError(i, j)/graph2->GetBinContent(i, j)) ) )));
     }
+    
     
     return quotient;
 }
@@ -147,6 +160,7 @@ TH1D* project_2Dhistogram(TH2D* hist2D, double ymin, double ymax) {
     for(int i = x_bin_min; i <= x_bin_max; i++) {
         projection->SetBinContent(i, hist2D->IntegralAndError(i, i, y_bin_min, y_bin_max, *error));
         projection->SetBinError(i, *error);
+        
     }
     
     return projection;
@@ -197,7 +211,7 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_mi
     THnSparse* hPionTrack_Mixed = 0;
     input->GetObject("h_PionTrack_Mixed", hPionTrack_Mixed);
     
-    //Graph the trackPt curve for both THnSparses, then set atlas style and format the directory name string
+    //Graph the trackPt curve for both THnSparses, then set atlas style and the sumw2 error evaluator and format the directory name string
     TH1D* trackPt_curve = hPionTrack->Projection(axis_corr_trackpT);
     trackPt_curve->SetTitle("h_PionTrack Track Spectrum; Track Pt (GeV); Counts");
     trackPt_curve->Draw();
@@ -265,13 +279,13 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max, double mass_mi
     graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
     myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
     // Label regarding pion pT, mass, track pT cuts
-    //myText(.6, 0.7, kBlack, "#scale[0.7]{Param Borders}");
-    //myText(.6, 0.67, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
-    //myText(.6, 0.64, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
-    //myText(.6, 0.61, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
-    fitfunc->Print();
+    myText(.6, 0.7, kBlack, "#scale[0.7]{Param Borders}");
+    myText(.6, 0.67, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
+    myText(.6, 0.64, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
+    myText(.6, 0.61, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
+    //fitfunc->Print();
     // myText(.35, 0.81, kBlack, "#scale[0.75]{Fit Function: A + #frac{B}{#sqrt{2 #pi #sigma_{1}^{2}}} e^{#frac{(x-#bar{x}_{1})^{2}}{2 #sigma_{1}^{2}}} + #frac{C}{#sqrt{2 #pi #sigma_{2}^{2}}} e^{#frac{(x-#bar{x}_{2})^{2}}{2 #sigma_{2}^{2}}}}");
-    myText(.18, 0.81, kBlack, Form("#scale[0.7]{Fit Function: %4.0f + #frac{%4.1f}{#sqrt{2 #pi %0.4f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2*%0.4f^{2}}} + #frac{%4.1f}{#sqrt{2 #pi %0.3f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2 * %0.3f^{2}}}}", fitfunc->GetParameter(0), fitfunc->GetParameter(1), fitfunc->GetParameter(3), fitfunc->GetParameter(2), fitfunc->GetParameter(3), fitfunc->GetParameter(4), fitfunc->GetParameter(6), fitfunc->GetParameter(5), fitfunc->GetParameter(6)));
+    //myText(.18, 0.81, kBlack, Form("#scale[0.7]{Fit Function: %4.0f + #frac{%4.1f}{#sqrt{2 #pi %0.4f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2*%0.4f^{2}}} + #frac{%4.1f}{#sqrt{2 #pi %0.3f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2 * %0.3f^{2}}}}", fitfunc->GetParameter(0), fitfunc->GetParameter(1), fitfunc->GetParameter(3), fitfunc->GetParameter(2), fitfunc->GetParameter(3), fitfunc->GetParameter(4), fitfunc->GetParameter(6), fitfunc->GetParameter(5), fitfunc->GetParameter(6)));
     canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_projection.png"));
     
     canvas->Close();
