@@ -1,4 +1,5 @@
 // This macro produces pion-hadron correlation functions at track pT intervals of 1-2 GeV, 2-3 GeV, 3-4 GeV, and 4-10 GeV; mass intervals composed of all masses within 2 sigma of the mean; and a user-specified pion pT range that is one of the following: (6 GeV, 8 GeV), (8 GeV, 10 GeV), (10 GeV, 12 GeV), (12 GeV, 14 GeV), or (14 GeV, 16 GeV). It then outputs them to a .root file
+// Also outputs two integral vs. track pT plots: one for the near-side Gaussian peak , the other for the far-side Gaussian peak
 //Author: Ivan Chernyhsev
 //Date: 10/19/17
 
@@ -9,6 +10,7 @@
 #include "TH2F.h"
 #include "TH1F.h"
 #include "TVirtualFitter.h"
+#include <TGraphErrors.h>
 #include <iostream>
 
 #include "atlasstyle-00-03-05/AtlasStyle.h"
@@ -187,6 +189,33 @@ TH1D* project_2Dhistogram(TH2D* hist2D, double ymin, double ymax) {
     return projection;
 }
 
+// Finds the maximum value contained within a 2D histogram
+double hist2D_max(TH2D* hist2D) {
+    //Get the x-min, x-max, y-min, y-max bin numbers
+    double x_bin_min = hist2D->GetXaxis()->FindBin(hist2D->GetXaxis()->GetXmin());
+    double x_bin_max = hist2D->GetXaxis()->FindBin(hist2D->GetXaxis()->GetXmax());
+    double y_bin_min = hist2D->GetYaxis()->FindBin(hist2D->GetYaxis()->GetXmin());
+    double y_bin_max = hist2D->GetYaxis()->FindBin(hist2D->GetYaxis()->GetXmax());
+    
+    // Loop over all histogram elements to get the maximum value in any cell
+    double max = hist2D->GetBinContent(x_bin_min, y_bin_min);
+    for (int i = x_bin_min; i <= x_bin_max; i++)
+        for(int j = y_bin_min; j <= y_bin_max; j++)
+            if (hist2D->GetBinContent(i, j) > max)
+                max = hist2D->GetBinContent(i, j);
+    
+    return max;
+}
+
+// Normalizes a histogram over a normalization factor
+void normalizeHistogram(double normfactor, TH1* histogram) {
+    // Simply loop over all bins and divide each element and its error by the normalization factor
+    for(int i = 0; i < histogram->GetNcells(); i++) {
+        histogram->SetBinContent(i, histogram->GetBinContent(i)/normfactor);
+        histogram->SetBinError(i, histogram->GetBinError(i)/normfactor);
+    }
+}
+
 // The 2Gaussians + constant fit
 // Must be called with one independent variable x and 7 parameters par
 double Two_Gaussian_fit(Double_t* x, Double_t* par) {
@@ -220,8 +249,10 @@ const int Two_Gaussian_params = 7;
 // Optional parameters of directory name and root output option (the latter is set to a default of 'recreate and overwrite', but can be set to 'update'
 void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
     
-    // Get the mass range from the .root file that mass_pion_modeller produced
+    // Get the mass range and num of pions from the .root file that mass_pion_modeller produced
     TFile* read_data = new TFile("PionDataOutput.root", "READ");
+    TGraphErrors* pionnums_over_pT = 0;
+    read_data->GetObject("pion-integrals", pionnums_over_pT);
     TGraphErrors* masses_over_pT = 0;
     read_data->GetObject("mean-masses", masses_over_pT);
     TGraphErrors* masswidths_over_pT = 0;
@@ -231,6 +262,7 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
     double mass_width = masswidths_over_pT->Eval(triggerpT_center);
     double mass_min = mass_center - 2*mass_width;
     double mass_max = mass_center + 2*mass_width;
+    double numpions = pionnums_over_pT->Eval(triggerpT_center);
     
     TCanvas* canvas = new TCanvas();
 
@@ -247,7 +279,7 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
     THnSparse* hPionTrack_Mixed = 0;
     input->GetObject("h_PionTrack_Mixed", hPionTrack_Mixed);
     
-    //Graph the trackPt curve for both THnSparses, then set atlas style and the sumw2 error evaluator and format the directory name string
+    //Graph the trackPt curve for both THnSparses, then set atlas style
     TH1D* trackPt_curve = hPionTrack->Projection(axis_corr_trackpT);
     trackPt_curve->SetTitle("h_PionTrack Track Spectrum; Track Pt (GeV); Counts");
     trackPt_curve->Draw();
@@ -262,12 +294,18 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
     
     SetAtlasStyle();
     
-    //if (directory_name != "")
-        //directory_name += "/";
-    
     // Loop over all track pT intervals: 1-2 GeV, 2-3 GeV, 3-4 GeV, 4-10 GeV
     const int numOfIntervals = 4;
     double trackpT_intervals[numOfIntervals][2] = {{1, 2}, {2, 3}, {3, 4}, {4, 10}};
+    
+    // Initialize the arrays for storing the integrals for both the near-side peak and the far-side peak, the corresponding pT intervals, and their errors
+    double near_side_integrals[numOfIntervals];
+    double far_side_integrals[numOfIntervals];
+    double track_pTs[numOfIntervals];
+    double near_side_errors[numOfIntervals];
+    double far_side_errors[numOfIntervals];
+    double track_pT_errors[numOfIntervals];
+    
     for(int i = 0; i < numOfIntervals; i++) {
         double trackpT_min = trackpT_intervals[i][0];
         double trackpT_max = trackpT_intervals[i][1];
@@ -280,14 +318,37 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
         SetCut(hPionTrack, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
         SetCut(hPionTrack, axis_corr_mass, mass_min/1000, mass_max/1000);
         SetCut(hPionTrack, axis_corr_trackpT, trackpT_min, trackpT_max);
+        SetCut(hPionTrack, axis_corr_deta, -0.8, 0.8);
         
         SetCut(hPionTrack_Mixed, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
         SetCut(hPionTrack_Mixed, axis_corr_mass, mass_min/1000, mass_max/1000);
         SetCut(hPionTrack_Mixed, axis_corr_trackpT, trackpT_min, trackpT_max);
+        SetCut(hPionTrack_Mixed, axis_corr_deta, -0.8, 0.8);
         
         // Make a 2D projection over both delta-phi and delta-eta for both THnSparses
         TH2D* Pion_Track_Projection = hPionTrack->Projection(axis_corr_deta, axis_corr_dphi);
         TH2D* Pion_Track_Mixed_Projection = hPionTrack_Mixed->Projection(axis_corr_deta, axis_corr_dphi);
+        
+        // Rebin the histograms
+        if(i == 0) {
+            Pion_Track_Projection->Rebin2D(1, 1);
+            Pion_Track_Mixed_Projection->Rebin2D(1, 1);
+        }
+        else if (i == 1) {
+            Pion_Track_Projection->Rebin2D(2, 2);
+            Pion_Track_Mixed_Projection->Rebin2D(2, 2);
+        }
+        else if (i == 2) {
+            Pion_Track_Projection->Rebin2D(3, 3);
+            Pion_Track_Mixed_Projection->Rebin2D(3, 3);
+        }
+        else {
+            Pion_Track_Projection->Rebin2D(3, 2);
+            Pion_Track_Mixed_Projection->Rebin2D(3, 2);
+        }
+        
+        // Normalized the Mixed Pion Track projection over its maximum value
+        normalizeHistogram(hist2D_max(Pion_Track_Mixed_Projection), Pion_Track_Mixed_Projection);
         
         // Output the 2D projections
         graph(Pion_Track_Projection, "Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
@@ -295,7 +356,7 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
         canvas->SaveAs(str_concat_converter(directory_name, "pion_track_graph.png"));
         canvas->Clear();
         
-        graph(Pion_Track_Mixed_Projection, "Mixed Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+        graph(Pion_Track_Mixed_Projection, "Normalized Mixed Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
         myText(.40,.92, kBlack, "Mixed Pion Track");
         canvas->SaveAs(str_concat_converter(directory_name, "mixed_pion_track_graph.png"));
         canvas->Clear();
@@ -315,12 +376,25 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
     
         // Get the projection of the correlation function over |delta eta| < 0.8
         TH1D* correlation_projection = project_2Dhistogram(correlation_function, -0.8, 0.8);
+        
+        // Normalize the projection of the correlation function
+        normalizeHistogram(numpions, correlation_projection);
     
         // Fit the projection to a 2Gaussians + constant curve
         TF1* fitfunc = new TF1("fit", Two_Gaussian_fit, -0.4, 1.5, Two_Gaussian_params);
         fitfunc->SetParNames("Constant", "Magnitude 1", "Mean 1", "Sigma 1", "Magnitude 2", "Mean 2", "Sigma 2");
-        fitfunc->SetParameters(150, 225, 0, 0.1, 75, 1, 0.3);
+        if (i == 2)
+            fitfunc->SetParameters(8.76865e-01, 1.5147e-01, -4.79180e-03, 8.52862e-02, 1.39296e-01, 1.04377e+00, 1.83722e-01);
+        else
+            fitfunc->SetParameters(8.76865e-01, 2.35579e-01, -4.79180e-03, 8.52862e-02, 1.39296e-01, 1.04377e+00, 1.83722e-01);
+        fitfunc->SetParLimits(1, 0, 1);
+        fitfunc->SetParLimits(2, -.5, 1.5);
+        fitfunc->SetParLimits(3, 0, 1);
+        fitfunc->SetParLimits(4, 0.05, 1);
+        fitfunc->SetParLimits(5, -.5, 1.5);
+        fitfunc->SetParLimits(6, 0, 1);
         correlation_projection->Fit(fitfunc);
+        //correlation_projection->Fit(fitfunc);
     
         // Graph the projection
         graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
@@ -338,7 +412,30 @@ void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
         // Write the projection to the .root file
         correlation_projection->Write(Form("correlation_function_%2.2f-%2.2fGeV", trackpT_min, trackpT_max));
         canvas->Clear();
+        
+        // Write the resultant values to the integral, track pT, and corresponding error arrays
+        near_side_integrals[i] = fitfunc->GetParameter(1);
+        far_side_integrals[i] = fitfunc->GetParameter(4);
+        track_pTs[i] = (trackpT_min + trackpT_max)/2;
+        near_side_errors[i] = fitfunc->GetParError(1);
+        far_side_errors[i] = fitfunc->GetParError(4);
+        track_pT_errors[i] = track_pTs[i] - trackpT_min;
     }
+    
+    // Use the integral, track pT, and corresponding error arrays to create two integral-track pT graphs, one for the near side and the other for the far side
+    TGraphErrors* nearside_Integral_vs_Trackpt = new TGraphErrors(numOfIntervals, track_pTs, near_side_integrals, track_pT_errors, near_side_errors);
+    nearside_Integral_vs_Trackpt->SetTitle("Near side Integral vs. Track pT; Track pT (GeV); Near Side Integral");
+    nearside_Integral_vs_Trackpt->Draw();
+    canvas->SaveAs("near_side_integral_vs_trackpt.png");
+    canvas->Clear();
+    nearside_Integral_vs_Trackpt->Write("Near_Side_Integral_vs_Trackpt");
+    
+    TGraphErrors* farside_Integral_vs_Trackpt = new TGraphErrors(numOfIntervals, track_pTs, far_side_integrals, track_pT_errors, far_side_errors);
+    farside_Integral_vs_Trackpt->SetTitle("Far side Integral vs. Track pT; Track pT (GeV); Far Side Integral");
+    farside_Integral_vs_Trackpt->Draw();
+    canvas->SaveAs("far_side_integral_vs_trackpt.png");
+    canvas->Clear();
+    farside_Integral_vs_Trackpt->Write("Far_Side_Integral_vs_Trackpt");
     
     canvas->Close();
 }
