@@ -110,8 +110,8 @@ void mass_pion_modeller() {
     
     // Prepare to evaluate the data per pT interval: define the specific intervals, and arrays for all of the quantities that are later to be graphed against pT and stored in the .root file
         // Which pT intervals there are (they're 2 GeV wide, and range from 6 GeV to 16 GeV
-    const int num_of_intervals = 5;
-    double intervals[num_of_intervals][2] = {{6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, };
+    const int num_of_intervals = 6;
+    double intervals[num_of_intervals][2] = {{6.0, 8.0}, {8.0, 10.0}, {10.0, 12.0}, {12.0, 14.0}, {14.0, 16.0}, {16.0, 20.0}};
     
         // Inependent variables, that represent pT when anything is graphed against pT, as well as its error
     double center[num_of_intervals];

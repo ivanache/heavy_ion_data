@@ -247,195 +247,249 @@ const int Two_Gaussian_params = 7;
 // Main function
 // Must be called with the minimum and maximum values for the following parameters: trigger pT, mass, track pT. All are in GeV except the mass-related terms
 // Optional parameters of directory name and root output option (the latter is set to a default of 'recreate and overwrite', but can be set to 'update'
-void pion_hadron_corr(double triggerpT_min, double triggerpT_max) {
-    
-    // Get the mass range and num of pions from the .root file that mass_pion_modeller produced
-    TFile* read_data = new TFile("PionDataOutput.root", "READ");
-    TGraphErrors* pionnums_over_pT = 0;
-    read_data->GetObject("pion-integrals", pionnums_over_pT);
-    TGraphErrors* masses_over_pT = 0;
-    read_data->GetObject("mean-masses", masses_over_pT);
-    TGraphErrors* masswidths_over_pT = 0;
-    read_data->GetObject("standard-dev-masses", masswidths_over_pT);
-    double triggerpT_center = (triggerpT_min + triggerpT_max)/2;
-    double mass_center = masses_over_pT->Eval(triggerpT_center);
-    double mass_width = masswidths_over_pT->Eval(triggerpT_center);
-    double mass_min = mass_center - 2*mass_width;
-    double mass_max = mass_center + 2*mass_width;
-    double numpions = pionnums_over_pT->Eval(triggerpT_center);
-    
+void pion_hadron_corr() {
     TCanvas* canvas = new TCanvas();
+    
+    //Set up two TMultiGraphs for model peak integrals, one for near side, the other for far side
+    TMultiGraph* near_side = new TMultiGraph();
+    TMultiGraph* far_side = new TMultiGraph();
+    
+    // Loop over all trigger pT intervals: 8-10 GeV, 10-12 GeV, 12-14 GeV
+    const int numOfTriggerIntervals = 3;
+    double triggerpT_intervals[numOfTriggerIntervals][2] = {{8, 10}, {10, 12}, {12, 14}};
+    Color_t graph_colors[numOfTriggerIntervals] = {kRed, kBlue, kGreen};// Also set up colors for the TMultigraphs
+    for (int j = 0; j < numOfTriggerIntervals; j++) {
+        double triggerpT_min = triggerpT_intervals[j][0];
+        double triggerpT_max = triggerpT_intervals[j][1];
+        
+        gROOT->SetStyle();
+        gROOT->ForceStyle();
+    
+        // Get the mass range and num of pions from the .root file that mass_pion_modeller produced
+        TFile* read_data = new TFile("PionDataOutput.root", "READ");
+        TGraphErrors* pionnums_over_pT = 0;
+        read_data->GetObject("pion-integrals", pionnums_over_pT);
+        TGraphErrors* masses_over_pT = 0;
+        read_data->GetObject("mean-masses", masses_over_pT);
+        TGraphErrors* masswidths_over_pT = 0;
+        read_data->GetObject("standard-dev-masses", masswidths_over_pT);
+        double triggerpT_center = (triggerpT_min + triggerpT_max)/2;
+        double mass_center = masses_over_pT->Eval(triggerpT_center);
+        double mass_width = masswidths_over_pT->Eval(triggerpT_center);
+        double mass_min = mass_center - 2*mass_width;
+        double mass_max = mass_center + 2*mass_width;
+        double numpions = pionnums_over_pT->Eval(triggerpT_center);
+    
+        //Set up the directory name for files that are for this trigger_pT interval
+        string triggerpT_directory_name = Form("PionpT_%2.0f-%2.0fGeV/", triggerpT_min, triggerpT_max);
 
-    // Import data
-    TFile* input = new TFile("THnSparses_LHC13d_101517.root", "READ");
-    input->Print();
+        // Import data
+        TFile* input = new TFile("THnSparses_LHC13d_101517.root", "READ");
+        input->Print();
     
-    // Create output file
-    TFile* output = new TFile("Pi0_Hadron_Corr_Output.root", "RECREATE");
+        // Create output file
+        TFile* output = new TFile("Pi0_Hadron_Corr_Output.root", "RECREATE");
     
-    // Get the THnSparses
-    THnSparse* hPionTrack = 0;
-    input->GetObject("h_PionTrack", hPionTrack);
-    THnSparse* hPionTrack_Mixed = 0;
-    input->GetObject("h_PionTrack_Mixed", hPionTrack_Mixed);
+        // Get the THnSparses
+        THnSparse* hPionTrack = 0;
+        input->GetObject("h_PionTrack", hPionTrack);
+        THnSparse* hPionTrack_Mixed = 0;
+        input->GetObject("h_PionTrack_Mixed", hPionTrack_Mixed);
     
-    //Graph the trackPt curve for both THnSparses, then set atlas style
-    TH1D* trackPt_curve = hPionTrack->Projection(axis_corr_trackpT);
-    trackPt_curve->SetTitle("h_PionTrack Track Spectrum; Track Pt (GeV); Counts");
-    trackPt_curve->Draw();
-    canvas->SaveAs("h_PionTrack_trackspectrum.png");
-    canvas->Clear();
-    
-    TH1D* trackPtMixed_curve = hPionTrack_Mixed->Projection(axis_corr_trackpT);
-    trackPtMixed_curve->SetTitle("h_PionTrack_Mixed Track Spectrum; Track Pt (GeV); Counts");
-    trackPtMixed_curve->Draw();
-    canvas->SaveAs("h_PionTrackMixed_trackspectrum.png");
-    canvas->Clear();
-    
-    SetAtlasStyle();
-    
-    // Loop over all track pT intervals: 1-2 GeV, 2-3 GeV, 3-4 GeV, 4-10 GeV
-    const int numOfIntervals = 4;
-    double trackpT_intervals[numOfIntervals][2] = {{1, 2}, {2, 3}, {3, 4}, {4, 10}};
-    
-    // Initialize the arrays for storing the integrals for both the near-side peak and the far-side peak, the corresponding pT intervals, and their errors
-    double near_side_integrals[numOfIntervals];
-    double far_side_integrals[numOfIntervals];
-    double track_pTs[numOfIntervals];
-    double near_side_errors[numOfIntervals];
-    double far_side_errors[numOfIntervals];
-    double track_pT_errors[numOfIntervals];
-    
-    for(int i = 0; i < numOfIntervals; i++) {
-        double trackpT_min = trackpT_intervals[i][0];
-        double trackpT_max = trackpT_intervals[i][1];
-        
-        // Get the directory name, form it from min and max pT bounds
-        string directory_name = Form("TrackpT_%1.0f-%1.0fGeV/PionpT_%2.0f-%2.0fGeV/", trackpT_min, trackpT_max, triggerpT_min, triggerpT_max);
-        std::cout << "Filename: " << directory_name << std::endl;
-    
-        // Cut the pion pT of both THnSparses to 10-12 GeV, the mass to 110-150 MeV, and track pT to 1-2 GeV
+        // Cut with respect to trigger pT
         SetCut(hPionTrack, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
-        SetCut(hPionTrack, axis_corr_mass, mass_min/1000, mass_max/1000);
-        SetCut(hPionTrack, axis_corr_trackpT, trackpT_min, trackpT_max);
-        SetCut(hPionTrack, axis_corr_deta, -0.8, 0.8);
-        
         SetCut(hPionTrack_Mixed, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
-        SetCut(hPionTrack_Mixed, axis_corr_mass, mass_min/1000, mass_max/1000);
-        SetCut(hPionTrack_Mixed, axis_corr_trackpT, trackpT_min, trackpT_max);
-        SetCut(hPionTrack_Mixed, axis_corr_deta, -0.8, 0.8);
-        
-        // Make a 2D projection over both delta-phi and delta-eta for both THnSparses
-        TH2D* Pion_Track_Projection = hPionTrack->Projection(axis_corr_deta, axis_corr_dphi);
-        TH2D* Pion_Track_Mixed_Projection = hPionTrack_Mixed->Projection(axis_corr_deta, axis_corr_dphi);
-        
-        // Rebin the histograms
-        if(i == 0) {
-            Pion_Track_Projection->Rebin2D(1, 1);
-            Pion_Track_Mixed_Projection->Rebin2D(1, 1);
-        }
-        else if (i == 1) {
-            Pion_Track_Projection->Rebin2D(2, 2);
-            Pion_Track_Mixed_Projection->Rebin2D(2, 2);
-        }
-        else if (i == 2) {
-            Pion_Track_Projection->Rebin2D(3, 3);
-            Pion_Track_Mixed_Projection->Rebin2D(3, 3);
-        }
-        else {
-            Pion_Track_Projection->Rebin2D(3, 2);
-            Pion_Track_Mixed_Projection->Rebin2D(3, 2);
-        }
-        
-        // Normalized the Mixed Pion Track projection over its maximum value
-        normalizeHistogram(hist2D_max(Pion_Track_Mixed_Projection), Pion_Track_Mixed_Projection);
-        
-        // Output the 2D projections
-        graph(Pion_Track_Projection, "Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
-        myText(.40,.92, kBlack, "Pion Track");
-        canvas->SaveAs(str_concat_converter(directory_name, "pion_track_graph.png"));
-        canvas->Clear();
-        
-        graph(Pion_Track_Mixed_Projection, "Normalized Mixed Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
-        myText(.40,.92, kBlack, "Mixed Pion Track");
-        canvas->SaveAs(str_concat_converter(directory_name, "mixed_pion_track_graph.png"));
+    
+        //Graph the trackPt curve for both THnSparses, then set atlas style
+        TH1D* trackPt_curve = hPionTrack->Projection(axis_corr_trackpT);
+        trackPt_curve->SetTitle("h_PionTrack Track Spectrum; Track Pt (GeV); Counts");
+        trackPt_curve->Draw();
+        canvas->SaveAs(str_concat_converter(triggerpT_directory_name, "h_PionTrack_trackspectrum.png"));
         canvas->Clear();
     
-        // Get and graph the quotient of all bins from the pion track divided by all bins from the mixed pion track
-        // This is the correlation function
-        // Use both a surface plot and a 2D intensity chart
-        TH2D* correlation_function = divide_histograms2D(Pion_Track_Projection, Pion_Track_Mixed_Projection);
+        TH1D* trackPtMixed_curve = hPionTrack_Mixed->Projection(axis_corr_trackpT);
+        trackPtMixed_curve->SetTitle("h_PionTrack_Mixed Track Spectrum; Track Pt (GeV); Counts");
+        trackPtMixed_curve->Draw();
+        canvas->SaveAs(str_concat_converter(triggerpT_directory_name, "h_PionTrackMixed_trackspectrum.png"));
+        canvas->Clear();
     
-        graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
-        myText(.40,.92, kBlack, "Correlation Function");
-        canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_intensitychart.png"));
+        SetAtlasStyle();
     
-        graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "SURF2");
-        myText(.40,.92, kBlack, "Correlation Function");
-        canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_surfaceplot.png"));
+        // Loop over all track pT intervals: 1-2 GeV, 2-3 GeV, 3-4 GeV, 4-10 GeV
+        const int numOfIntervals = 3;
+        double trackpT_intervals[numOfIntervals][2] = {{1, 2}, {2, 3}, {3, 4}};
     
-        // Get the projection of the correlation function over |delta eta| < 0.8
-        TH1D* correlation_projection = project_2Dhistogram(correlation_function, -0.8, 0.8);
+        // Initialize the arrays for storing the integrals for both the near-side peak and the far-side peak, the corresponding pT intervals, and their errors
+        double near_side_integrals[numOfIntervals];
+        double far_side_integrals[numOfIntervals];
+        double track_pTs[numOfIntervals];
+        double near_side_errors[numOfIntervals];
+        double far_side_errors[numOfIntervals];
+        double track_pT_errors[numOfIntervals];
+    
+        for(int i = 0; i < numOfIntervals; i++) {
+            double trackpT_min = trackpT_intervals[i][0];
+            double trackpT_max = trackpT_intervals[i][1];
         
-        // Normalize the projection of the correlation function
-        normalizeHistogram(numpions, correlation_projection);
+            // Get the directory name, form it from min and max pT bounds
+            string directory_name = Form("PionpT_%2.0f-%2.0fGeV/TrackpT_%1.0f-%1.0fGeV/", triggerpT_min, triggerpT_max, trackpT_min, trackpT_max);
+            std::cout << "Filename: " << directory_name << std::endl;
     
-        // Fit the projection to a 2Gaussians + constant curve
-        TF1* fitfunc = new TF1("fit", Two_Gaussian_fit, -0.4, 1.5, Two_Gaussian_params);
-        fitfunc->SetParNames("Constant", "Magnitude 1", "Mean 1", "Sigma 1", "Magnitude 2", "Mean 2", "Sigma 2");
-        if (i == 2)
-            fitfunc->SetParameters(8.76865e-01, 1.5147e-01, -4.79180e-03, 8.52862e-02, 1.39296e-01, 1.04377e+00, 1.83722e-01);
-        else
-            fitfunc->SetParameters(8.76865e-01, 2.35579e-01, -4.79180e-03, 8.52862e-02, 1.39296e-01, 1.04377e+00, 1.83722e-01);
-        fitfunc->SetParLimits(1, 0, 1);
-        fitfunc->SetParLimits(2, -.5, 1.5);
-        fitfunc->SetParLimits(3, 0, 1);
-        fitfunc->SetParLimits(4, 0.05, 1);
-        fitfunc->SetParLimits(5, -.5, 1.5);
-        fitfunc->SetParLimits(6, 0, 1);
-        correlation_projection->Fit(fitfunc);
-        //correlation_projection->Fit(fitfunc);
+            // Cut the pion pT of both THnSparses to 10-12 GeV, the mass to 110-150 MeV, and track pT to 1-2 GeV
+            SetCut(hPionTrack, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
+            SetCut(hPionTrack, axis_corr_mass, mass_min/1000, mass_max/1000);
+            SetCut(hPionTrack, axis_corr_trackpT, trackpT_min, trackpT_max);
+            SetCut(hPionTrack, axis_corr_deta, -0.8, 0.8);
+        
+            SetCut(hPionTrack_Mixed, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
+            SetCut(hPionTrack_Mixed, axis_corr_mass, mass_min/1000, mass_max/1000);
+            SetCut(hPionTrack_Mixed, axis_corr_trackpT, trackpT_min, trackpT_max);
+            SetCut(hPionTrack_Mixed, axis_corr_deta, -0.8, 0.8);
+            
+            // Make a 2D projection over both delta-phi and delta-eta for both THnSparses
+            TH2D* Pion_Track_Projection = hPionTrack->Projection(axis_corr_deta, axis_corr_dphi);
+            TH2D* Pion_Track_Mixed_Projection = hPionTrack_Mixed->Projection(axis_corr_deta, axis_corr_dphi);
+        
+            // Rebin the histograms
+            if (triggerpT_min == 14) {
+                if (i == 1) {
+                    Pion_Track_Projection->Rebin2D(2, 2);
+                    Pion_Track_Mixed_Projection->Rebin2D(2, 2);
+                }
+                if (i == 2) {
+                    Pion_Track_Projection->Rebin2D(4, 4);
+                    Pion_Track_Mixed_Projection->Rebin2D(4, 4);
+                }
+            }
+            else
+                if (i == 2) {
+                    Pion_Track_Projection->Rebin2D(2, 2);
+                    Pion_Track_Mixed_Projection->Rebin2D(2, 2);
+                }
+        
+            // Normalized the Mixed Pion Track projection over its maximum value
+            normalizeHistogram(hist2D_max(Pion_Track_Mixed_Projection), Pion_Track_Mixed_Projection);
+        
+            // Output the 2D projections
+            graph(Pion_Track_Projection, "Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+            myText(.40,.92, kBlack, "Pion Track");
+            canvas->SaveAs(str_concat_converter(directory_name, "pion_track_graph.png"));
+            canvas->Clear();
+        
+            graph(Pion_Track_Mixed_Projection, "Normalized Mixed Pion Track", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+            myText(.40,.92, kBlack, "Mixed Pion Track");
+            canvas->SaveAs(str_concat_converter(directory_name, "mixed_pion_track_graph.png"));
+            canvas->Clear();
     
-        // Graph the projection
-        graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
-        myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
-        // Label regarding pion pT, mass, track pT cuts
-        myText(.6, 0.7, kBlack, "#scale[0.7]{Param Borders}");
-        myText(.6, 0.67, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
-        myText(.6, 0.64, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
-        myText(.6, 0.61, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
+            // Get and graph the quotient of all bins from the pion track divided by all bins from the mixed pion track
+            // This is the correlation function
+            // Use both a surface plot and a 2D intensity chart
+            TH2D* correlation_function = divide_histograms2D(Pion_Track_Projection, Pion_Track_Mixed_Projection);
+    
+            graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "COLZ");
+            myText(.40,.92, kBlack, "Correlation Function");
+            canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_intensitychart.png"));
+    
+            graph(correlation_function, "Correlation Function", "#Delta #eta", "#Delta #phi [rad]", 1.0, 1.0, canvas, "SURF2");
+            myText(.40,.92, kBlack, "Correlation Function");
+            canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_surfaceplot.png"));
+            
+            // Get the projection of the correlation function over |delta eta| < 0.8
+            TH1D* correlation_projection = project_2Dhistogram(correlation_function, -0.8, 0.8);
+            
+            // Normalize the projection of the correlation function
+            normalizeHistogram(numpions, correlation_projection);
+            
+            // Fit the projection to a 2Gaussians + constant curve
+            TF1* fitfunc = new TF1("fit", Two_Gaussian_fit, -0.4, 1.5, Two_Gaussian_params);
+            fitfunc->SetParNames("Constant", "Magnitude 1", "Mean 1", "Sigma 1", "Magnitude 2", "Mean 2", "Sigma 2");
+            if (i == 2)
+                fitfunc->SetParameters(8.76865e-01, 1.5147e-01, -4.79180e-03, 8.52862e-02, 1.39296e-01, 1.04377e+00, 1.83722e-01);
+            else
+                fitfunc->SetParameters(8.76865e-01, 2.35579e-01, -4.79180e-03, 8.52862e-02, 1.39296e-01, 1.04377e+00, 1.83722e-01);
+            fitfunc->SetParLimits(1, 0, 1.2);
+            fitfunc->SetParLimits(2, -.3, .3);
+            fitfunc->SetParLimits(3, 0.06, 1);
+            fitfunc->SetParLimits(4, 0.01, 0.35);
+            fitfunc->SetParLimits(5, 0.9, 1.2);
+            fitfunc->SetParLimits(6, 0.08, 1.2);
+            correlation_projection->Fit(fitfunc);
+            //correlation_projection->Fit(fitfunc);
+    
+            // Graph the projection
+            graph(correlation_projection, "Correlation Function: Projection over |#Delta #eta| < 0.8", "Correlation ratio", "#Delta #phi [rad]", 1.0, 1.0, canvas);
+            myText(.20,.92, kBlack, "Correlation Function: Projection over |#Delta #eta| < 0.8");
+            // Label regarding pion pT, mass, track pT cuts
+            myText(.6, 0.7, kBlack, "#scale[0.7]{Param Borders}");
+            myText(.6, 0.67, kBlack, Form("#scale[0.5]{%2.0f GeV < #pi^{0} pT < %2.0f GeV}", triggerpT_min, triggerpT_max));
+            myText(.6, 0.64, kBlack, Form("#scale[0.5]{%3.0f MeV < #pi^{0} mass < %3.0f MeV}", mass_min, mass_max));
+            myText(.6, 0.61, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
         //fitfunc->Print();
         // myText(.35, 0.81, kBlack, "#scale[0.75]{Fit Function: A + #frac{B}{#sqrt{2 #pi #sigma_{1}^{2}}} e^{#frac{(x-#bar{x}_{1})^{2}}{2 #sigma_{1}^{2}}} + #frac{C}{#sqrt{2 #pi #sigma_{2}^{2}}} e^{#frac{(x-#bar{x}_{2})^{2}}{2 #sigma_{2}^{2}}}}");
         //myText(.18, 0.81, kBlack, Form("#scale[0.7]{Fit Function: %4.0f + #frac{%4.1f}{#sqrt{2 #pi %0.4f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2*%0.4f^{2}}} + #frac{%4.1f}{#sqrt{2 #pi %0.3f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2 * %0.3f^{2}}}}", fitfunc->GetParameter(0), fitfunc->GetParameter(1), fitfunc->GetParameter(3), fitfunc->GetParameter(2), fitfunc->GetParameter(3), fitfunc->GetParameter(4), fitfunc->GetParameter(6), fitfunc->GetParameter(5), fitfunc->GetParameter(6)));
-        canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_projection.png"));
+            canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_projection.png"));
     
-        // Write the projection to the .root file
-        correlation_projection->Write(Form("correlation_function_%2.2f-%2.2fGeV", trackpT_min, trackpT_max));
-        canvas->Clear();
+            // Write the projection to the .root file
+            correlation_projection->Write(Form("correlation_function_%2.2f-%2.2fGeV", trackpT_min, trackpT_max));
+            canvas->Clear();
         
-        // Write the resultant values to the integral, track pT, and corresponding error arrays
-        near_side_integrals[i] = fitfunc->GetParameter(1);
-        far_side_integrals[i] = fitfunc->GetParameter(4);
-        track_pTs[i] = (trackpT_min + trackpT_max)/2;
-        near_side_errors[i] = fitfunc->GetParError(1);
-        far_side_errors[i] = fitfunc->GetParError(4);
-        track_pT_errors[i] = track_pTs[i] - trackpT_min;
+            // Write the resultant values to the integral, track pT, and corresponding error arrays
+            near_side_integrals[i] = fitfunc->GetParameter(1);
+            far_side_integrals[i] = fitfunc->GetParameter(4);
+            track_pTs[i] = (trackpT_min + trackpT_max)/2;
+            near_side_errors[i] = fitfunc->GetParError(1);
+            far_side_errors[i] = fitfunc->GetParError(4);
+            track_pT_errors[i] = track_pTs[i] - trackpT_min;
+        }
+    
+        // Use the integral, track pT, and corresponding error arrays to create two integral-track pT graphs, one for the near side and the other for the far side
+        // Add the integral graphs to the corresponding TMultigraph
+        TGraphErrors* nearside_Integral_vs_Trackpt = new TGraphErrors(numOfIntervals, track_pTs, near_side_integrals, track_pT_errors, near_side_errors);
+        nearside_Integral_vs_Trackpt->SetTitle("Near side Integral vs. Track pT; Track pT (GeV); Near Side Integral");
+        nearside_Integral_vs_Trackpt->GetYaxis()->SetTitleOffset(.9);
+        nearside_Integral_vs_Trackpt->GetXaxis()->SetTitleOffset(.9);
+        nearside_Integral_vs_Trackpt->Draw();
+        myText(0.05, 0.95, kBlack, Form("Near side Integral vs. Track pT, Pion pT %2.2f-%2.2f GeV", triggerpT_min, triggerpT_max));
+        canvas->SaveAs(str_concat_converter(triggerpT_directory_name, "near_side_integral_vs_trackpt.png"));
+        nearside_Integral_vs_Trackpt->SetLineColor(graph_colors[j]);
+        nearside_Integral_vs_Trackpt->Write(Form("Near_Side_Integral_vs_Trackpt_%2.2f_%2.2f_GeV", triggerpT_min, triggerpT_max));
+        near_side->Add(nearside_Integral_vs_Trackpt);
+        canvas->Clear();
+    
+        TGraphErrors* farside_Integral_vs_Trackpt = new TGraphErrors(numOfIntervals, track_pTs, far_side_integrals, track_pT_errors, far_side_errors);
+        farside_Integral_vs_Trackpt->SetTitle("Far side Integral vs. Track pT; Track pT (GeV); Far Side Integral");
+        farside_Integral_vs_Trackpt->GetYaxis()->SetTitleOffset(.9);
+        farside_Integral_vs_Trackpt->GetXaxis()->SetTitleOffset(.9);
+        farside_Integral_vs_Trackpt->Draw();
+        myText(0.05, 0.95, kBlack, Form("Far side Integral vs. Track pT, Pion pT %2.2f-%2.2f GeV", triggerpT_min, triggerpT_max));
+        canvas->SaveAs(str_concat_converter(triggerpT_directory_name, "far_side_integral_vs_trackpt.png"));
+        canvas->Clear();
+        farside_Integral_vs_Trackpt->Write(Form("Far_Side_Integral_vs_Trackpt_%2.2f_%2.2f_GeV", triggerpT_min, triggerpT_max));
+        farside_Integral_vs_Trackpt->SetLineColor(graph_colors[j]);
+        far_side->Add(farside_Integral_vs_Trackpt);
+        canvas->Clear();
     }
-    
-    // Use the integral, track pT, and corresponding error arrays to create two integral-track pT graphs, one for the near side and the other for the far side
-    TGraphErrors* nearside_Integral_vs_Trackpt = new TGraphErrors(numOfIntervals, track_pTs, near_side_integrals, track_pT_errors, near_side_errors);
-    nearside_Integral_vs_Trackpt->SetTitle("Near side Integral vs. Track pT; Track pT (GeV); Near Side Integral");
-    nearside_Integral_vs_Trackpt->Draw();
-    canvas->SaveAs("near_side_integral_vs_trackpt.png");
+    // Plot the integral Multigraphs
+    // Near Side
+    near_side->SetTitle("Number of Pions in Near Side Peak vs. Trigger and Track Transverse Momenta; Track pT (GeV); Num of Pions");
+    near_side->Draw("Al");
+    myBoxText(0.25, 0.85, 0.05, 10, graph_colors[0], "8-10 GeV");
+    myBoxText(0.25, 0.80, 0.05, 10, graph_colors[1], "10-12 GeV");
+    myBoxText(0.25, 0.75, 0.05, 10, graph_colors[2], "12-14 GeV");
+    myText(.02,.93, kBlack, "#scale[1]{Number of Pions in Near Side Peak vs. Trigger and Track Transverse Momenta}");
+    near_side->Write("Near_Side_Integrals");
+    canvas->SaveAs("near_side_all_integrals.png");
     canvas->Clear();
-    nearside_Integral_vs_Trackpt->Write("Near_Side_Integral_vs_Trackpt");
     
-    TGraphErrors* farside_Integral_vs_Trackpt = new TGraphErrors(numOfIntervals, track_pTs, far_side_integrals, track_pT_errors, far_side_errors);
-    farside_Integral_vs_Trackpt->SetTitle("Far side Integral vs. Track pT; Track pT (GeV); Far Side Integral");
-    farside_Integral_vs_Trackpt->Draw();
-    canvas->SaveAs("far_side_integral_vs_trackpt.png");
-    canvas->Clear();
-    farside_Integral_vs_Trackpt->Write("Far_Side_Integral_vs_Trackpt");
+    // Far Side
+    far_side->SetTitle("Number of Pions in Near Side Peak vs. Trigger and Track Transverse Momenta; Track pT (GeV); Num of Pions");
+    far_side->Draw("Al");
+    myBoxText(0.5, 0.85, 0.05, 10, graph_colors[0], "8-10 GeV");
+    myBoxText(0.5, 0.80, 0.05, 10, graph_colors[1], "10-12 GeV");
+    myBoxText(0.5, 0.75, 0.05, 10, graph_colors[2], "12-14 GeV");
+    myText(.02,.93, kBlack, "#scale[1]{Number of Pions in Far Side Peak vs. Trigger and Track Transverse Momenta}");
+    far_side->Write("Far_Side_Integrals");
+    canvas->SaveAs("far_side_all_integrals.png");
     
     canvas->Close();
 }
