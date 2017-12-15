@@ -47,7 +47,7 @@ void DeepPions::Efficiency(){
   
   char *histname = new char[30];
   
-  const Color_t colors[6] = {kBlack, kRed, kBlue, kGreen+1, kMagenta, kCyan};
+  const Color_t colors[8] = {kBlack, kRed, kBlue, kGreen+2, kMagenta, kCyan, kYellow, kOrange + 1};
   
   
   for (int ipt = 0; ipt<nptbins; ipt++){

@@ -217,9 +217,9 @@ DeepPions::DeepPions(TTree *tree) : fChain(0)
   // if parameter tree is not specified (or zero), connect the file
   // used to generate this class and read the Tree.
   if (tree == 0) {
-    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("16c3b_small.root");
+    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("13d_small.root");
     if (!f || !f->IsOpen()) {
-      f = new TFile("16c3b_small.root");
+      f = new TFile("13d_small.root");
     }
     f->GetObject("_tree_event",tree);
 
