@@ -335,7 +335,7 @@ void pion_hadron_corr() {
             string directory_name = Form("PionpT_%2.0f-%2.0fGeV/TrackpT_%1.0f-%1.0fGeV/", triggerpT_min, triggerpT_max, trackpT_min, trackpT_max);
             std::cout << "Filename: " << directory_name << std::endl;
     
-            // Cut the pion pT of both THnSparses to 10-12 GeV, the mass to 110-150 MeV, and track pT to 1-2 GeV
+            // Cut the pion pT of both THnSparses to the pion pT interval, the mass to 110-150 MeV, and track pT to the track pT intervalz
             SetCut(hPionTrack, axis_corr_triggerpT, triggerpT_min, triggerpT_max);
             SetCut(hPionTrack, axis_corr_mass, mass_min/1000, mass_max/1000);
             SetCut(hPionTrack, axis_corr_trackpT, trackpT_min, trackpT_max);
@@ -426,7 +426,7 @@ void pion_hadron_corr() {
             myText(.6, 0.61, kBlack, Form("#scale[0.5]{%2.0f GeV < Track pT < %2.0f GeV}", trackpT_min, trackpT_max));
         //fitfunc->Print();
         // myText(.35, 0.81, kBlack, "#scale[0.75]{Fit Function: A + #frac{B}{#sqrt{2 #pi #sigma_{1}^{2}}} e^{#frac{(x-#bar{x}_{1})^{2}}{2 #sigma_{1}^{2}}} + #frac{C}{#sqrt{2 #pi #sigma_{2}^{2}}} e^{#frac{(x-#bar{x}_{2})^{2}}{2 #sigma_{2}^{2}}}}");
-        //myText(.18, 0.81, kBlack, Form("#scale[0.7]{Fit Function: %4.0f + #frac{%4.1f}{#sqrt{2 #pi %0.4f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2*%0.4f^{2}}} + #frac{%4.1f}{#sqrt{2 #pi %0.3f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2 * %0.3f^{2}}}}", fitfunc->GetParameter(0), fitfunc->GetParameter(1), fitfunc->GetParameter(3), fitfunc->GetParameter(2), fitfunc->GetParameter(3), fitfunc->GetParameter(4), fitfunc->GetParameter(6), fitfunc->GetParameter(5), fitfunc->GetParameter(6)));
+       // myText(.18, 0.81, kBlack, Form("#scale[0.7]{Fit Function: %4.0f + #frac{%4.1f}{#sqrt{2 #pi %0.4f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2*%0.4f^{2}}} + #frac{%4.1f}{#sqrt{2 #pi %0.3f^{2}}} e^{#frac{(x-%2.2f)^{2}}{2 * %0.3f^{2}}}}", fitfunc->GetParameter(0), fitfunc->GetParameter(1), fitfunc->GetParameter(3), fitfunc->GetParameter(2), fitfunc->GetParameter(3), fitfunc->GetParameter(4), fitfunc->GetParameter(6), fitfunc->GetParameter(5), fitfunc->GetParameter(6)));
             canvas->SaveAs(str_concat_converter(directory_name, "correlation_function_projection.png"));
     
             // Write the projection to the .root file
