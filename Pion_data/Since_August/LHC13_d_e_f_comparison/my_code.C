@@ -469,7 +469,7 @@ void my_code(string runletter) {
         
         // Asymmetry cut
         if (min >= 12)
-            SetCut(h_Pion, axis_asymmetry, 0.0, 0.9);
+            SetCut(h_Pion, axis_asymmetry, 0.0, 1.0);
         else
             SetCut(h_Pion, axis_asymmetry, 0.0, 0.6);
         

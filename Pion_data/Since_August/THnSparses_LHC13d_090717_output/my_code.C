@@ -179,7 +179,7 @@ void my_code() {
     SetAtlasStyle();
     // Headers for various cut nums, for use both for table output (another version is defined in the to-table input section and for titles
     const int cutnum_option_quantity = 5;
-    const double asymmetry_cut_num = 1.0;
+    const double asymmetry_cut_num = 0.7;
     directory_name = "data/";
     //string headers[cutnum_option_quantity] = {"None ", "angle > 17 mrad ", "0.1 < lambda < 0.4 ", "dR > 20 mrad ", "asymmetry < 0.7 "};
     //if (option == "TESTSENSITIVITY")
