@@ -298,21 +298,21 @@ int main(int argc, char *argv[])
         phietamap_measured->SetTitle("Measured Photons; #phi (#frac{rad}{#pi}); #eta");
         phietamap_measured->GetXaxis()->SetTitleOffset(1.5);
         phietamap_measured->GetYaxis()->SetTitleOffset(1.5);
-        phietamap_measured->Draw("SURF2");
+        phietamap_measured->Draw("COLZ");
         canvas->SaveAs(Form("measured_photons_phietamap_%s.png", opened_files.c_str()));
         canvas->Clear();
         
         phietamap_generated->SetTitle("Generated Photons; #phi (#frac{rad}{#pi}); #eta");
         phietamap_generated->GetXaxis()->SetTitleOffset(1.5);
         phietamap_generated->GetYaxis()->SetTitleOffset(1.5);
-        phietamap_generated->Draw("SURF2");
+        phietamap_generated->Draw("COLZ");
         canvas->SaveAs(Form("generated_photons_phietamap_%s.png", opened_files.c_str()));
         canvas->Clear();
         
         phietamap_ratio->SetTitle("Efficiency; #phi (#frac{rad}{#pi}); #eta");
         phietamap_ratio->GetXaxis()->SetTitleOffset(1.5);
         phietamap_ratio->GetYaxis()->SetTitleOffset(1.5);
-        phietamap_ratio->Draw("SURF2");
+        phietamap_ratio->Draw("COLZ");
         canvas->SaveAs(Form("efficiency_phietamap_%s.png", opened_files.c_str()));
         canvas->Clear();
         
