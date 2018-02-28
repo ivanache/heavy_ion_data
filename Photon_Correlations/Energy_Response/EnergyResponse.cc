@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         }
         
         // The histograms
-        TH2D* energyresponse_scatter = new TH2D("measured_vs_true_pt_chart", "", 14, 10, 24, 14, 10, 24);
+        TH2D* energyresponse_scatter = new TH2D("measured_pt_chart", "", 22, 10, 21, 26, 10, 23);
         TH1D* energyresolution = new TH1D("energy_resolution", "", 80, -.4, .4);
         
         TCanvas* canvas = new TCanvas();
@@ -137,49 +137,42 @@ int main(int argc, char *argv[])
             //for(Long64_t ievent = 0; ievent < 1000 ; ievent++){
             _tree_event->GetEntry(ievent);
             
-            int rejected_mctruths = 0;
-            int accepted_mctruths = 0;
-            int rejected_clusters = 0;
-            int accepted_clusters = 0;
-            double mc_right_eta = -9000;
-            double mc_right_phi = -9000;
-            double mc_right_pT = -9000;
+            double detectedpT = -1;
+            double generatedpT = -1;
             
             //loop over clusters
             for (ULong64_t n = 0; n < ncluster; n++) {
                 // Apply cuts
-                if( not(cluster_pt[n]>10)) {rejected_clusters++; continue;} //select pt of photons
-                if( not(cluster_s_nphoton[n][1]<=0.85)) {rejected_clusters++; continue;} // NN max: deep photons
-                if( not(cluster_s_nphoton[n][1]>=0.55)) {rejected_clusters++; continue;} // NN min: deep photons
+                if( not(cluster_pt[n]>10)) {continue;} //select pt of photons
+                if( not(cluster_s_nphoton[n][1]<=0.85)) {continue;} // NN max: deep photons
+                if( not(cluster_s_nphoton[n][1]>=0.55)) {continue;} // NN min: deep photons
                 
-                accepted_clusters++;
-                // Fill histograms
-                energyresponse_scatter->Fill(mc_truth_pt[n], cluster_pt[n]);
-                energyresolution->Fill((mc_truth_pt[n] - cluster_pt[n])/(mc_truth_pt[n]));
+                // Keep the cluster pt of the cluster within the event that passed the cuts (there should be only one)
+                detectedpT = cluster_pt[n];
+                break;
                 
             }//end loop on clusters
             
             //loop over mc truth
             for (unsigned int m = 0; m < nmc_truth; m++) {
                 // Apply cuts
-                if( not(mc_truth_pt[m]>10)) {rejected_mctruths++; continue;} //select pt of photons
-                if( not(mc_truth_pdg_code[m]==22)) {rejected_mctruths++;  continue; } // MC truth pT
+                if( not(mc_truth_pt[m]>10)) {continue;} //select pt of photons
+                if( not(mc_truth_pdg_code[m]==22)) {continue;} // MC truth pT
                 
-                accepted_mctruths++;
-                if(mc_right_eta == -9000) mc_right_eta = mc_truth_eta[m];
-                if(mc_right_phi == -9000) mc_right_phi = mc_truth_phi[m];
-                if(mc_right_pT == -9000) mc_right_pT = mc_truth_pt[m];
+                // Keep the truth pt of the cluster within the event that passed the cuts (there should be only one, any more than one is probably a bug)
+                generatedpT = mc_truth_pt[m];
                 
-                // Check for duplicates
-                if (mc_right_eta == mc_truth_eta[m] && mc_right_phi == mc_truth_phi[m] && mc_right_pT == mc_truth_pt[m])
-                    accepted_mctruths--;
                 
             }// end loop on mc truth
             
-            //if (ievent % 10000 == 0)
-            if (accepted_clusters > 1 || accepted_mctruths > 1 || ievent % 10000 == 0)
-                std::cout<< "Event " << ievent << " accepted " << accepted_clusters << " accepted " << accepted_mctruths << std::endl;
+            // -1 (see above) is an indicator value for no results
+            if (detectedpT != -1 && generatedpT != -1) {
+                energyresponse_scatter->Fill(generatedpT, detectedpT);
+                energyresolution->Fill((generatedpT - detectedpT)/(generatedpT));
+            }
             
+            if(ievent % 10000 == 0)
+                std::cout << "Event " << ievent << " has been processed" << std::endl;
             
         }//end loop on events
         
@@ -193,18 +186,18 @@ int main(int argc, char *argv[])
         
         // Draw all graphs
         TFile* energyresponseOut = new TFile(Form("fout_energyresponse%s.root", opened_files.c_str()), "RECREATE");
-        energyresponse_scatter->SetTitle("p_{T} response; True p_{T} (GeV); MEasured p_{T} (GeV)");
-        energyresolution->SetTitle("t_{T} resolution; #frac{true p_{T} - meas p_{T}}{true p_{T}}; Number of Photons");
+        energyresponse_scatter->SetTitle("p_{T} response; True p_{T} (GeV); Measured p_{T} (GeV)");
+        energyresolution->SetTitle("p_{T} resolution; #frac{true p_{T} - meas p_{T}}{true p_{T}}; Number of Photons");
         energyresponse_scatter->Write("energy_response");
         energyresolution->Write("energy_resolution");
         energyresponseOut->Close();
         
         energyresponse_scatter->Draw("COLZ");
-        canvas->SaveAs(Form("energy_response_%s.png", opened_files.c_str()));
+        canvas->SaveAs(Form("energy_response_scatter_%s.png", opened_files.c_str()));
         canvas->Clear();
         
         energyresolution->Draw();
-        canvas->SaveAs(Form("energy_response_%s.png", opened_files.c_str()));
+        canvas->SaveAs(Form("energy_response_resolution_%s.png", opened_files.c_str()));
         canvas->Clear();
         
         canvas->Close();
