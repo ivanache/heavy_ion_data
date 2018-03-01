@@ -159,8 +159,9 @@ int main(int argc, char *argv[])
                 if( not(mc_truth_pt[m]>10)) {continue;} //select pt of photons
                 if( not(mc_truth_pdg_code[m]==22)) {continue;} // MC truth pT
                 
-                // Keep the truth pt of the cluster within the event that passed the cuts (there should be only one, any more than one is probably a bug)
-                generatedpT = mc_truth_pt[m];
+                // Keep the truth pt of highest-pT photon from the cluster within the event that passed the cuts
+                if (mc_truth_pt[m] > generatedpT)
+                    generatedpT = mc_truth_pt[m];
                 
                 
             }// end loop on mc truth
