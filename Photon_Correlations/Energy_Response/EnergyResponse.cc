@@ -137,6 +137,8 @@ int main(int argc, char *argv[])
             //for(Long64_t ievent = 0; ievent < 1000 ; ievent++){
             _tree_event->GetEntry(ievent);
             
+            double n_generated = 0;
+            double n_detected = 0;
             double detectedpT = -1;
             double generatedpT = -1;
             
@@ -147,13 +149,29 @@ int main(int argc, char *argv[])
                 if( not(cluster_s_nphoton[n][1]<=0.85)) {continue;} // NN max: deep photons
                 if( not(cluster_s_nphoton[n][1]>=0.55)) {continue;} // NN min: deep photons
                 
-                // Keep the cluster pt of the cluster within the event that passed the cuts (there should be only one)
-                detectedpT = cluster_pt[n];
-                break;
+                n_detected++;
+                if (detectedpT < cluster_pt[n])
+                    detectedpT = cluster_pt[n];
+                
+                // Access the corresonding mc_truth particle; skip if index is 65535, which is invalid, or the truth particle pT is less than 10, or the mc_truth_pdg_code is not 22 (it's not a photon)
+                for(int counter = 0 ; counter<32; counter++){
+                    unsigned short index = cluster_mc_truth_index[n][counter];
+                    
+                    if(index!=65535)
+                        if(mc_truth_pt[index]>10)
+                            if(mc_truth_pdg_code[index]==22){
+                                if (mc_truth_pt[index] > generatedpT)
+                                    generatedpT = mc_truth_pt[index];
+                                
+                                n_generated++;
+                            }
+                }
                 
             }//end loop on clusters
             
+            /**
             //loop over mc truth
+            
             for (unsigned int m = 0; m < nmc_truth; m++) {
                 // Apply cuts
                 if( not(mc_truth_pt[m]>10)) {continue;} //select pt of photons
@@ -165,6 +183,7 @@ int main(int argc, char *argv[])
                 
                 
             }// end loop on mc truth
+            */
             
             // -1 (see above) is an indicator value for no results
             if (detectedpT != -1 && generatedpT != -1) {
@@ -172,8 +191,8 @@ int main(int argc, char *argv[])
                 energyresolution->Fill((generatedpT - detectedpT)/(generatedpT));
             }
             
-            if(ievent % 10000 == 0)
-                std::cout << "Event " << ievent << " has been processed" << std::endl;
+            if(ievent % 10000 == 0|| n_detected > 1 || n_generated > 1)
+                std::cout << "Event " << ievent << " has been processed;" << " Num of clus photons: " << n_detected << "; Num of gen photons: " << n_generated << std::endl;
             
         }//end loop on events
         
