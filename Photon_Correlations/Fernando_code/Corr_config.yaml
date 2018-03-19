@@ -1,0 +1,15 @@
+pT_min:                       12
+pT_max:                       14
+DNN_min:                      0.75
+DNN_max:                      0.85
+Eta_max:                      0.6
+Cluster_min:                  2
+EcrossoverE_min:              0.03
+iso_max:                      2.0
+noniso_min:                   5.0
+noniso_max:                   15.0
+deta_max:                     0.6
+Correlation_func_bins:        18
+track_selection_num:          3
+Zt_bins:               [0.0, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
+Cluster_isolation_determinant: cluster_iso_tpc_04

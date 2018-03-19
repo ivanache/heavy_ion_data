@@ -44,14 +44,14 @@ TStyle* AtlasStyle()
   // set title offsets (for axis label)
   atlasStyle->SetTitleXOffset(1.50);
   atlasStyle->SetTitleYOffset(1.50);
-  atlasStyle->SetLabelOffset(0.018,"X");
-  atlasStyle->SetLabelOffset(0.018,"Y");
+  atlasStyle->SetLabelOffset(0.025,"X");
+  atlasStyle->SetLabelOffset(0.025,"Y");
   atlasStyle->SetTitleAlign();
   //atlasStyle->SetLabelOffset(10.4);
   // use large fonts
   //Int_t font=72; // Helvetica italics
-  Int_t font=42; // Helvetica42
-  Double_t tsize=0.04;
+  Int_t font=42; // Helvetica
+  Double_t tsize=0.045;
   atlasStyle->SetTextFont(font);
 
   atlasStyle->SetTextSize(tsize);
@@ -66,11 +66,11 @@ TStyle* AtlasStyle()
   atlasStyle->SetTitleSize(tsize,"x");
   atlasStyle->SetLabelSize(tsize,"y");
   atlasStyle->SetTitleSize(tsize,"y");
-  atlasStyle->SetLabelSize(tsize*0.7,"z");
-  atlasStyle->SetTitleSize(tsize*0.7,"z");
+  atlasStyle->SetLabelSize(tsize,"z");
+  atlasStyle->SetTitleSize(tsize,"z");
 
   // use bold lines and markers
-  atlasStyle->SetMarkerStyle(20);
+  atlasStyle->SetMarkerStyle(8);
   atlasStyle->SetMarkerSize(1);
   atlasStyle->SetHistLineWidth(2);
   atlasStyle->SetLineStyleString(2,"[12 12]"); // postscript dashes
@@ -92,9 +92,9 @@ TStyle* AtlasStyle()
   // put tick marks on top and RHS of plots
   atlasStyle->SetPadTickX(0);
   atlasStyle->SetPadTickY(0);
-  //atlasStyle->SetTickLength(0.00,"x");
-  //atlasStyle->SetTickLength(0.00,"y");
-  //atlasStyle->SetTickLength(0.00,"z");
+  atlasStyle->SetTickLength(0.00,"x");
+  atlasStyle->SetTickLength(0.00,"y");
+  atlasStyle->SetTickLength(0.00,"z");
   atlasStyle->SetPalette(kViridis); //I want 112
   atlasStyle->SetOptStat("");
   atlasStyle->SetTitleAlign(4);

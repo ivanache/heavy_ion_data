@@ -5,5 +5,7 @@
 -Energy_Response: the folder with the C++ file in charge of the Energy response data
 -Correlations: the folder with the C++ file run on PDSF to find the signal and background spectra there, and associated files
 -PhotonEfficiency: the folder with the C++ file used to find efficiency of cluster photon processes, and associated files
+- Fernando_code: the correlation code from Fernando. It uses event mixing for background.
 -Corr_config.yaml: the configuration file used to change the values of various constants in Correlations.cc
 - All .root files here are output, and their names indicate the settings of the configuration file constants and/or the Ntuples used to find them
+

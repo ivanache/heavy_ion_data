@@ -51,7 +51,7 @@ TStyle* AtlasStyle()
   // use large fonts
   //Int_t font=72; // Helvetica italics
   Int_t font=42; // Helvetica42
-  Double_t tsize=0.04;
+  Double_t tsize=0.06;
   atlasStyle->SetTextFont(font);
 
   atlasStyle->SetTextSize(tsize);
@@ -66,8 +66,8 @@ TStyle* AtlasStyle()
   atlasStyle->SetTitleSize(tsize,"x");
   atlasStyle->SetLabelSize(tsize,"y");
   atlasStyle->SetTitleSize(tsize,"y");
-  atlasStyle->SetLabelSize(tsize*0.7,"z");
-  atlasStyle->SetTitleSize(tsize*0.7,"z");
+  atlasStyle->SetLabelSize(tsize,"z");
+  atlasStyle->SetTitleSize(tsize,"z");
 
   // use bold lines and markers
   atlasStyle->SetMarkerStyle(20);
