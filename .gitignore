@@ -45,3 +45,6 @@
 
 # HDF5 files
 *.hdf5
+
+# PowerPoint files
+*.pptx
