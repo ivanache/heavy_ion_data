@@ -42,3 +42,6 @@
 
 # ROOT data files
 *.root
+
+# HDF5 files
+*.hdf5
