@@ -31,16 +31,16 @@ void find_ntrack_ncluster_max(char *argv_first[], char *argv_last[], UInt_t &ntr
             continue;
         }
 
-         TDirectoryFile *df = dynamic_cast<TDirectoryFile *>
-             (file->Get("AliAnalysisTaskNTGJ"));
+         //TDirectoryFile *df = dynamic_cast<TDirectoryFile *>
+             //(file->Get("AliAnalysisTaskNTGJ"));
 
-         if (df == NULL) {
-	       fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "Cannot open TFile");
-             continue;
-         }
+         //if (df == NULL) {
+	       //fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "Cannot open TFile");
+             //continue;
+         //}
 
          TTree *hi_tree = dynamic_cast<TTree *>
-             (df->Get("_tree_event"));
+             (file->Get("_tree_event"));
 
 	 if (hi_tree == NULL) {
 	   fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "Cannot open _tree_event");
@@ -65,7 +65,7 @@ void find_ntrack_ncluster_max(char *argv_first[], char *argv_last[], UInt_t &ntr
         // Fully delete everything
 
         hi_tree->Delete();
-	delete df;
+	//delete df;
         file->Close();
         delete file;
     }
@@ -84,15 +84,15 @@ void write_track_cluster(H5::DataSet &track_data_set, H5::DataSet &cluster_data_
             continue;
         }
 
-        TDirectoryFile *df = dynamic_cast<TDirectoryFile *>
-            (file->Get("AliAnalysisTaskNTGJ"));
+        //TDirectoryFile *df = dynamic_cast<TDirectoryFile *>
+            //(file->Get("AliAnalysisTaskNTGJ"));
 
-        if (df == NULL) {
-            continue;
-        }
+        //if (df == NULL) {
+            //continue;
+        //}
 
         TTree *hi_tree = dynamic_cast<TTree *>
-            (df->Get("_tree_event"));
+            (file->Get("_tree_event"));
 
         if (hi_tree == NULL) {
             continue;
@@ -218,7 +218,7 @@ void write_track_cluster(H5::DataSet &track_data_set, H5::DataSet &cluster_data_
         }
 
         hi_tree->Delete();
-        delete df;
+        //delete df;
         file->Close();
         delete file;
     }

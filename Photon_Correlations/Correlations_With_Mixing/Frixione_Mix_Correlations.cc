@@ -59,10 +59,9 @@ int main(int argc, char *argv[])
   ztbins = new float[nztbins+1];
   ztbins[0] = 0.0; ztbins[1] = 0.1; ztbins[2] = 0.2; ztbins[3] = 0.4; ztbins[4] = 0.6; ztbins[5] = 0.8; ztbins[6] = 1.0; ztbins[7] = 1.2;
    
-  // Number of bins in correlation functions
   int n_correlationbins = 18;
     
-  // Which branch should be used to determine whether a cluster should fall into iso, noniso, or neither
+  // Which branch should be used for isolation
     isolationDet determiner = CLUSTER_ISO_ITS_04;
   
   // Loop through config file
@@ -202,18 +201,9 @@ int main(int argc, char *argv[])
   // Create the TCanvas and the histograms
   TCanvas canvas("canvas", "");
   TH1D histogram0("histogram0", "", 16, 8.0, 16.0);
-  //TH2D histogram1("histogram1", "", 30, -1.5, 1.5, 18, -0.5, 1.5);
-  //TH1D histogram2("histogram2", "", 18, -0.5,1.5);
   TH1D histogram3("histogram3", "", 18, -0.5,1.5);
   TH1D h_ntrig("h_ntrig", "", 2, -0.5,1.0);
-  
-  // Create the histogram for the 2D plots
-  // TH2D histogram2D0("histogram2D0", "", );
-  
-  // Zt bins
-  //const int nztbins = 7;
-  //const float ztbins[nztbins+1] = {0.0, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2};
-  
+    
   // Function declarations of h_dPhi_iso and h_dPhi_noniso
   TH1F* h_dPhi_iso[nztbins];
   TH1F* h_dPhi_noniso[nztbins];
@@ -301,7 +291,7 @@ int main(int argc, char *argv[])
     Float_t cluster_lambda_square[NTRACK_MAX][2];   
     Float_t cell_e[17664];
 
-    Long64_t Mix_Events[50];
+    Long64_t Mix_Events[10];
 
     //MC
     unsigned int nmc_truth;
@@ -366,9 +356,11 @@ int main(int argc, char *argv[])
       ncluster_max = std::max(ncluster_max, ncluster);
       fprintf(stderr, "\r%s:%d: %llu", __FILE__, __LINE__, i);
     }
-     fprintf(stderr, "\n%s:%d: maximum tracks:%i maximum clusters:%i\n", __FILE__, __LINE__, ntrack_max,ncluster_max);
+    //ntrack_max = 3000;
+    //ncluster_max = 23; //FixMe, root and hdf5 files from different data sets may have it be out of bounds
+    fprintf(stderr, "\n%s:%d: maximum tracks:%i maximum clusters:%i\n", __FILE__, __LINE__, ntrack_max,ncluster_max);
 
-    //open hdf5
+    //open hdf5: Define size of data from file, explicitly allocate memory in hdf5 space and array size
     const H5std_string hdf5_file_name(argv[iarg+1]);
     //FIXME: Can parse the string s.t. remove .root and simply add .hdf5
     //FIXME: This will obviously require stringent naming conventions 
@@ -397,18 +389,18 @@ int main(int argc, char *argv[])
     fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "select Hyperslab OK");
 
     //Define the memory dataspace to place hyperslab
-    const int RANK_OUT = 3;
-    hsize_t track_dimsm[3] = {1, ntrack_max, 7};      //memory space dimensions
+    const int RANK_OUT = 3; //# of Dimensions
+    hsize_t track_dimsm[3] = {1, ntrack_max, 7};
     DataSpace track_memspace( RANK_OUT, track_dimsm );
-    hsize_t cluster_dimsm[3] = {1, ncluster_max, 5};      //memory space dimensions
+    hsize_t cluster_dimsm[3] = {1, ncluster_max, 5};
     DataSpace cluster_memspace( RANK_OUT, cluster_dimsm );
 
-    //Define memory offset for hypreslab->array
+    //Define memory offset for hypreslab starting at begining:
     hsize_t track_offset_out[3] = {0};
     hsize_t cluster_offset_out[3] = {0};
 
-    //define 2D memory hyperslab
-    hsize_t track_count_out[3] = {1, ntrack_max, 7};    // size of the hyperslab in memory    
+    //define Dimensions of array, for writing slab to array
+    hsize_t track_count_out[3] = {1, ntrack_max, 7};
     hsize_t cluster_count_out[3] = {1, ncluster_max, 5};
 
     //define space in memory for hyperslab, then write from file to memory
@@ -426,7 +418,6 @@ int main(int argc, char *argv[])
     //for(Long64_t ievent = 0; ievent < 1000 ; ievent++){
       _tree_event->GetEntry(ievent);
       fprintf(stderr, "\r%s:%d: %llu / %llu", __FILE__, __LINE__, ievent, nentries);
-      //fprintf(stderr, "%s:%d: %llu / %llu ENTRIES\n", __FILE__, __LINE__, ievent, nentries);
 
       for (ULong64_t n = 0; n < ncluster; n++) {
 	if( not(cluster_pt[n]>pT_min and cluster_pt[n]<pT_max)) continue; //select pt of photons
@@ -452,11 +443,11 @@ int main(int argc, char *argv[])
 	  h_ntrig.Fill(0.5);
 	}
 
-	for (Long64_t imix = 0; imix < 50; imix++){
+	for (Long64_t imix = 0; imix < 10; imix++){
 	  Long64_t mix_event = Mix_Events[imix];
 	  if (mix_event == ievent) continue;
 
-	  //adjust hyper slab offset for next mixed event
+	  //adjust offset for next mixed event
 	  track_offset[0]=mix_event;
 	  track_dataspace.selectHyperslab( H5S_SELECT_SET, track_count, track_offset );
 	  track_dataset.read( track_data_out, PredType::NATIVE_FLOAT, track_memspace, track_dataspace );
@@ -469,11 +460,9 @@ int main(int argc, char *argv[])
 	  for (ULong64_t itrack = 0; itrack < ntrack_max; itrack++) {
 	    if (std::isnan(track_data_out[0][itrack][1])) break;
 	    if((track_quality[itrack]&selection_number)==0) continue; //pass 3 cut
-	    //if (track_data_out[0][itrack][1] < 0.15) continue;
 	    if (track_data_out[0][itrack][1] < 2) continue; //less than 2GeV
 
 	    //veto charged particles from mixed event tracks
-	    //the isolation takes care of the initial culster, but does nothing for mixed event track
 	    bool MixTrack_HasMatch = false;
 	    for (unsigned int l = 0; l < ncluster_max; l++){
 	      if (std::isnan(cluster_data_out[0][l][0])) break;
@@ -486,7 +475,6 @@ int main(int argc, char *argv[])
 	    if (MixTrack_HasMatch) continue;
 	    //fprintf(stderr, "%s:%d: Mixed Event: %llu Track: %llu\n", __FILE__, __LINE__, mix_event, itrack);
 
-	    //FIXME: Lazy implementation from past code. Will use this repositories ∆'s soon
 	    Float_t DeltaPhi = cluster_phi[n] - track_data_out[0][itrack][3];
 	    if (DeltaPhi < -M_PI/2){DeltaPhi += 2*M_PI;}  //if less then -pi/2 add 2pi              
 	    if (DeltaPhi > 3*M_PI/2){DeltaPhi =DeltaPhi -2*M_PI;}
@@ -500,7 +488,6 @@ int main(int argc, char *argv[])
 	    //if(!(TMath::Abs(deta)<0.6)) continue; //deta cut
 	    if(dphi<-0.5) dphi +=2;
 
-	    // Loop over zt bins
 	    for(int izt = 0; izt<nztbins ; izt++){
 	      if(zt>ztbins[izt] and  zt<ztbins[izt+1])
 		{
@@ -513,42 +500,58 @@ int main(int argc, char *argv[])
 		    h_dPhi_noniso[izt]->Fill(DeltaPhi);
 		    AntiIsoCorr[izt]->Fill(DeltaPhi,DeltaEta);
 		  }
+
 		  Corr[izt]->Fill(DeltaPhi,DeltaEta);
-		}
+
+		}//if in zt bin
 	    } // end loop over zt bins
 	  }//end loop over tracks
 	}//end loop over mixed events
-	 
-     }//end loop on clusters. 
+      }//end loop on clusters. 
+      
       if (ievent % 25000 == 0) {
 	histogram0.Draw("e1x0");
-	canvas.Update();
-      }
+	canvas.Update();      }
+      
     } //end loop over events
     
   }//end loop over samples
 
 
     // Write to fout    
-    //TFile* fout = new TFile(Form("fout_Corr_config%s.root", opened_files.c_str()),"RECREATE");
-    TFile* fout = new TFile("fout_mixed_frixione.root","RECREATE");
+    TFile* fout = new TFile("fout_fdc_mixed_frixione.root","RECREATE");
     histogram0.Write("DeepPhotonSpectra");
     h_ntrig.Write("ntriggers");
     
     for (int izt = 0; izt<nztbins; izt++){
       h_dPhi_iso[izt]->SetMinimum(0.0);
       h_dPhi_iso[izt]->Write();
+      h_dPhi_iso[izt]->Draw();
+      canvas.SaveAs(Form("dphiisocorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
+      canvas.Clear();
       h_dPhi_noniso[izt]->SetMinimum(0.0);
-      h_dPhi_noniso[izt]->Write();  
+      h_dPhi_noniso[izt]->Write();
+      h_dPhi_noniso[izt]->Draw();
+      canvas.SaveAs(Form("dphinonisocorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
+      canvas.Clear();
     }
     for (int izt = 0; izt<nztbins; izt++){
       Corr[izt]->Write();
+      Corr[izt]->Draw("SURF2");
+      canvas.SaveAs(Form("allcorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
+      canvas.Clear();
     }
     for (int izt = 0; izt<nztbins; izt++){ 
       IsoCorr[izt]->Write();
+      IsoCorr[izt]->Draw("SURF2");
+      canvas.SaveAs(Form("isocorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
+      canvas.Clear();
     }
     for (int izt = 0; izt<nztbins; izt++){
       AntiIsoCorr[izt]->Write();
+      AntiIsoCorr[izt]->Draw("SURF2");
+      canvas.SaveAs(Form("antiisocorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
+      canvas.Clear();
 
     }
     fout->Close();     
