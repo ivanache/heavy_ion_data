@@ -202,21 +202,23 @@ int main(int argc, char *argv[])
   TCanvas canvas("canvas", "");
   TH1D histogram0("histogram0", "", 16, 8.0, 16.0);
   TH1D histogram3("histogram3", "", 18, -0.5,1.5);
-  TH1D h_ntrig("h_ntrig", "", 2, -0.5,1.0);
-    
+  TH1D h_ntrig("h_ntrig", "", 2, -0.5,1.0);    
+
   // Function declarations of h_dPhi_iso and h_dPhi_noniso
   TH1F* h_dPhi_iso[nztbins];
   TH1F* h_dPhi_noniso[nztbins];
   TH2D* Corr[nztbins];
   TH2D* IsoCorr[nztbins];
   TH2D* AntiIsoCorr[nztbins];
-  
+
   int clusters_passed_iso[nztbins];
   int clusters_passed_Antiiso[nztbins];
 
   int n_eta_bins = 14;
   int n_phi_bins = 24;
-  
+
+  TH2D* PhiValues = new TH2D("PhiValues_Near_Detaphi2","Trackphi vs. Clusterphi",n_phi_bins,-M_PI/2,3*M_PI/2,n_phi_bins,-M_PI/2,3*M_PI/2);    
+
   for (int izt = 0; izt<nztbins; izt++){
     h_dPhi_iso[izt] = new TH1F(Form("dPhi_iso_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]) ,"", n_correlationbins,-0.5,1.5);
     h_dPhi_noniso[izt] = new TH1F(Form("dPhi_noniso_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt], 10*ztbins[izt+1]), "", n_correlationbins,-0.5,1.5);
@@ -291,7 +293,7 @@ int main(int argc, char *argv[])
     Float_t cluster_lambda_square[NTRACK_MAX][2];   
     Float_t cell_e[17664];
 
-    Long64_t Mix_Events[10];
+    Long64_t Mix_Events[50];
 
     //MC
     unsigned int nmc_truth;
@@ -346,16 +348,16 @@ int main(int argc, char *argv[])
 //     UInt_t ntrack_max = 553;
 //     UInt_t ncluster_max = 150;
 
-    UInt_t ntrack_max = 0;
-    UInt_t ncluster_max = 0;
+     UInt_t ntrack_max = 0;
+     UInt_t ncluster_max = 0;
 
-    fprintf(stderr, "\r%s:%d: %s\n", __FILE__, __LINE__, "Determining ntrack_max and ncluster_max needed for hdf5 hyperslab");
-    for (Long64_t i = 0; i < _tree_event->GetEntries(); i++) {
-      _tree_event->GetEntry(i);
-      ntrack_max = std::max(ntrack_max, ntrack);
-      ncluster_max = std::max(ncluster_max, ncluster);
-      fprintf(stderr, "\r%s:%d: %llu", __FILE__, __LINE__, i);
-    }
+     fprintf(stderr, "\r%s:%d: %s\n", __FILE__, __LINE__, "Determining ntrack_max and ncluster_max needed for hdf5 hyperslab");
+     for (Long64_t i = 0; i < _tree_event->GetEntries(); i++) {
+       _tree_event->GetEntry(i);
+       ntrack_max = std::max(ntrack_max, ntrack);
+       ncluster_max = std::max(ncluster_max, ncluster);
+       fprintf(stderr, "\r%s:%d: %llu", __FILE__, __LINE__, i);
+     }
     //ntrack_max = 3000;
     //ncluster_max = 23; //FixMe, root and hdf5 files from different data sets may have it be out of bounds
     fprintf(stderr, "\n%s:%d: maximum tracks:%i maximum clusters:%i\n", __FILE__, __LINE__, ntrack_max,ncluster_max);
@@ -421,7 +423,7 @@ int main(int argc, char *argv[])
 
       for (ULong64_t n = 0; n < ncluster; n++) {
 	if( not(cluster_pt[n]>pT_min and cluster_pt[n]<pT_max)) continue; //select pt of photons
-	if( not(cluster_s_nphoton[n][1]>DNN_min and cluster_s_nphoton[n][1]<DNN_max)) continue; //select deep-photons
+	//if( not(cluster_s_nphoton[n][1]>DNN_min and cluster_s_nphoton[n][1]<DNN_max)) continue; //select deep-photons
 	if( not(TMath::Abs(cluster_eta[n])<Eta_max)) continue; //cut edges of detector
 	if( not(cluster_ncell[n]>Cluster_min)) continue;   //removes clusters with 1 or 2 cells
 	if( not(cluster_e_cross[n]/cluster_e[n]>EcrossoverE_min)) continue; //removes "spiky" clusters
@@ -436,14 +438,18 @@ int main(int argc, char *argv[])
         
 	//isolation
 	if(isolation<iso_max){
-	  histogram0.Fill(cluster_pt[n]);
-	  h_ntrig.Fill(0);
+	  if (cluster_s_nphoton[n][1] > DNN_min && cluster_s_nphoton[n][1] < DNN_max){ //sel deep photons
+	    histogram0.Fill(cluster_pt[n]);
+	    h_ntrig.Fill(0);
+	  }
 	}
-	if(isolation>noniso_min && isolation<noniso_max){
-	  h_ntrig.Fill(0.5);
+	//background
+	if(isolation<iso_max){
+	  if (cluster_s_nphoton[n][1] > 0.0 && cluster_s_nphoton[n][1] < 0.3){ //sel merged clusters for background
+	    h_ntrig.Fill(0.5);
+	  }
 	}
-
-	for (Long64_t imix = 0; imix < 10; imix++){
+	for (Long64_t imix = 0; imix < 50; imix++){
 	  Long64_t mix_event = Mix_Events[imix];
 	  if (mix_event == ievent) continue;
 
@@ -460,7 +466,8 @@ int main(int argc, char *argv[])
 	  for (ULong64_t itrack = 0; itrack < ntrack_max; itrack++) {
 	    if (std::isnan(track_data_out[0][itrack][1])) break;
 	    if((track_quality[itrack]&selection_number)==0) continue; //pass 3 cut
-	    if (track_data_out[0][itrack][1] < 2) continue; //less than 2GeV
+	    //if (track_data_out[0][itrack][1] < 2) continue; //less than 2GeV
+	    if (track_data_out[0][itrack][1] < 1) continue; //less than 1GeV
 
 	    //veto charged particles from mixed event tracks
 	    bool MixTrack_HasMatch = false;
@@ -481,6 +488,11 @@ int main(int argc, char *argv[])
 	    Float_t DeltaEta = cluster_eta[n] - track_data_out[0][itrack][2];
 	    if ((TMath::Abs(DeltaPhi) < 0.005) && (TMath::Abs(DeltaEta) < 0.005)) continue;
 
+	    //Debugging peak at Deltaphi 2
+	    if(DeltaPhi > 1.8326 && DeltaPhi < 2.3562){
+	      PhiValues->Fill(cluster_phi[n],track_data_out[0][itrack][3]);
+	    }
+
 	    Double_t zt = track_data_out[0][itrack][1]/cluster_pt[n];
 	    Float_t deta =  cluster_eta[n]-track_data_out[0][itrack][2];;
 	    Float_t dphi =  TVector2::Phi_mpi_pi(cluster_phi[n]-track_data_out[0][itrack][3]);
@@ -493,16 +505,18 @@ int main(int argc, char *argv[])
 		{
 		  // Where the  h_dPhi_iso and h_dPhi_noniso bins are filled
 		  if(isolation< iso_max){
-		    h_dPhi_iso[izt]->Fill(DeltaPhi);
-		    IsoCorr[izt]->Fill(DeltaPhi,DeltaEta);
+		    if (cluster_s_nphoton[n][1] > DNN_min && cluster_s_nphoton[n][1] < DNN_max){
+		      h_dPhi_iso[izt]->Fill(DeltaPhi);
+		      IsoCorr[izt]->Fill(DeltaPhi,DeltaEta);
+		    }
 		  }
-		  if(isolation> noniso_min && isolation<noniso_max){
-		    h_dPhi_noniso[izt]->Fill(DeltaPhi);
-		    AntiIsoCorr[izt]->Fill(DeltaPhi,DeltaEta);
+		  if(isolation<iso_max){
+		    if (cluster_s_nphoton[n][1] > 0.0 && cluster_s_nphoton[n][1] < 0.3){ //sel deep photons 
+		      h_dPhi_noniso[izt]->Fill(DeltaPhi);
+		      AntiIsoCorr[izt]->Fill(DeltaPhi,DeltaEta);
+		    }
 		  }
-
 		  Corr[izt]->Fill(DeltaPhi,DeltaEta);
-
 		}//if in zt bin
 	    } // end loop over zt bins
 	  }//end loop over tracks
@@ -519,39 +533,24 @@ int main(int argc, char *argv[])
 
 
     // Write to fout    
-    TFile* fout = new TFile("fout_fdc_mixed_frixione.root","RECREATE");
+    TFile* fout = new TFile("fout_largDNN_Mix.root","RECREATE");
     histogram0.Write("DeepPhotonSpectra");
     h_ntrig.Write("ntriggers");
     
     for (int izt = 0; izt<nztbins; izt++){
       h_dPhi_iso[izt]->SetMinimum(0.0);
       h_dPhi_iso[izt]->Write();
-      h_dPhi_iso[izt]->Draw();
-      canvas.SaveAs(Form("dphiisocorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
-      canvas.Clear();
       h_dPhi_noniso[izt]->SetMinimum(0.0);
-      h_dPhi_noniso[izt]->Write();
-      h_dPhi_noniso[izt]->Draw();
-      canvas.SaveAs(Form("dphinonisocorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
-      canvas.Clear();
+      h_dPhi_noniso[izt]->Write();  
     }
     for (int izt = 0; izt<nztbins; izt++){
       Corr[izt]->Write();
-      Corr[izt]->Draw("SURF2");
-      canvas.SaveAs(Form("allcorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
-      canvas.Clear();
     }
     for (int izt = 0; izt<nztbins; izt++){ 
       IsoCorr[izt]->Write();
-      IsoCorr[izt]->Draw("SURF2");
-      canvas.SaveAs(Form("isocorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
-      canvas.Clear();
     }
     for (int izt = 0; izt<nztbins; izt++){
       AntiIsoCorr[izt]->Write();
-      AntiIsoCorr[izt]->Draw("SURF2");
-      canvas.SaveAs(Form("antiisocorr_mixed_ztmin_%1.0f_ztmax_%1.0f.png", 10*ztbins[izt],10*ztbins[izt+1]));
-      canvas.Clear();
 
     }
     fout->Close();     
