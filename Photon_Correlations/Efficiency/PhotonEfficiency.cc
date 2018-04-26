@@ -27,7 +27,7 @@ const int MAX_INPUT_LENGTH = 200;
 // Precondition: the two histograms must have the same x-dimensions
 TH1D* divide_histograms1D(TH1D* graph1, TH1D* graph2){
     // Make the 1D histogram to contain the quotient and find minimum and maximum bins along both axes
-    TH1D* quotient = new TH1D(*graph1);
+    TH1D* quotient = new TH1D(*graph2);
     double x_bin_min = quotient->GetXaxis()->FindBin(quotient->GetXaxis()->GetXmin());
     double x_bin_max = quotient->GetXaxis()->FindBin(quotient->GetXaxis()->GetXmax());
     

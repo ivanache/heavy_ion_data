@@ -1,5 +1,5 @@
-pT_min:                       12
-pT_max:                       14
+pT_min:                       4
+pT_max:                       5
 DNN_min:                      0.75
 DNN_max:                      0.85
 Eta_max:                      0.6
