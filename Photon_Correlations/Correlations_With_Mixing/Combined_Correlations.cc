@@ -792,7 +792,7 @@ int main(int argc, char *argv[])
         AntiIsoMap_corr[izt] = divide_histograms2D(AntiIsoMap_same[izt], AntiIsoMap_mixed[izt], Form("AntiIsoMap_corr_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]), "Correlation #gamma-H [AntiIso] Map", n_phi_bins,-M_PI/2,3*M_PI/2, n_eta_bins, -1.4, 1.4);
         
         h_dPhi_corr_iso_over_all[izt] = divide_histograms1D(h_dPhi_iso_same[izt], h_dPhi_all_mixed[izt], Form("dPhi_corr_iso_over_all_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]) ,"", n_correlationbins,-0.5,1.5);;
-        Map_iso_over_all_corr[izt] = divide_histograms2D(IsoMap_same[izt], Map_mixed[izt], Form("Map_iso_over_all_corr_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]), "Correlation #gamma-H [all] Map", n_phi_bins,-M_PI/2,3*M_PI/2, n_eta_bins, -1.4, 1.4);;
+        Map_iso_over_all_corr[izt] = divide_histograms2D(IsoMap_same[izt], Map_mixed[izt], Form("Map_iso_over_all_corr_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]), "Correlation #gamma-H [all] Map", n_phi_bins,-M_PI/2,3*M_PI/2, n_eta_bins, -1.4, 1.4);
     }
     
     // Write to fout

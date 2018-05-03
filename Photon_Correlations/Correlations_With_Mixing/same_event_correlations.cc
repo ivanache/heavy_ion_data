@@ -1,5 +1,6 @@
-// This program creates a quick correlation using the lambda cut at 0.27 and pT = 4-5 GeV
-// Author: Ivan Chernyshev; Date created: 4/22/2018
+// This program creates same-event correlations
+// Author: Ivan Chernyshev
+// Date: Apr. 29, 2018
 
 #include <TFile.h>
 #include <TTree.h>
@@ -331,59 +332,71 @@ int main(int argc, char *argv[])
         file->Print();
         
         // Get all the TTree variables from the file to open, I guess
-        TTree *_tree_event = dynamic_cast<TTree *>(file->Get("_tree_event"));
+        TTree *_tree_event = NULL;
+        _tree_event = dynamic_cast<TTree *> (tempfile->Get("_tree_event"));
         
         if (_tree_event == NULL) {
-            std::cout << " fail " << std::endl;
-            exit(EXIT_FAILURE);
-        }
+            _tree_event = dynamic_cast<TTree *> (dynamic_cast<TDirectoryFile *>   (tempfile->Get("AliAnalysisTaskNTGJ"))->Get("_tree_event"));
+            if (_tree_event == NULL) {
+                std::cout << "Second try did not got (AliAnalysisTaskNTGJ does not exist, trying again" << std::endl;
+                std::cout << " fail " << std::endl;
+                exit(EXIT_FAILURE);
+            }
+        }  
         //_tree_event->Print();
         
         TApplication application("", &dummyc, dummyv);
         
         // Create the TCanvas and the histograms
         TCanvas canvas("canvas", "");
-        TH1D histogram0("histogram0", "", 16, 8.0, 16.0);
+        //TH1D histogram0("histogram0", "", 16, 8.0, 16.0);
         //TH2D histogram1("histogram1", "", 30, -1.5, 1.5, 18, -0.5, 1.5);
         //TH1D histogram2("histogram2", "", 18, -0.5,1.5);
-        TH1D histogram3("histogram3", "", 18, -0.5,1.5);
+        //TH1D histogram3("histogram3", "", 18, -0.5,1.5);
         TH1D h_ntrig("h_ntrig", "", 2, -0.5,1.0);
         
         // Create the histogram for the 2D plots
         // TH2D histogram2D0("histogram2D0", "", );
         
         // Zt bins
-        //const int nztbins = 7;
-        //const float ztbins[nztbins+1] = {0.0, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2};
+        const int nztbins = 7;
+        const float ztbins[nztbins+1] = {0.0, 0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2};
         
         // Function declarations of the correlation functions
         TH1F* h_dPhi_signal[nztbins];
-        //TH1F* h_dPhi_background[nztbins];
+        TH1F* h_dPhi_background[nztbins];
+        TH2D* Map[nztbins];
         TH2D* Map_signal[nztbins];
-        //TH2D* Map_background[nztbins];
+        TH2D* Map_background[nztbins];
         
         //Number of photons put into each graph
+        int total_numofphotons[nztbins];
         int signal_numofphotons[nztbins];
         int background_numofphotons[nztbins];
         
         // Function initializations of the correlation functions for all zt bins
         for (int izt = 0; izt<nztbins; izt++){
             h_dPhi_signal[izt] = new TH1F(Form("dPhi_signal_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]) ,"",  n_phi_bins,-0.5,1.5);
-            //h_dPhi_background[izt] = new TH1F(Form("dPhi_background_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt], 10*ztbins[izt+1]), "", n_phi_bins,-0.5,1.5);
-            h_dPhi_signal[izt]->SetTitle(Form("#Delta #phi map, %2.1f < zt < %2.1f; #Delta#phi/#pi [rad]; entries", ztbins[izt], ztbins[izt+1]));
-            //h_dPhi_background[izt]->SetTitle("; #Delta#phi/#pi [rad]; entries");
+            h_dPhi_background[izt] = new TH1F(Form("dPhi_background_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt], 10*ztbins[izt+1]), "", n_phi_bins,-0.5,1.5);
+            h_dPhi_signal[izt]->SetTitle(Form("#Delta #phi map [signal], %2.1f < zt < %2.1f; #frac{#Delta#phi}{#pi} [rad]; entries", ztbins[izt], ztbins[izt+1]));
+            h_dPhi_background[izt]->SetTitle(Form("#Delta #phi map [background], %2.1f < zt < %2.1f; #frac{#Delta#phi}{#pi} [rad]; entries", ztbins[izt], ztbins[izt+1]));
             h_dPhi_signal[izt]->Sumw2();
-            //h_dPhi_background[izt]->Sumw2();
+            h_dPhi_background[izt]->Sumw2();
             
-            Map_signal[izt] = new TH2D(Form("Map_signal_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]), Form("#gamma-H [Signal] Map, %2.1f < zt < %2.1f", ztbins[izt], ztbins[izt+1]), n_phi_bins,-M_PI/2,3*M_PI/2, 14, -1.4, 1.4);
+            Map[izt] = new TH2D(Form("Map_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]), Form("#gamma-H [All] Map, %2.1f < zt < %2.1f; #frac{#Delta #phi}{#pi} [rad]; #Delta #eta; entries", ztbins[izt], ztbins[izt+1]), n_phi_bins, -0.5, 1.5, 14, -1.4, 1.4);
+            Map[izt]->Sumw2();
+            Map[izt]->SetMinimum(0.);
+            
+            Map_signal[izt] = new TH2D(Form("Map_signal_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]), Form("#gamma-H [Signal] Map, %2.1f < zt < %2.1f; #frac{#Delta #phi}{#pi} [rad]; #Delta #eta; entries", ztbins[izt], ztbins[izt+1]), n_phi_bins, -0.5, 1.5, 14, -1.4, 1.4);
             Map_signal[izt]->Sumw2();
             Map_signal[izt]->SetMinimum(0.);
             
-            //Map_background[izt] = new TH2D(Form("Map_background_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]), "#gamma-H [Background] Map", n_phi_bins,-M_PI/2,3*M_PI/2, 14, -1.4, 1.4);
-            //Map_background[izt]->Sumw2();
-            //Map_background[izt]->SetMinimum(0.);
+            Map_background[izt] = new TH2D(Form("Map_background_ztmin%1.0f_ztmax%1.0f",10*ztbins[izt],10*ztbins[izt+1]), Form("#gamma-H [Background] Map, %2.1f < zt < %2.1f; #frac{#Delta #phi}{#pi} [rad]; #Delta #eta; entries", ztbins[izt], ztbins[izt+1]), n_phi_bins, -0.5, 1.5, 14, -1.4, 1.4);
+            Map_background[izt]->Sumw2();
+            Map_background[izt]->SetMinimum(0.);
             
             // Set the number of photons variables to zero
+            total_numofphotons[izt] = 0;
             signal_numofphotons[izt] = 0;
             background_numofphotons[izt] = 0;
         }
@@ -495,7 +508,6 @@ int main(int argc, char *argv[])
                 // Apply cuts
                 if( not(cluster_pt[n]>pT_min and cluster_pt[n]<pT_max)) continue; //select pt of photons
                 //if( not(cluster_s_nphoton[n][1]>DNN_min and cluster_s_nphoton[n][1]<DNN_max)) continue; //select deep-photons
-                if ( not(cluster_lambda_square[n][0] < 0.27)) continue;
                 if( not(TMath::Abs(cluster_eta[n])<Eta_max)) continue; //cut edges of detector
                 if( not(cluster_ncell[n]>Cluster_min)) continue;   //removes clusters with 1 or 2 cells
                 if( not(cluster_e_cross[n]/cluster_e[n]>EcrossoverE_min)) continue; //removes "spiky" clusters
@@ -510,13 +522,13 @@ int main(int argc, char *argv[])
                 if (isolation>iso_max) continue; // Isolation cut
                 
                 // Use DNN to fill the isolated deep-photon pt spectra and the ntriggers
-                //if(isolation<iso_max){
+                if(cluster_s_nphoton[n][1]>DNN_min and cluster_s_nphoton[n][1]<DNN_max){
                     //histogram0.Fill(cluster_pt[n]); //isolated deep-photon pt spectra
-                    //h_ntrig.Fill(0);
-                //}
-                //if(isolation>noniso_min && isolation<noniso_max){
-                    //h_ntrig.Fill(0.5);
-                //}
+                    h_ntrig.Fill(0);
+                }
+                if(cluster_s_nphoton[n][1]>0.1 and cluster_s_nphoton[n][1]<0.3){
+                    h_ntrig.Fill(0.5);
+                }
                 // Loop over tracks
                 for (ULong64_t itrack = 0; itrack < ntrack; itrack++) {
                     if(track_pt[itrack] < 0.5) continue; //500 MeV Tracks
@@ -557,23 +569,25 @@ int main(int argc, char *argv[])
                     for(int izt = 0; izt<nztbins ; izt++){
                         if(zt>ztbins[izt] and  zt<ztbins[izt+1])
                         {
-                            // Where the  h_dPhi_iso and h_dPhi_noniso bins are filled
-                            //if(isolation< iso_max)
-                            h_dPhi_signal[izt]->Fill(dphi);
-                            Map_signal[izt]->Fill(dphi, deta);
-                            signal_numofphotons[izt] += 1;
-                            //if(isolation> noniso_min && isolation<noniso_max) {
-                            //h_dPhi_background[izt]->Fill(dphi);
-                            //Map_background[izt]->Fill(dphi, deta);
-                            //background_numofphotons[izt] += 1;
-                            //}
+                            // Where the correlation functions are filled
+                            Map[izt]->Fill(dphi, deta);
+                            total_numofphotons[izt] += 1;
+                            if(cluster_s_nphoton[n][1]>DNN_min and cluster_s_nphoton[n][1]<DNN_max)
+                                h_dPhi_signal[izt]->Fill(dphi);
+                                Map_signal[izt]->Fill(dphi, deta);
+                                signal_numofphotons[izt] += 1;
+                            if(cluster_s_nphoton[n][1]>0.1 and cluster_s_nphoton[n][1]<0.3) {
+                                h_dPhi_background[izt]->Fill(dphi);
+                                Map_background[izt]->Fill(dphi, deta);
+                                background_numofphotons[izt] += 1;
+                            }
                         }
                     } // end loop over bins
                 }//end loop over tracks
                 
             }//end loop on clusters.
             if (ievent % 25000 == 0) {
-                histogram0.Draw("e1x0");
+                //histogram0.Draw("e1x0");
                 canvas.Update();
                 std::cout << "Event # " << ievent << " / " << _tree_event->GetEntries() << std::endl;
             }
@@ -581,11 +595,13 @@ int main(int argc, char *argv[])
         
         // Normalize
         for (int izt = 0; izt<nztbins; izt++) {
+            divide_histograms2D_byscalar(Map[izt], total_numofphotons[izt]);
+            
             divide_histograms1D_byscalar(h_dPhi_signal[izt], signal_numofphotons[izt]);
             divide_histograms2D_byscalar(Map_signal[izt], signal_numofphotons[izt]);
             
-            //divide_histograms1D_byscalar(h_dPhi_background[izt], background_numofphotons[izt]);
-            //divide_histograms2D_byscalar(Map_background[izt], background_numofphotons[izt]);
+            divide_histograms1D_byscalar(h_dPhi_background[izt], background_numofphotons[izt]);
+            divide_histograms2D_byscalar(Map_background[izt], background_numofphotons[izt]);
         }
         
         // Write to fout
@@ -596,7 +612,7 @@ int main(int argc, char *argv[])
             opened_files += "_" + filepath.substr(filepath.find_last_of("/")+1, filepath.find_last_of(".")-filepath.find_last_of("/")-1);
         }
         TFile* fout = new TFile(Form("fout_lambda_quickcorrelation%s.root", opened_files.c_str()),"RECREATE");
-        histogram0.Write("DeepPhotonSpectra");
+        //histogram0.Write("DeepPhotonSpectra");
         h_ntrig.Write("ntriggers");
         
         // Divide the canvas into sub-pads for efficient data publication
@@ -612,15 +628,24 @@ int main(int argc, char *argv[])
         canvas.SaveAs("dPhi_signal.png");
         canvas.Clear();
         
-        //canvas.Divide(4, 2, 0.01, 0.01);
-        //for (int izt = 0; izt<nztbins; izt++){
-            //canvas.cd(izt+1);
-            //h_dPhi_background[izt]->SetMinimum(0.0);
-            //h_dPhi_background[izt]->Write();
-            //h_dPhi_background[izt]->Draw();
-        //}
-        //canvas.SaveAs("dPhi_background.png");
-        //canvas.Clear();
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++){
+        canvas.cd(izt+1);
+        h_dPhi_background[izt]->SetMinimum(0.0);
+        h_dPhi_background[izt]->Write();
+        h_dPhi_background[izt]->Draw();
+        }
+        canvas.SaveAs("dPhi_background.png");
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++){
+            canvas.cd(izt+1);
+            Map[izt]->Write();
+            Map[izt]->Draw("SURF2");
+        }
+        canvas.SaveAs("Map.png");
+        canvas.Clear();
         
         canvas.Divide(4, 2, 0.01, 0.01);
         for (int izt = 0; izt<nztbins; izt++){
@@ -631,14 +656,14 @@ int main(int argc, char *argv[])
         canvas.SaveAs("Map_signal.png");
         canvas.Clear();
         
-        //canvas.Divide(4, 2, 0.01, 0.01);
-        //for (int izt = 0; izt<nztbins; izt++){
-            //canvas.cd(izt+1);
-            //Map_background[izt]->Write();
-            //Map_background[izt]->Draw("SURF2");
-        //}
-        //canvas.SaveAs("Map_background.png");
-        //canvas.Clear();
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++){
+        canvas.cd(izt+1);
+        Map_background[izt]->Write();
+        Map_background[izt]->Draw("SURF2");
+        }
+        canvas.SaveAs("Map_background.png");
+        canvas.Clear();
         fout->Close();
         
     }//end loop over samples
