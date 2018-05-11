@@ -62,9 +62,9 @@ TH2D* divide_histograms2D(TH2D* graph1, TH2D* graph2, const char *name, const ch
 
 // 1D histogram dividing function, fitted with parameters for constructing the quotient histogram
 // Precondition: the two histograms must have the same x-dimensions, and the quotient must have the same x-dimensions
-TH1F* divide_histograms1D(TH1F* graph1, TH1F* graph2, const char *name, const char *title, Int_t nbinsx, Double_t xlow, Double_t xup){
+TH1D* divide_histograms1D(TH1D* graph1, TH1D* graph2, const char *name, const char *title, Int_t nbinsx, Double_t xlow, Double_t xup){
     // Make the 1D histogram to contain the quotient and find minimum and maximum bins along both axes
-    TH1F* quotient = new TH1F(name, title, nbinsx, xlow, xup);
+    TH1D* quotient = new TH1D(name, title, nbinsx, xlow, xup);
     quotient->Sumw2();
     double x_bin_min = quotient->GetXaxis()->FindBin(quotient->GetXaxis()->GetXmin());
     double x_bin_max = quotient->GetXaxis()->FindBin(quotient->GetXaxis()->GetXmax());
@@ -351,6 +351,10 @@ int main(int argc, char *argv[])
     TH1D* Same_dPhi_IsoCorr[nztbins*nptbins];
     TH1D* Same_dPhi_BKGD_IsoCorr[nztbins*nptbins];
     
+    float Same_N_Total_Triggers = 0;
+    float Same_N_Signal_Triggers = 0;
+    float Same_N_BKGD_Triggers = 0;
+    
     // Mixed Event
     TH2D* Mixed_Corr[nztbins*nptbins];
     TH2D* Mixed_IsoCorr[nztbins*nptbins];
@@ -475,6 +479,11 @@ int main(int argc, char *argv[])
         Float_t track_eta[NTRACK_MAX];
         Float_t track_phi[NTRACK_MAX];
         UChar_t track_quality[NTRACK_MAX];
+        Float_t track_eta_emcal[NTRACK_MAX];
+        Float_t track_phi_emcal[NTRACK_MAX];
+        UChar_t track_its_ncluster[NTRACK_MAX];
+        Float_t track_its_chi_square[NTRACK_MAX];
+        Float_t track_dca_xy[NTRACK_MAX];
         
         UInt_t ncluster;
         Float_t cluster_e[NTRACK_MAX];
@@ -554,8 +563,8 @@ int main(int argc, char *argv[])
             ntrack_max = std::max(ntrack_max, ntrack);
             fprintf(stderr, "\r%s:%d: %llu", __FILE__, __LINE__, i);
         }
-        //ntrack_max = 517;
-        //ncluster_max = 23;
+        ntrack_max = 414;
+        ncluster_max = 23;
         
         //    UInt_t ntrack_max = 414;
         //    UInt_t ncluster_max = 23;
@@ -632,7 +641,7 @@ int main(int argc, char *argv[])
                 else if (determiner == CLUSTER_FRIXIONE_TPC_04_02) isolation = cluster_frixione_tpc_04_02[n];
                 else isolation = cluster_frixione_its_04_02[n];
                 if (isolation>iso_max) continue;
-                
+                /*
                 for (Long64_t imix = 0; imix < 50; imix++){
                     Long64_t mix_event = Mix_Events[imix];
                     if (mix_event == ievent) continue;
@@ -704,6 +713,7 @@ int main(int argc, char *argv[])
                         }//end pt loop bin
                     }//end loop over tracks
                 }//end loop over mixed events
+                */
                 
                 // Now same events
                 Same_N_Total_Triggers += 1;
@@ -808,19 +818,42 @@ int main(int argc, char *argv[])
     for (int ipt = 0; ipt<nptbins; ipt++){
         for (int izt = 0; izt<nztbins; izt++) {
             // Divide
-            Corr[izt+ipt*nztbins][izt] = divide_histograms2D(Same_Corr[izt+ipt*nztbins], Mixed_Corr[izt+ipt*nztbins], Form("Correlation_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),Form("#gamma-H [all] Correlation,  %2.1f < zt < %2.1f, %2.0f < pt < %2.0f; #Delta #phi [rad]; #Delta #eta; entries", ztbins[izt], ztbins[izt+1], ptbins[ipt], ptbins[ipt+1]), n_phi_bins,-M_PI/2,3*M_PI/2, n_eta_bins, -1.4, 1.4);
+            Corr[izt+ipt*nztbins] = divide_histograms2D(Same_Corr[izt+ipt*nztbins], Mixed_Corr[izt+ipt*nztbins], Form("Correlation_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),Form("#gamma-H [all] Correlation,  %2.1f < zt < %2.1f, %2.0f < pt < %2.0f; #Delta #phi [rad]; #Delta #eta; entries", ztbins[izt], ztbins[izt+1], ptbins[ipt], ptbins[ipt+1]), n_phi_bins,-M_PI/2,3*M_PI/2, n_eta_bins, -1.4, 1.4);
             IsoCorr[izt+ipt*nztbins] = divide_histograms2D(Same_IsoCorr[izt+ipt*nztbins], Mixed_IsoCorr[izt+ipt*nztbins], Form("DNN%i_Correlation_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f", 1,ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),Form("#gamma-H [Iso] Correlation,  %2.1f < zt < %2.1f, %2.0f < pt < %2.0f; #Delta #phi [rad]; #Delta #eta; entries", ztbins[izt], ztbins[izt+1], ptbins[ipt], ptbins[ipt+1]), n_phi_bins,-M_PI/2,3*M_PI/2, n_eta_bins, -1.4, 1.4);
             BKGD_IsoCorr[izt+ipt*nztbins] = divide_histograms2D(Same_BKGD_IsoCorr[izt+ipt*nztbins], Mixed_BKGD_IsoCorr[izt+ipt*nztbins], Form("DNN%i_Correlation_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",2,ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]), Form("#gamma-H [AntiIso] Correlation, %2.1f < zt < %2.1f, %2.0f < pt < %2.0f; #Delta #phi [rad]; #Delta #eta; entries", ztbins[izt], ztbins[izt+1], ptbins[ipt], ptbins[ipt+1]), n_phi_bins,-M_PI/2,3*M_PI/2, n_eta_bins, -1.4, 1.4);
             
-            dPhi_Corr[izt+ipt*nztbins] = divide_histograms1D(Same_dPhi_Corr[izt+ipt*nztbins], Mixed_dPhi_Corr[izt+ipt*nztbins], Form("DeltaPhiMap_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),"#Delta #phi [all] Map", n_phi_bins,-M_PI/2,3*M_PI/2);
-            dPhi_IsoCorr[izt+ipt*nztbins] = divide_histograms1D(Same_dPhi_IsoCorr[izt+ipt*nztbins], Mixed_dPhi_IsoCorr[izt+ipt*nztbins], TH1D(Form("DNN%i_DeltaPhiMap_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",1,ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),"#Delta #phi [Iso] Map", n_phi_bins,-M_PI/2,3*M_PI/2);
-            dPhi_BKGD_IsoCorr[izt+ipt*nztbins] = divide_histograms1D(Same_dPhi_BKGD_IsoCorr[izt+ipt*nztbins], Mixed_dPhi_BKGD_IsoCorr[izt+ipt*nztbins] TH1D(Form("DNN%i_DeltaPhiMap_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",2,ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),"#Delta #phi [AntiIso] Map", n_phi_bins,-M_PI/2,3*M_PI/2);
+            dPhi_Corr[izt+ipt*nztbins] = divide_histograms1D(Same_dPhi_Corr[izt+ipt*nztbins], Mixed_dPhi_Corr[izt+ipt*nztbins], Form("DeltaPhiMap_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),Form("#Delta #phi [all] Map, %2.1f < zt < %2.1f, %2.0f < pt < %2.0f; #Delta #phi [rad]; entries", ztbins[izt], ztbins[izt+1], ptbins[ipt], ptbins[ipt+1]), n_phi_bins,-M_PI/2,3*M_PI/2);
+            dPhi_IsoCorr[izt+ipt*nztbins] = divide_histograms1D(Same_dPhi_IsoCorr[izt+ipt*nztbins], Mixed_dPhi_IsoCorr[izt+ipt*nztbins], Form("DNN%i_DeltaPhiMap_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",1,ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),Form("#Delta #phi [Iso] Map, %2.1f < zt < %2.1f, %2.0f < pt < %2.0f; #Delta #phi [rad]; entries", ztbins[izt], ztbins[izt+1], ptbins[ipt], ptbins[ipt+1]), n_phi_bins,-M_PI/2,3*M_PI/2);
+            dPhi_BKGD_IsoCorr[izt+ipt*nztbins] = divide_histograms1D(Same_dPhi_BKGD_IsoCorr[izt+ipt*nztbins], Mixed_dPhi_BKGD_IsoCorr[izt+ipt*nztbins], Form("DNN%i_DeltaPhiMap_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f",2,ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]),Form("#Delta #phi [AntiIso] Map, %2.1f < zt < %2.1f, %2.0f < pt < %2.0f; #Delta #phi [rad]; entries", ztbins[izt], ztbins[izt+1], ptbins[ipt], ptbins[ipt+1]), n_phi_bins,-M_PI/2,3*M_PI/2);
             
         }
     }
     
     // Write to fout
     TFile* fout = new TFile("Combined_Correlation_13def.root","RECREATE");
+    for (int ipt = 0; ipt<nptbins; ipt++){
+        for (int izt = 0; izt<nztbins; izt++){
+            Same_Corr[izt+ipt*nztbins]->Write();
+        }
+        for (int izt = 0; izt<nztbins; izt++){
+            Same_IsoCorr[izt+ipt*nztbins]->Write();
+        }
+        for (int izt = 0; izt<nztbins; izt++){
+            Same_BKGD_IsoCorr[izt+ipt*nztbins]->Write();
+        }
+    }
+    for (int ipt = 0; ipt<nptbins; ipt++){
+        for (int izt = 0; izt<nztbins; izt++)
+            Same_dPhi_Corr[izt+ipt*nztbins]->Write();
+        
+        for (int izt = 0; izt<nztbins; izt++)
+            Same_dPhi_IsoCorr[izt+ipt*nztbins]->Write();
+        
+        for (int izt = 0; izt<nztbins; izt++)
+            Same_dPhi_BKGD_IsoCorr[izt+ipt*nztbins]->Write();
+    }
+    
+    
     for (int ipt = 0; ipt<nptbins; ipt++){
         for (int izt = 0; izt<nztbins; izt++){
             Mixed_Corr[izt+ipt*nztbins]->Write();
@@ -832,7 +865,6 @@ int main(int argc, char *argv[])
             Mixed_BKGD_IsoCorr[izt+ipt*nztbins]->Write();
         }
     }
-    
     for (int ipt = 0; ipt<nptbins; ipt++){
         for (int izt = 0; izt<nztbins; izt++)
             Mixed_dPhi_Corr[izt+ipt*nztbins]->Write();
@@ -843,6 +875,30 @@ int main(int argc, char *argv[])
         for (int izt = 0; izt<nztbins; izt++)
             Mixed_dPhi_BKGD_IsoCorr[izt+ipt*nztbins]->Write();
     }
+    
+    for (int ipt = 0; ipt<nptbins; ipt++){
+        for (int izt = 0; izt<nztbins; izt++){
+            Corr[izt+ipt*nztbins]->Write();
+        }
+        for (int izt = 0; izt<nztbins; izt++){
+            IsoCorr[izt+ipt*nztbins]->Write();
+        }
+        for (int izt = 0; izt<nztbins; izt++){
+            BKGD_IsoCorr[izt+ipt*nztbins]->Write();
+        }
+    }
+    
+    for (int ipt = 0; ipt<nptbins; ipt++){
+        for (int izt = 0; izt<nztbins; izt++)
+            dPhi_Corr[izt+ipt*nztbins]->Write();
+        
+        for (int izt = 0; izt<nztbins; izt++)
+            dPhi_IsoCorr[izt+ipt*nztbins]->Write();
+        
+        for (int izt = 0; izt<nztbins; izt++)
+            dPhi_BKGD_IsoCorr[izt+ipt*nztbins]->Write();
+    }
+    
     fout->Close();
     
     //Put Correlation functions into PNG files
@@ -869,6 +925,54 @@ int main(int argc, char *argv[])
          canvas.SaveAs(Form("DNN%i_DeltaPhiMap_MixedEvent_pT%1.0f_%1.0f__zT%1.0f_zT%1.0f.png",2,ptbins[ipt],ptbins[ipt+1], 10*ztbins[izt],10*ztbins[izt+1]));
          canvas.Clear();
          }*/
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            Same_Corr[izt+ipt*nztbins]->Draw("SURF2");
+        }
+        canvas.SaveAs(Form("Correlation_SameEvent_pT%1.0f_%1.0f.png",ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            Same_dPhi_Corr[izt+ipt*nztbins]->Draw();
+        }
+        canvas.SaveAs(Form("DeltaPhiMap_SameEvent_pT%1.0f_%1.0f.png",ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            Same_IsoCorr[izt+ipt*nztbins]->Draw("SURF2");
+        }
+        canvas.SaveAs(Form("DNN%i_Correlation_SameEvent_pT%1.0f_%1.0f.png", 1,ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            Same_dPhi_Corr[izt+ipt*nztbins]->Draw();
+        }
+        canvas.SaveAs(Form("DNN%i_DeltaPhiMap_SameEvent_pT%1.0f_%1.0f.png",1,ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            Same_BKGD_IsoCorr[izt+ipt*nztbins]->Draw("SURF2");
+        }
+        canvas.SaveAs(Form("DNN%i_Correlation_SameEvent_pT%1.0f_%1.0f.png",2,ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            Same_dPhi_Corr[izt+ipt*nztbins]->Draw();
+        }
+        canvas.SaveAs(Form("DNN%i_DeltaPhiMap_SameEvent_pT%1.0f_%1.0f.png",2,ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
         
         canvas.Divide(4, 2, 0.01, 0.01);
         for (int izt = 0; izt<nztbins; izt++) {
@@ -917,8 +1021,58 @@ int main(int argc, char *argv[])
         }
         canvas.SaveAs(Form("DNN%i_DeltaPhiMap_MixedEvent_pT%1.0f_%1.0f.png",2,ptbins[ipt],ptbins[ipt+1]));
         canvas.Clear();
+        
+        
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            Corr[izt+ipt*nztbins]->Draw("SURF2");
+        }
+        canvas.SaveAs(Form("Correlation_pT%1.0f_%1.0f.png",ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            dPhi_Corr[izt+ipt*nztbins]->Draw();
+        }
+        canvas.SaveAs(Form("DeltaPhiMap_pT%1.0f_%1.0f.png",ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            IsoCorr[izt+ipt*nztbins]->Draw("SURF2");
+        }
+        canvas.SaveAs(Form("DNN%i_Correlation_pT%1.0f_%1.0f.png", 1,ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            dPhi_Corr[izt+ipt*nztbins]->Draw();
+        }
+        canvas.SaveAs(Form("DNN%i_DeltaPhiMap_pT%1.0f_%1.0f.png",1,ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            BKGD_IsoCorr[izt+ipt*nztbins]->Draw("SURF2");
+        }
+        canvas.SaveAs(Form("DNN%i_Correlation_pT%1.0f_%1.0f.png",2,ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
+        
+        canvas.Divide(4, 2, 0.01, 0.01);
+        for (int izt = 0; izt<nztbins; izt++) {
+            canvas.cd(izt+1);
+            dPhi_Corr[izt+ipt*nztbins]->Draw();
+        }
+        canvas.SaveAs(Form("DNN%i_DeltaPhiMap_pT%1.0f_%1.0f.png",2,ptbins[ipt],ptbins[ipt+1]));
+        canvas.Clear();
     }
-    
     std::cout << " ending " << std::endl;
     return EXIT_SUCCESS;
 }
+

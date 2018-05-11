@@ -3,19 +3,19 @@
 // Author: Ivan Chernyshev; Date: 5/3/2018
 #include <TFile.h>
 
-const int MAX_INPUT_LENGTH = 1000;
+const int MAX_INPUT_LENGTH = 3000;
 
 void correlationgrapher() {
     // Use config file to get the files to graph
     FILE* config = fopen("Graph_config.yaml", "r");
-    std::string*** graphs_to_graph = 0;
-    std::string** graph_titles = 0;
+    std::vector<std::vector<std::vector<std::string>>> graphs_to_graph;
+    std::vector<std::vector<std::string>> graph_titles;
     int* colors = 0;
     
     int hists_per_graph = 0;
     int graphs_per_canvas = 0;
     int canvases_to_graph = 0;
-    int tiles_per_canvas = 0;
+    int titles_per_canvas = 0;
     int canvases_to_title = 0;
     int num_of_colors = 0;
     
@@ -37,7 +37,7 @@ void correlationgrapher() {
         key[0] = '\0';
         value[0] = '\0';
         sscanf(line, "%[^:]:%[ \t]%100[^\n]", key, dummy, value);
-        
+        /**
         if (strcmp(key, "Graphs_to_open") == 0) {
             canvases_to_graph = -1;
             for(const char *v = value; *v != '}';) {
@@ -70,8 +70,12 @@ void correlationgrapher() {
                 }
                 v++;
             }
-            
-            graphs_to_graph = std::string[canvases_to_graph + 1][graphs_per_canvas + 1][hists_per_graph +];
+            graphs_to_graph.reserve(canvases_to_graph + 1);
+            for (int a = 0; a <= canvases_to_graph; a++){
+                graphs_to_graph[a].reserve(graphs_per_canvas + 1);
+                for (int b = 0; b <= graphs_per_canvas; b++)
+                    graphs_to_graph[a][b].reserve(hists_per_graph + 1);
+            }
             int i = 0;
             int j = 0;
             int k = 0;
@@ -118,9 +122,11 @@ void correlationgrapher() {
                 v++;
                 index++;
             }
-            std::cout << "Number of canvases to graph: " << canvases_to_graph << "\nNumber of graphs per canvas: " << graphs_per_canvas << "\Number of histograms per canvas: " << hists_per_graph << std::endl << "Titles: {";
+            std::cout << "Number of canvases to graph: " << canvases_to_graph << "\nNumber of graphs per canvas: " << graphs_per_canvas << "\nNumber of histograms per canvas: " << hists_per_graph << std::endl << "Titles: {";
             for(int i = 0; i <= canvases_to_title; i++) {
+                std::cout << "{";
                 for(int j = 0; j <= titles_per_canvas; i++) {
+                    std::cout << "{";
                     for(int k = 0; j <= titles_per_canvas; i++) {
                         std::cout << graphs_to_graph[i][j][k] << ", ";
                     }
@@ -129,33 +135,46 @@ void correlationgrapher() {
                 std::cout << "}, ";
             }
             std::cout << "}\n";
-        }
+        }*/
         
-        else if (strcmp(key, "Graph_titles") == 0) {
+        if (strcmp(key, "Graph_titles") == 0) {
             canvases_to_title = -1;
+            int testindex = 0;
+            std::cout << "TESTING: first value " << value << std::endl;
             for(const char *v = value; *v != '}';) {
-                tiles_per_canvas = -1;
+                titles_per_canvas = -1;
                 while (*v != '}' && *v != '{') {
                     v++;
+                    testindex++;
                 }
+                std::cout << "TESTING: value code Noether (index value " << testindex << "): " << v << std::endl;
                 canvases_to_title++;
+                std::cout << "CANVASES_TO_TITLE incremented" << std::endl;
                 for(; *v != '}';) {
                     while (*v != '}' && *v != '"') {
                         v++;
+                        testindex++;
                     }
-                    if (*v != '}')
+                    if (*v != '}') {
                         break;
+                        std::cout<< "LOOP'S been broke'd out of" << std::endl;
+                    }
                     titles_per_canvas++;
                     while (*v != '}' && *v != '"') {
                         v++;
+                        testindex++;
                     }
                     if (*v != '}')
                         break;
                     v++;
+                    testindex++;
                 }
                 v++;
+                testindex++;
             }
-            graph_titles = new std::string[canvases_to_title+1][tiles_per_canvas+1]
+            graph_titles.reserve(canvases_to_title+1);
+            for (int a = 0; a <= canvases_to_title; a++)
+                graph_titles[a].reserve(titles_per_canvas+1);
             int i = 0;
             int j = 0;
             int index = 0;
@@ -164,7 +183,7 @@ void correlationgrapher() {
                     v++;
                     index++;
                 }
-                if ((*v != '}')
+                if (*v != '}')
                     break;
 
                     for(; *v != '}';) {
@@ -195,6 +214,7 @@ void correlationgrapher() {
             }
             std::cout << "Number of canvases to title: " << canvases_to_title << "\nNumber of titles per canvas: " << titles_per_canvas << std::endl << "Titles: {";
             for(int i = 0; i <= canvases_to_title; i++) {
+                std::cout << "{";
                 for(int j = 0; j <= titles_per_canvas; i++) {
                     std::cout << graph_titles[i][j] << ", ";
                 }
