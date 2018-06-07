@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
         _tree_event = dynamic_cast<TTree *> (file->Get("_tree_event"));
         
         if (_tree_event == NULL) {
-            std::cout << "First try did not got (AliAnalysisTaskNTGJ does not exist, trying again" << std::endl;
+            std::cout << "First try did not got (AliAnalysisTaskNTGJ does not exist), trying again" << std::endl;
             _tree_event = dynamic_cast<TTree *> (dynamic_cast<TDirectoryFile *>   (file->Get("AliAnalysisTaskNTGJ"))->Get("_tree_event"));
             if (_tree_event == NULL) {
                 std::cout << " fail " << std::endl;
@@ -130,14 +130,14 @@ int main(int argc, char *argv[])
         TApplication application("", &dummyc, dummyv);
         
         // 1D Histograms
-        TH1D* hist_measured = new TH1D("hist_measured", "", 30, 10.0, 40.0);
-        TH1D* hist_generated = new TH1D("hist_generated", "", 30, 10.0, 40.0);
-        TH1D* hist_ratio = new TH1D("hist_ratio", "", 30, 10.0, 40.0);
+        TH1D* hist_measured = new TH1D("hist_measured", "", 50, 0, 50);
+        TH1D* hist_generated = new TH1D("hist_generated", "", 50, 0, 50);
+        TH1D* hist_ratio = new TH1D("hist_ratio", "", 50, 0, 50);
         
         // 2D Histograms
-        TH2D* phietamap_measured = new TH2D("phi_eta_map_measured", "", 38, 1.3, 3.2, 32, -0.8, 0.8);
-        TH2D* phietamap_generated = new TH2D("phi_eta_map_generated", "", 38, 1.3, 3.2, 32, -0.8, 0.8);
-        TH2D* phietamap_ratio = new TH2D("phi_eta_map_ratio", "", 38, 1.3, 3.2, 32, -0.8, 0.8);
+        TH2D* phietamap_measured = new TH2D("phi_eta_map_measured", "", 40, 1.2, 3.2, 32, -0.8, 0.8);
+        TH2D* phietamap_generated = new TH2D("phi_eta_map_generated", "", 40, 1.2, 3.2, 32, -0.8, 0.8);
+        TH2D* phietamap_ratio = new TH2D("phi_eta_map_ratio", "", 40, 1.2, 3.2, 32, -0.8, 0.8);
         
         TCanvas* canvas = new TCanvas();
         
@@ -161,6 +161,9 @@ int main(int argc, char *argv[])
         Float_t cluster_frixione_tpc_04_02[NTRACK_MAX];
         Float_t cluster_frixione_its_04_02[NTRACK_MAX];
         Float_t cluster_s_nphoton[NTRACK_MAX][4];
+        UChar_t cluster_nlocal_maxima[NTRACK_MAX];
+        Float_t cluster_distance_to_bad_channel[NTRACK_MAX];
+        
         unsigned short cluster_mc_truth_index[NTRACK_MAX][32];
         Int_t cluster_ncell[NTRACK_MAX];
         UShort_t  cluster_cell_id_max[NTRACK_MAX];
@@ -175,13 +178,17 @@ int main(int argc, char *argv[])
         short mc_truth_pdg_code[NTRACK_MAX];
         short mc_truth_first_parent_pdg_code[NTRACK_MAX];
         char mc_truth_charge[NTRACK_MAX];
+        UChar_t mc_truth_status[NTRACK_MAX];
         
         Float_t mc_truth_first_parent_e[NTRACK_MAX];
         Float_t mc_truth_first_parent_pt[NTRACK_MAX];
         Float_t mc_truth_first_parent_eta[NTRACK_MAX];
         Float_t mc_truth_first_parent_phi[NTRACK_MAX];
-        UChar_t mc_truth_status[NTRACK_MAX];
         
+        //Int_t eg_ntrial;
+        
+        Float_t eg_cross_section;
+        Int_t   eg_ntrial;
         
         // Set the branch addresses of the branches in the TTrees
         _tree_event->SetBranchAddress("primary_vertex", primary_vertex);
@@ -205,6 +212,8 @@ int main(int argc, char *argv[])
         _tree_event->SetBranchAddress("cluster_iso_its_04",cluster_iso_its_04);
         _tree_event->SetBranchAddress("cluster_frixione_tpc_04_02",cluster_frixione_tpc_04_02);
         _tree_event->SetBranchAddress("cluster_frixione_its_04_02",cluster_frixione_its_04_02);
+        _tree_event->SetBranchAddress("cluster_nlocal_maxima", cluster_nlocal_maxima);
+        _tree_event->SetBranchAddress("cluster_distance_to_bad_channel", cluster_distance_to_bad_channel);
         
         _tree_event->SetBranchAddress("cluster_ncell", cluster_ncell);
         _tree_event->SetBranchAddress("cluster_cell_id_max", cluster_cell_id_max);
@@ -215,7 +224,11 @@ int main(int argc, char *argv[])
         _tree_event->SetBranchAddress("mc_truth_pt", mc_truth_pt);
         _tree_event->SetBranchAddress("mc_truth_phi", mc_truth_phi);
         _tree_event->SetBranchAddress("mc_truth_eta", mc_truth_eta);
-        
+        _tree_event->SetBranchAddress("mc_truth_status", mc_truth_status);
+        _tree_event->SetBranchAddress("mc_truth_first_parent_pdg_code",mc_truth_first_parent_pdg_code);
+
+        _tree_event->SetBranchAddress("eg_cross_section",&eg_cross_section);
+        _tree_event->SetBranchAddress("eg_ntrial",&eg_ntrial);
         
         std::cout << " Total Number of entries in TTree: " << _tree_event->GetEntries() << std::endl;
         
@@ -224,16 +237,55 @@ int main(int argc, char *argv[])
             //for(Long64_t ievent = 0; ievent < 1000 ; ievent++){
             _tree_event->GetEntry(ievent);
             
+            // Weight the event by simulation pT bin
+            double weight = 1.0;
+            if(eg_ntrial>0) weight = eg_cross_section/(double)eg_ntrial;
+            
             //loop over clusters
             for (ULong64_t n = 0; n < ncluster; n++) {
                 // Apply cuts
-                if( not(cluster_pt[n]>10)) continue; //select pt of photons
-                if( not(cluster_s_nphoton[n][1]<=0.85)) continue; // NN max: deep photons
-                if( not(cluster_s_nphoton[n][1]>=0.55)) continue; // NN min: deep photons
+                
+                // Photon Selection
+                //if( not(cluster_pt[n]>10)) continue; //select pt of photons
+                if( not(cluster_ncell[n]>2)) continue;   //removes clusters with 1 or 2 cells
+                if( not(cluster_e_cross[n]/cluster_e[n]>0.05)) continue; //removes "spiky" clusters
+                if( not(cluster_nlocal_maxima[n]<= 2)) continue; //require to have at most 2 local maxima.
+                if( not(cluster_distance_to_bad_channel[n]>=2.0)) continue;
+                
+                //Isolation and shower shape selection
+                //if( not(cluster_s_nphoton[n][1]<=0.85)) continue; // NN max: deep photons
+                //if( not(cluster_s_nphoton[n][1]>=0.55)) continue; // NN min: deep photons
+                if( not(cluster_iso_its_04[n] < 1.0)) continue;
+                if( not(cluster_lambda_square[n][0]<0.27)) continue;
+                
+                // Truth-matching cut
+                Bool_t isTruePhoton = false;
+                //Float_t truth_pt = -999.0;
+                for(int counter = 0 ; counter<32; counter++){
+                    unsigned short index = cluster_mc_truth_index[n][counter];
+                    
+                    if(isTruePhoton) break;
+                    if(index==65535) continue;
+                    //std::cout<<"truth, pt: " << mc_truth_pt[index] << "phi " << mc_truth_phi[index] << " eta " << mc_truth_eta[index] << " code: " << mc_truth_pdg_code[index] << " status " << int(mc_truth_status[index]) << " parentpdg " << mc_truth_first_parent_pdg_code[index] << std::endl;
+                    if(mc_truth_pdg_code[index]!=22) continue;
+                    if(mc_truth_first_parent_pdg_code[index]!=22) continue;
+                    if( not (mc_truth_status[index] >0)) continue;
+                    isTruePhoton = true;
+                    //truth_pt = mc_truth_pt[index];
+                }//end loop over indices
                 
                 // Fill the measured histogram bins
-                hist_measured->Fill(cluster_pt[n]);
-                phietamap_measured->Fill(cluster_phi[n], cluster_eta[n]);
+                if(isTruePhoton){
+                    hist_measured->Fill(cluster_pt[n], weight);
+                    double phi = cluster_phi[n]/(TMath::Pi());
+                    while(phi < 1.2)
+                        phi += 2;
+                    while (phi > 3.2)
+                        phi -= 2;
+                    double eta = cluster_eta[n];
+                    if(TMath::Abs(eta) > 0.8) continue;
+                    phietamap_measured->Fill(phi, cluster_eta[n], weight);
+                }
                 
             }//end loop on clusters.
             
@@ -244,13 +296,21 @@ int main(int argc, char *argv[])
             for (unsigned int m = 0; m < nmc_truth; m++) {
                 // Apply cuts
                 
-                if( not(mc_truth_pdg_code[m]==22)) {mctruths_rejected++;  continue; }
-                
+                //std::cout << mc_truth_pt[m] << "phi " << mc_truth_phi[m] << " eta " << mc_truth_eta[m] << " code: " << mc_truth_pdg_code[m] << " status " << int(mc_truth_status[m]) << " parentpdg " << mc_truth_first_parent_pdg_code[m] << std::endl;
+                if( not(mc_truth_pdg_code[m]==22 && int(mc_truth_status[m])>0 &&  mc_truth_first_parent_pdg_code[m]==22))
+                    {mctruths_rejected++;  continue; }
                 mctruths_accepted++;
                 
                 // Fill the measured histogram bin
-                hist_generated->Fill(mc_truth_pt[m]);
-                phietamap_generated->Fill(mc_truth_phi[m], mc_truth_eta[m]);
+                hist_generated->Fill(mc_truth_pt[m], weight);
+                double phi = mc_truth_phi[m]/(TMath::Pi());
+                while(phi < 1.2)
+                    phi += 2;
+                while (phi > 3.2)
+                    phi -= 2;
+                double eta = mc_truth_eta[m];
+                if(TMath::Abs(eta) > 0.8) continue;
+                phietamap_generated->Fill(phi, mc_truth_eta[m], weight);
                 
             }// end loop on mc truth
             
