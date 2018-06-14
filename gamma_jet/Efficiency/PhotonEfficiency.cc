@@ -135,9 +135,9 @@ int main(int argc, char *argv[])
         TH1D* hist_ratio = new TH1D("hist_ratio", "", 50, 0, 50);
         
         // 2D Histograms
-        TH2D* phietamap_measured = new TH2D("phi_eta_map_measured", "", 40, 1.2, 3.2, 32, -0.8, 0.8);
-        TH2D* phietamap_generated = new TH2D("phi_eta_map_generated", "", 40, 1.2, 3.2, 32, -0.8, 0.8);
-        TH2D* phietamap_ratio = new TH2D("phi_eta_map_ratio", "", 40, 1.2, 3.2, 32, -0.8, 0.8);
+        TH2D* phietamap_measured = new TH2D("phi_eta_map_measured", "", 200, 1.2, 3.2, 160, -0.8, 0.8);
+        TH2D* phietamap_generated = new TH2D("phi_eta_map_generated", "", 200, 1.2, 3.2, 160, -0.8, 0.8);
+        TH2D* phietamap_ratio = new TH2D("phi_eta_map_ratio", "", 200, 1.2, 3.2, 160, -0.8, 0.8);
         
         TCanvas* canvas = new TCanvas();
         

@@ -10,6 +10,8 @@ Creator: Ivan Chernyshev, June 20 2017
 - Currently, the program is incomplete, so errors may occur and all users are assumed to understand this fact 
 
 ## Techical Specifications
+- gamma_jet: Everything involving gamma-jet study
+- jet_jet: everything involving jet-jet study
 - Photon_Correlations: The segment of the data analysis that uses Ntuples to construct photon-hadron correlations
 - Ntuple_Analysis: The segment of the data analysis responsible for deep-pion efficiency analysis, which compares Dr. Yue Shi Lai's neural net to the existing lambda-based method of discerning signal from background
 - Pion_Hadron Correlations: The segment of the data analysis that deals with pion-hadron correlations
