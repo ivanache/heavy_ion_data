@@ -87,6 +87,15 @@ int main(int argc, char *argv[])
         TH1D hjet_AvgEta("hjet_AvgEta", "Average eta jet-jet", 2*etabins, -1.2, 1.2);
         TH1D hjet_AvgEta_truth("hjet_AvgEta_truth", "Average eta jet-jet, truth", 2*etabins, -1.2, 1.2);
         
+        TH1D hjet_leadingpT("hjet_leadingpT", "Leading jet pT distribution", 100, -100, 900);
+        TH1D hjet_leadingpT_truth("hjet_leadingpT_truth", "True Leading jet pT distribution, Jets", 100, -100, 900);
+        
+        TH1D hjet_leadingEta("hjet_leadingEta", "Leading jet eta distribution", 2*etabins, -1.2, 1.2);
+        TH1D hjet_leadingEta_truth("hjet_leadingEta_truth", "True Leading jet eta distribution", 2*etabins, -1.2, 1.2);
+        
+        TH1D hjet_leadingPhi("hjet_leadingPhi", "Leading jet phi distribution", 2*phibins, -TMath::Pi(), TMath::Pi());
+        TH1D hjet_leadingPhi_truth("hjet_leadingPhi_truth", "True Leading jet phi distribution", 2*phibins, -TMath::Pi(), TMath::Pi());
+        
         hjet_Xj.Sumw2();
         hjet_Xj_truth.Sumw2();
         hjet_dPhi.Sumw2();
@@ -281,9 +290,22 @@ int main(int argc, char *argv[])
                     Float_t dEta = TMath::Abs(jet_ak04its_eta_raw[ijet] - jet_ak04its_eta_raw[kjet]);
                     Float_t AvgEta = (jet_ak04its_eta_raw[ijet] + jet_ak04its_eta_raw[kjet])/2;
                     
+                    Float_t leading_eta = 0;
+                    Float_t leading_phi = 0;
+                    if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[kjet]) {
+                        leading_eta = jet_ak04its_eta_raw[kjet];
+                        leading_phi = jet_ak04its_phi[kjet];
+                    }
+                    else {
+                        leading_eta = jet_ak04its_eta_raw[ijet];
+                        leading_phi = jet_ak04its_phi[ijet];
+                    }
+                    
                     hjet_dPhi.Fill(dphi,weight);
                     hjet_dEta.Fill(dEta, weight);
                     hjet_AvgEta.Fill(AvgEta, weight);
+                    hjet_leadingEta.Fill(leading_eta);
+                    hjet_leadingPhi.Fill(leading_phi);
                     
                     if(not (dphi>0.4)) continue;
                     //std::cout <<"truthptjet: " << jet_ak04its_pt_truth[ijet] << "reco pt jet" << jet_ak04its_pt_raw[ijet] << std::endl;
@@ -292,22 +314,28 @@ int main(int argc, char *argv[])
                     Float_t ptD = 0;
                     Float_t mult = 0;
                     Float_t width = 0;
+                    Float_t leading_pT = 0;
                     if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[kjet]) {
                         xj = jet_ak04its_pt_raw[ijet]/jet_ak04its_pt_raw[kjet];
                         ptD = jet_ak04its_ptd_raw[ijet];
                         mult = jet_ak04its_multiplicity[ijet];
                         width =  jet_ak04its_width_sigma_raw[ijet][0];
+                        
+                        leading_pT = jet_ak04its_pt_raw[kjet];
                     }
                     else {
                         xj = jet_ak04its_pt_raw[kjet]/jet_ak04its_pt_raw[ijet];
                         ptD = jet_ak04its_ptd_raw[kjet];
                         mult = jet_ak04its_multiplicity[kjet];
                         width =  jet_ak04its_width_sigma_raw[ijet][0];
+                        
+                        leading_pT = jet_ak04its_pt_raw[ijet];
                     }
                     hjet_Xj.Fill(xj, weight);
                     hjet_pTD.Fill(ptD, weight);
                     hjet_Multiplicity.Fill(mult, weight);
                     hjet_jetwidth.Fill(width, weight);
+                    hjet_leadingpT.Fill(leading_pT, weight);
                     //std::cout<<" xj " << xj << " " << " xj_truth "<< xj_truth << std::endl;
                     
                     
@@ -334,19 +362,36 @@ int main(int argc, char *argv[])
                         Float_t AvgEta_truth = (jet_truth_ak04_eta[ijet] + jet_truth_ak04_eta[nmc])/2;
                         //std::cout<< dphi_truth << std::endl;
                         
+                        Float_t leading_eta_truth = 0;
+                        Float_t leading_phi_truth = 0;
+                        if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[nmc]) {
+                            leading_eta_truth = jet_truth_ak04_eta[nmc];
+                            leading_phi_truth = jet_truth_ak04_phi[nmc];
+                        }
+                        else{
+                            leading_eta_truth = jet_truth_ak04_eta[ijet];
+                            leading_phi_truth = jet_truth_ak04_phi[ijet];
+                        }
+                        
                         hjet_dPhi_truth.Fill(dphi_truth,weight);
                         hjet_dEta_truth.Fill(dEta_truth, weight);
                         hjet_AvgEta_truth.Fill(AvgEta_truth, weight);
+                        hjet_leadingEta_truth.Fill(leading_eta_truth, weight);
+                        hjet_leadingPhi_truth.Fill(leading_phi_truth, weight);
                         if( not(dphi_truth>0.4)) continue;
                         
                         Float_t xj_truth = 0;
+                        Float_t leading_pT_truth = 0;
                         if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[nmc]) {
                             xj_truth = jet_truth_ak04_pt[ijet]/jet_truth_ak04_pt[nmc];
+                            leading_pT_truth = jet_truth_ak04_pt[nmc];
                         }
                         else {
                             xj_truth = jet_truth_ak04_pt[nmc]/jet_truth_ak04_pt[ijet];
+                            leading_pT_truth = jet_truth_ak04_pt[ijet];
                         }
                         hjet_Xj_truth.Fill(xj_truth,weight);
+                        hjet_leadingpT_truth.Fill(leading_pT_truth, weight);
                     }//end loop over truth jets
             }//end loop over mc particles
             }
@@ -381,11 +426,17 @@ int main(int argc, char *argv[])
         hjet_jetwidth.Scale(1.0/N_jets);
         hjet_dEta.Scale(1.0/N_jets);
         hjet_AvgEta.Scale(1.0/N_jets);
+        hjet_leadingpT.Scale(1.0/N_jets);
+        hjet_leadingEta.Scale(1.0/N_jets);
+        hjet_leadingPhi.Scale(1.0/N_jets);
         
         hjet_dPhi_truth.Scale(1.0/N_truth);
         hjet_Xj_truth.Scale(1.0/N_truth);
         hjet_dEta_truth.Scale(1.0/N_truth);
         hjet_AvgEta_truth.Scale(1.0/N_truth);
+        hjet_leadingpT_truth.Scale(1.0/N_truth);
+        hjet_leadingEta_truth.Scale(1.0/N_truth);
+        hjet_leadingPhi_truth.Scale(1.0/N_truth);
         
         hjet_Xj.Write("hjet_Xj");
         hjet_Xj_truth.Write("hjet_Xj_truth");
@@ -402,6 +453,15 @@ int main(int argc, char *argv[])
         
         hjet_AvgEta.Write("hjet_AvgEta");
         hjet_AvgEta_truth.Write("hjet_AvgEta_truth");
+        
+        hjet_leadingpT.Write("hjet_leading_pT");
+        hjet_leadingpT_truth.Write("hjet_leading_pT_truth");
+        
+        hjet_leadingEta.Write("hjet_leading_Eta");
+        hjet_leadingEta_truth.Write("hjet_leading_Eta_truth");
+        
+        hjet_leadingPhi.Write("hjet_leading_Phi");
+        hjet_leadingPhi_truth.Write("hjet_leadingPhi_truth");
         std::cout << " ending " << std::endl;
     }//end of arguments
     return EXIT_SUCCESS;
