@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         }
         file->Print();
         
-        // Get all the TTree variables from the file to open, I guess
+        // Get all the TTree variables from the file to open
         TTree *_tree_event = NULL;
         std::cout << " About to try getting the ttree" << std::endl;
         _tree_event = dynamic_cast<TTree *> (file->Get("_tree_event"));
@@ -87,8 +87,8 @@ int main(int argc, char *argv[])
         TH1D hjet_AvgEta("hjet_AvgEta", "Average eta jet-jet", 2*etabins, -1.2, 1.2);
         TH1D hjet_AvgEta_truth("hjet_AvgEta_truth", "Average eta jet-jet, truth", 2*etabins, -1.2, 1.2);
         
-        TH1D hjet_leadingpT("hjet_leadingpT", "Leading jet pT distribution", 100, -100, 900);
-        TH1D hjet_leadingpT_truth("hjet_leadingpT_truth", "True Leading jet pT distribution, Jets", 100, -100, 900);
+        TH1D hjet_leadingpT("hjet_leadingpT", "Leading jet pT distribution", 25, 5, 30);
+        TH1D hjet_leadingpT_truth("hjet_leadingpT_truth", "True Leading jet pT distribution, Jets", 25, 5, 30);
         
         TH1D hjet_leadingEta("hjet_leadingEta", "Leading jet eta distribution", 2*etabins, -1.2, 1.2);
         TH1D hjet_leadingEta_truth("hjet_leadingEta_truth", "True Leading jet eta distribution", 2*etabins, -1.2, 1.2);
@@ -256,11 +256,10 @@ int main(int argc, char *argv[])
         Bool_t isRealData = true;
         _tree_event->GetEntry(1);
         if(nmc_truth>0) isRealData= false;
-        Int_t N_jets = 0;
-        Int_t N_eventpassed = 0;
-        Int_t N_truth = 0;
         
-        
+        double sum_of_weights = 0;
+        double weightsum_individual_jets = 0;
+        int N_individual_jets = 0;
         
         for(Long64_t ievent = 0; ievent < _tree_event->GetEntries() && ievent < 3000000 ; ievent++){
             //for(Long64_t ievent = 0; ievent < 500000 ; ievent++){
@@ -270,132 +269,192 @@ int main(int argc, char *argv[])
             if(is_pileup_from_spd_5_08) continue; //removes pileup
             N_eventpassed +=1;
             
-            
+            std::string filestring = argv[iarg];
             double weight = 1.0;
             if(eg_ntrial>0) weight = eg_cross_section/(double)eg_ntrial;
+            //17g6a3 weights
+            if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a3/17g6a3_pthat1.root"){
+                if(ievent == 0)
+                    std::cout << "PtHat 1 of 17g6a3 series opened" << std::endl;
+                weight = 4.47e-11;
+            }
+            if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a3/17g6a3_pthat2.root"){
+                if(ievent == 0)
+                    std::cout << "PtHat 2 of 17g6a3 series opened" << std::endl;
+                weight = 9.83e-11;
+            }
+            if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a3/17g6a3_pthat3.root"){
+                if(ievent == 0)
+                    std::cout << "PtHat 3 of 17g6a3 series opened" << std::endl;
+                weight = 1.04e-10;
+            }
+            if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a3/17g6a3_pthat4.root"){
+                if(ievent == 0)
+                    std::cout << "PtHat 4 of 17g6a3 series opened" << std::endl;
+                weight = 1.01e-11;
+            }
+            if(filestring == "/project/projectdirs/alice/NTuples/MC/16c3b/16c3b_pthat1.root"){
+                if(ievent == 0)
+                    std::cout << "PtHat 1 of 16c3b series opened" << std::endl;
+                weight = 6.071458e-03;
+            }
+            if(filestring == "/project/projectdirs/alice/NTuples/MC/16c3b/16c3b_pthat2.root"){
+                if(ievent == 0)
+                    std::cout << "PtHat 2 of 16c3b series opened" << std::endl;
+                weight = 3.941701e-03;
+            }
+            if(filestring == "/project/projectdirs/alice/NTuples/MC/16c3b/16c3b_pthat3.root"){
+                if(ievent == 0)
+                    std::cout << "PtHat 3 of 16c3b series opened" << std::endl;
+                weight = 2.001984e-03;
+            }
+            if(filestring == "/project/projectdirs/alice/NTuples/MC/16c3b/16c3b_pthat4.root"){
+                if(ievent == 0)
+                    std::cout << "PtHat 4 of 16c3b series opened" << std::endl;
+                weight = 9.862765e-04;
+            }
+            sum_of_weights += weight;
             
             //loop over jets
             for (ULong64_t kjet = 0; kjet < njet_ak04its; kjet++) {
                 if(not (jet_ak04its_pt_raw[kjet]>5)) continue;
-                if(not (TMath::Abs(jet_ak04its_eta_raw[kjet]<0.5))) continue;
+                if(not (jet_ak04its_pt_raw[kjet]<30)) continue;
+                if(not (TMath::Abs(jet_ak04its_eta_raw[kjet])<0.5)) continue;
+                
+                hjet_leadingEta.Fill(jet_ak04its_eta_raw[kjet], weight);
+                hjet_leadingPhi.Fill(jet_ak04its_phi[kjet], weight);
+                hjet_leadingpT.Fill(jet_ak04its_pt_raw[kjet], weight);
+                
+                if (!isRealData){
+                    hjet_leadingEta_truth.Fill(jet_ak04its_eta_truth[kjet], weight);
+                    hjet_leadingPhi_truth.Fill(jet_ak04its_phi_truth[kjet], weight);
+                    hjet_leadingpT_truth.Fill(jet_ak04its_pt_truth[kjet], weight);
+                }
+                
+                N_individual_jets++;
+                weightsum_individual_jets += weight;
                 
                 //start second jet loop
                 
                 for (ULong64_t ijet = kjet + 1; ijet < njet_ak04its; ijet++) { //start loop over jets
                     if(not (jet_ak04its_pt_raw[ijet]>5)) continue;
-                    if(not (TMath::Abs(jet_ak04its_eta_raw[ijet]<0.5))) continue;
+                    if(not (jet_ak04its_pt_raw[ijet]<30)) continue;
+                    if(not (TMath::Abs(jet_ak04its_eta_raw[ijet])<0.5)) continue;
                     N_jets += 1;
+                    weightsum_jets += weight;
                     
                     Float_t dphi = TMath::Abs(TVector2::Phi_mpi_pi(jet_ak04its_phi[ijet] - jet_ak04its_phi[kjet]));
-                    Float_t dEta = TMath::Abs(jet_ak04its_eta_raw[ijet] - jet_ak04its_eta_raw[kjet]);
+                    Float_t dEta = TMath::Abs(jet_truth_ak04_eta[ijet] -jet_truth_ak04_eta[kjet]);
                     Float_t AvgEta = (jet_ak04its_eta_raw[ijet] + jet_ak04its_eta_raw[kjet])/2;
-                    
-                    Float_t leading_eta = 0;
-                    Float_t leading_phi = 0;
-                    if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[kjet]) {
-                        leading_eta = jet_ak04its_eta_raw[kjet];
-                        leading_phi = jet_ak04its_phi[kjet];
-                    }
-                    else {
-                        leading_eta = jet_ak04its_eta_raw[ijet];
-                        leading_phi = jet_ak04its_phi[ijet];
-                    }
                     
                     hjet_dPhi.Fill(dphi,weight);
                     hjet_dEta.Fill(dEta, weight);
                     hjet_AvgEta.Fill(AvgEta, weight);
-                    hjet_leadingEta.Fill(leading_eta);
-                    hjet_leadingPhi.Fill(leading_phi);
                     
-                    if(not (dphi>0.4)) continue;
+                    if (!isRealData){
+                        Float_t dphi_truth = TMath::Abs(TVector2::Phi_mpi_pi(jet_ak04its_phi_truth[ijet] - jet_ak04its_phi_truth[kjet]));
+                        Float_t dEta_truth = TMath::Abs(jet_ak04its_eta_truth[ijet] - jet_ak04its_eta_truth[nmc]);
+                        Float_t AvgEta_truth = (jet_ak04its_eta_truth[ijet] + jet_ak04its_eta_truth[nmc])/2;
+                        
+                        hjet_dPhi_truth.Fill(dphi_truth,weight);
+                        hjet_dEta_truth.Fill(dEta_truth, weight);
+                        hjet_AvgEta_truth.Fill(AvgEta_truth, weight);
+                    }
+                    
+                    if(not (dphi>(TMath::Pi()/2))) continue;
                     //std::cout <<"truthptjet: " << jet_ak04its_pt_truth[ijet] << "reco pt jet" << jet_ak04its_pt_raw[ijet] << std::endl;
                     
                     Float_t xj = 0;
                     Float_t ptD = 0;
                     Float_t mult = 0;
                     Float_t width = 0;
-                    Float_t leading_pT = 0;
+                    
                     if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[kjet]) {
                         xj = jet_ak04its_pt_raw[ijet]/jet_ak04its_pt_raw[kjet];
                         ptD = jet_ak04its_ptd_raw[ijet];
                         mult = jet_ak04its_multiplicity[ijet];
                         width =  jet_ak04its_width_sigma_raw[ijet][0];
-                        
-                        leading_pT = jet_ak04its_pt_raw[kjet];
                     }
                     else {
                         xj = jet_ak04its_pt_raw[kjet]/jet_ak04its_pt_raw[ijet];
                         ptD = jet_ak04its_ptd_raw[kjet];
                         mult = jet_ak04its_multiplicity[kjet];
                         width =  jet_ak04its_width_sigma_raw[ijet][0];
-                        
-                        leading_pT = jet_ak04its_pt_raw[ijet];
                     }
                     hjet_Xj.Fill(xj, weight);
                     hjet_pTD.Fill(ptD, weight);
                     hjet_Multiplicity.Fill(mult, weight);
                     hjet_jetwidth.Fill(width, weight);
-                    hjet_leadingpT.Fill(leading_pT, weight);
                     //std::cout<<" xj " << xj << " " << " xj_truth "<< xj_truth << std::endl;
                     
-                    
+                    // Fill truth events
+                    if (!isRealData){
+                        Float_t xj_truth = 0;
+                        
+                        if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[kjet]) {
+                            xj_truth = jet_ak04its_pt_truth[ijet]/jet_ak04its_pt_truth[kjet];
+                        }
+                        else {
+                            xj_truth = jet_ak04its_pt_truth[kjet]/jet_ak04its_pt_truth[ijet];
+                        }
+                        hjet_Xj_truth.Fill(xj_truth,weight);
+                    }
                 }//end second loop over jets
+            
                 
             }//end loop on jets
             //loop over truth particles
             
             //std::cout << " about to loop over mc truth particles " << std::endl;
+            /**
             if (!isRealData){
             for (ULong64_t nmc = 0; nmc < njet_truth_ak04; nmc++) {
                 if(not(jet_truth_ak04_pt[nmc]>5)) continue;
+                if(not(jet_truth_ak04_pt[nmc]<30)) continue;
                 if(not(TMath::Abs(jet_truth_ak04_eta[nmc])<0.5)) continue;
+                
+                hjet_leadingEta_truth.Fill(jet_truth_ak04_eta[nmc], weight);
+                hjet_leadingPhi_truth.Fill(jet_truth_ak04_phi[nmc], weight);
+                hjet_leadingpT_truth.Fill(jet_truth_ak04_pt[nmc], weight);
+                
+                N_individual_truth++;
+                weightsum_individual_truth += weight;
                 
                     //std::cout << " number of truth jets " << njet_truth_ak04 << std::endl;
                     for (ULong64_t ijet = nmc+1; ijet < njet_truth_ak04; ijet++) {
                         if(not(jet_truth_ak04_pt[ijet]>5.0)) continue;
+                        if(not(jet_truth_ak04_pt[ijet]<30.0)) continue;
                         if(not(TMath::Abs(jet_truth_ak04_eta[ijet])<0.5)) continue;
                         
                         N_truth +=1;
+                        weightsum_truth += weight;
                         
                         Float_t dphi_truth = TMath::Abs(TVector2::Phi_mpi_pi(jet_truth_ak04_phi[ijet] - jet_truth_ak04_phi[nmc]));
                         Float_t dEta_truth = TMath::Abs(jet_truth_ak04_eta[ijet] - jet_truth_ak04_eta[nmc]);
                         Float_t AvgEta_truth = (jet_truth_ak04_eta[ijet] + jet_truth_ak04_eta[nmc])/2;
                         //std::cout<< dphi_truth << std::endl;
                         
-                        Float_t leading_eta_truth = 0;
-                        Float_t leading_phi_truth = 0;
-                        if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[nmc]) {
-                            leading_eta_truth = jet_truth_ak04_eta[nmc];
-                            leading_phi_truth = jet_truth_ak04_phi[nmc];
-                        }
-                        else{
-                            leading_eta_truth = jet_truth_ak04_eta[ijet];
-                            leading_phi_truth = jet_truth_ak04_phi[ijet];
-                        }
-                        
                         hjet_dPhi_truth.Fill(dphi_truth,weight);
                         hjet_dEta_truth.Fill(dEta_truth, weight);
                         hjet_AvgEta_truth.Fill(AvgEta_truth, weight);
-                        hjet_leadingEta_truth.Fill(leading_eta_truth, weight);
-                        hjet_leadingPhi_truth.Fill(leading_phi_truth, weight);
-                        if( not(dphi_truth>0.4)) continue;
+                        
+                        if( not(dphi_truth>(TMath::Pi()/2))) continue;
                         
                         Float_t xj_truth = 0;
                         Float_t leading_pT_truth = 0;
                         if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[nmc]) {
                             xj_truth = jet_truth_ak04_pt[ijet]/jet_truth_ak04_pt[nmc];
-                            leading_pT_truth = jet_truth_ak04_pt[nmc];
                         }
                         else {
                             xj_truth = jet_truth_ak04_pt[nmc]/jet_truth_ak04_pt[ijet];
-                            leading_pT_truth = jet_truth_ak04_pt[ijet];
                         }
                         hjet_Xj_truth.Fill(xj_truth,weight);
-                        hjet_leadingpT_truth.Fill(leading_pT_truth, weight);
+                        
                     }//end loop over truth jets
             }//end loop over mc particles
             }
-            
+            */
+             
             // Create the file label, to be used within the filenames, to represent the source file
         
             
@@ -403,13 +462,14 @@ int main(int argc, char *argv[])
                 //SR_Xj.Draw("e1x0nostack");
                 hjet_dPhi.Draw("e1x0nostack");
                 std::cout << ievent << " " << _tree_event->GetEntries() << std::endl;
+                std::cout << "Weight: " << weight
                 canvas->Update();
             }
             
         }//end over events
         
         std::cout << " Numbers of events passing selection " << N_eventpassed << std::endl;
-        std::cout << " Number of jets " << N_jets << std::endl;
+        std::cout << " Number of individual jets " << N_jets << std::endl;
         std::cout << " Number of truth jets " << N_truth << std::endl;
         
         std::string opened_files = "";
@@ -419,24 +479,24 @@ int main(int argc, char *argv[])
         
         TFile* fout = new TFile(Form("JetJet_config%s.root", opened_files.c_str()),"RECREATE");
         fout->Print();
-        hjet_Xj.Scale(1.0/N_jets);
-        hjet_dPhi.Scale(1.0/N_jets);
-        hjet_pTD.Scale(1.0/N_jets);
-        hjet_Multiplicity.Scale(1.0/N_jets);
-        hjet_jetwidth.Scale(1.0/N_jets);
-        hjet_dEta.Scale(1.0/N_jets);
-        hjet_AvgEta.Scale(1.0/N_jets);
-        hjet_leadingpT.Scale(1.0/N_jets);
-        hjet_leadingEta.Scale(1.0/N_jets);
-        hjet_leadingPhi.Scale(1.0/N_jets);
+        hjet_Xj.Scale(1.0/weightsum_individual_jets);
+        hjet_dPhi.Scale(1.0/weightsum_individual_jets);
+        hjet_pTD.Scale(1.0/weightsum_individual_jets);
+        hjet_Multiplicity.Scale(1.0/weightsum_individual_jets);
+        hjet_jetwidth.Scale(1.0/weightsum_individual_jets);
+        hjet_dEta.Scale(1.0/weightsum_individual_jets);
+        hjet_AvgEta.Scale(1.0/weightsum_individual_jets);
+        hjet_leadingpT.Scale(1.0/weightsum_individual_jets);
+        hjet_leadingEta.Scale(1.0/weightsum_individual_jets);
+        hjet_leadingPhi.Scale(1.0/weightsum_individual_jets);
         
-        hjet_dPhi_truth.Scale(1.0/N_truth);
-        hjet_Xj_truth.Scale(1.0/N_truth);
-        hjet_dEta_truth.Scale(1.0/N_truth);
-        hjet_AvgEta_truth.Scale(1.0/N_truth);
-        hjet_leadingpT_truth.Scale(1.0/N_truth);
-        hjet_leadingEta_truth.Scale(1.0/N_truth);
-        hjet_leadingPhi_truth.Scale(1.0/N_truth);
+        hjet_dPhi_truth.Scale(1.0/weightsum_individual_jets);
+        hjet_Xj_truth.Scale(1.0/weightsum_individual_jets);
+        hjet_dEta_truth.Scale(1.0/weightsum_individual_jets);
+        hjet_AvgEta_truth.Scale(1.0/weightsum_individual_jets);
+        hjet_leadingpT_truth.Scale(1.0/weightsum_individual_jets);
+        hjet_leadingEta_truth.Scale(1.0/weightsum_individual_jets);
+        hjet_leadingPhi_truth.Scale(1.0/weightsum_individual_jets);
         
         hjet_Xj.Write("hjet_Xj");
         hjet_Xj_truth.Write("hjet_Xj_truth");
@@ -462,6 +522,8 @@ int main(int argc, char *argv[])
         
         hjet_leadingPhi.Write("hjet_leading_Phi");
         hjet_leadingPhi_truth.Write("hjet_leadingPhi_truth");
+
+        std::cout << "Sum of weights over events: " << sum_of_weights << "\nover Nindividualjets: " << weightsum_individual_jets << std::endl;
         std::cout << " ending " << std::endl;
     }//end of arguments
     return EXIT_SUCCESS;
