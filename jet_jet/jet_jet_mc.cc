@@ -1,8 +1,9 @@
 /**
-   This program produces energy response plots from Monte-Carlo simulations
+   This program produces energy response plots from Monte-Carlo simulations.
 */
 // Original author: Miguel Arratia
 // Taken and adapted by Ivan Chernyshev, June 12, 2018
+// Syntax: takes in all arguments as ROOT files to fill histograms from, and fills a single set of histograms, and each histograms has input from all arguments
 
 #include <TFile.h>
 #include <TTree.h>
@@ -35,6 +36,57 @@ int main(int argc, char *argv[])
     dummyv[0] = strdup("main");
     TApplication application("", &dummyc, dummyv);
     std::cout <<" Number of arguments " << argc << std::endl;
+    
+    const int xjbins = 20;
+    const int phibins = 20;
+    const int etabins = 20;
+    
+    TH1D hjet_Xj("hjet_Xj", "Xj distribution, Jets", xjbins, 0.0,2.0);
+    TH1D hjet_Xj_truth("hjet_Xj_truth", "True Xj distribution, Jets", xjbins, 0.0,2.0);
+    
+    
+    TH1D hjet_dPhi("hjet_dPhi", "delta phi jet-jet signal region", phibins, 0, TMath::Pi());
+    TH1D hjet_dPhi_truth("h_dPhi_truth", "delta phi jet-jet truth MC", phibins, 0, TMath::Pi());
+    
+    TH1D hjet_pTD("hjet_pTD", "pTD distribution, Jets", 40, 0.0,1.0);
+    TH1D hjet_Multiplicity("hjet_Multiplicity", "Secondary Jet Multiplicity distribution", 20, -0.5 , 19.5);
+    TH1D hjet_jetwidth("hjet_jetwidth", "jet width distribution", 20, 0.0,0.01);
+    
+    
+    TH1D hjet_dEta("hjet_dEta", "delta eta jet-jet", etabins, -1.2, 1.2);
+    TH1D hjet_dEta_truth("hjet_dEta_truth", "delta eta jet-jet, truth", etabins, -1.2, 1.2);
+    
+    TH1D hjet_AvgEta("hjet_AvgEta", "Average eta jet-jet", 2*etabins, -1.2, 1.2);
+    TH1D hjet_AvgEta_truth("hjet_AvgEta_truth", "Average eta jet-jet, truth", 2*etabins, -1.2, 1.2);
+    
+    TH1D hjet_leadingpT("hjet_leadingpT", "Leading jet pT distribution", 25, 5, 30);
+    TH1D hjet_leadingpT_truth("hjet_leadingpT_truth", "True Leading jet pT distribution, Jets", 25, 5, 30);
+    
+    TH1D hjet_leadingEta("hjet_leadingEta", "Leading jet eta distribution", 2*etabins, -1.2, 1.2);
+    TH1D hjet_leadingEta_truth("hjet_leadingEta_truth", "True Leading jet eta distribution", 2*etabins, -1.2, 1.2);
+    
+    TH1D hjet_leadingPhi("hjet_leadingPhi", "Leading jet phi distribution", 2*phibins, -TMath::Pi(), TMath::Pi());
+    TH1D hjet_leadingPhi_truth("hjet_leadingPhi_truth", "True Leading jet phi distribution", 2*phibins, -TMath::Pi(), TMath::Pi());
+    
+    hjet_Xj.Sumw2();
+    hjet_Xj_truth.Sumw2();
+    hjet_dPhi.Sumw2();
+    hjet_dPhi_truth.Sumw2();
+    hjet_pTD.Sumw2();
+    hjet_Multiplicity.Sumw2();
+    hjet_dEta.Sumw2();
+    hjet_dEta_truth.Sumw2();
+    hjet_AvgEta.Sumw2();
+    hjet_AvgEta_truth.Sumw2();
+    
+    hjet_Xj.SetTitle("; X_{j} ; 1/N_{#gamma} dN_{J#gamma}/dX_{j}");
+    hjet_Xj_truth.SetTitle("; X_{j}^{true} ; counts");
+    
+    double sum_of_weights = 0;
+    double weightsum_individual_jets = 0;
+    int N_individual_jets = 0;
+    int N_eventpassed = 0;
+    
     for (int iarg = 1; iarg < argc; iarg++) {
         std::cout << "Opening: " << (TString)argv[iarg] << std::endl;
         TFile *file = TFile::Open((TString)argv[iarg]);
@@ -62,54 +114,6 @@ int main(int argc, char *argv[])
             std::cout << " fail; the _tree_event is NULL " << std::endl;
             exit(EXIT_FAILURE);
         }
-        
-        //
-        
-        const int xjbins = 20;
-        const int phibins = 20;
-        const int etabins = 20;
-        
-        TH1D hjet_Xj("hjet_Xj", "Xj distribution, Jets", xjbins, 0.0,2.0);
-        TH1D hjet_Xj_truth("hjet_Xj_truth", "True Xj distribution, Jets", xjbins, 0.0,2.0);
-        
- 
-        TH1D hjet_dPhi("hjet_dPhi", "delta phi jet-jet signal region", phibins, 0, TMath::Pi());
-        TH1D hjet_dPhi_truth("h_dPhi_truth", "delta phi jet-jet truth MC", phibins, 0, TMath::Pi());
-        
-        TH1D hjet_pTD("hjet_pTD", "pTD distribution, Jets", 40, 0.0,1.0);
-        TH1D hjet_Multiplicity("hjet_Multiplicity", "Secondary Jet Multiplicity distribution", 20, -0.5 , 19.5);
-        TH1D hjet_jetwidth("hjet_jetwidth", "jet width distribution", 20, 0.0,0.01);
-        
-        
-        TH1D hjet_dEta("hjet_dEta", "delta eta jet-jet", etabins, -1.2, 1.2);
-        TH1D hjet_dEta_truth("hjet_dEta_truth", "delta eta jet-jet, truth", etabins, -1.2, 1.2);
-        
-        TH1D hjet_AvgEta("hjet_AvgEta", "Average eta jet-jet", 2*etabins, -1.2, 1.2);
-        TH1D hjet_AvgEta_truth("hjet_AvgEta_truth", "Average eta jet-jet, truth", 2*etabins, -1.2, 1.2);
-        
-        TH1D hjet_leadingpT("hjet_leadingpT", "Leading jet pT distribution", 25, 5, 30);
-        TH1D hjet_leadingpT_truth("hjet_leadingpT_truth", "True Leading jet pT distribution, Jets", 25, 5, 30);
-        
-        TH1D hjet_leadingEta("hjet_leadingEta", "Leading jet eta distribution", 2*etabins, -1.2, 1.2);
-        TH1D hjet_leadingEta_truth("hjet_leadingEta_truth", "True Leading jet eta distribution", 2*etabins, -1.2, 1.2);
-        
-        TH1D hjet_leadingPhi("hjet_leadingPhi", "Leading jet phi distribution", 2*phibins, -TMath::Pi(), TMath::Pi());
-        TH1D hjet_leadingPhi_truth("hjet_leadingPhi_truth", "True Leading jet phi distribution", 2*phibins, -TMath::Pi(), TMath::Pi());
-        
-        hjet_Xj.Sumw2();
-        hjet_Xj_truth.Sumw2();
-        hjet_dPhi.Sumw2();
-        hjet_dPhi_truth.Sumw2();
-        hjet_pTD.Sumw2();
-        hjet_Multiplicity.Sumw2();
-        hjet_dEta.Sumw2();
-        hjet_dEta_truth.Sumw2();
-        hjet_AvgEta.Sumw2();
-        hjet_AvgEta_truth.Sumw2();
-        
-        hjet_Xj.SetTitle("; X_{j} ; 1/N_{#gamma} dN_{J#gamma}/dX_{j}");
-        hjet_Xj_truth.SetTitle("; X_{j}^{true} ; counts");
-        
         
         TCanvas* canvas = new TCanvas();
         
@@ -257,10 +261,6 @@ int main(int argc, char *argv[])
         _tree_event->GetEntry(1);
         if(nmc_truth>0) isRealData= false;
         
-        double sum_of_weights = 0;
-        double weightsum_individual_jets = 0;
-        int N_individual_jets = 0;
-        
         for(Long64_t ievent = 0; ievent < _tree_event->GetEntries() && ievent < 3000000 ; ievent++){
             //for(Long64_t ievent = 0; ievent < 500000 ; ievent++){
             _tree_event->GetEntry(ievent);
@@ -321,16 +321,6 @@ int main(int argc, char *argv[])
                 if(not (jet_ak04its_pt_raw[kjet]<30)) continue;
                 if(not (TMath::Abs(jet_ak04its_eta_raw[kjet])<0.5)) continue;
                 
-                hjet_leadingEta.Fill(jet_ak04its_eta_raw[kjet], weight);
-                hjet_leadingPhi.Fill(jet_ak04its_phi[kjet], weight);
-                hjet_leadingpT.Fill(jet_ak04its_pt_raw[kjet], weight);
-                
-                if (!isRealData){
-                    hjet_leadingEta_truth.Fill(jet_ak04its_eta_truth[kjet], weight);
-                    hjet_leadingPhi_truth.Fill(jet_ak04its_phi_truth[kjet], weight);
-                    hjet_leadingpT_truth.Fill(jet_ak04its_pt_truth[kjet], weight);
-                }
-                
                 N_individual_jets++;
                 weightsum_individual_jets += weight;
                 
@@ -340,25 +330,49 @@ int main(int argc, char *argv[])
                     if(not (jet_ak04its_pt_raw[ijet]>5)) continue;
                     if(not (jet_ak04its_pt_raw[ijet]<30)) continue;
                     if(not (TMath::Abs(jet_ak04its_eta_raw[ijet])<0.5)) continue;
-                    N_jets += 1;
-                    weightsum_jets += weight;
+                    //N_jets += 1;
+                    
+                    // If it's a Monte-Carlo, then test phi to see if there is an "NaN" for either jet in the pair. If it is, cut out this pair
+                    if (!isRealData)
+                        if(isnan(jet_ak04its_phi_truth[ijet]) || isnan(jet_ak04its_phi_truth[kjet]))
+                            continue;
                     
                     Float_t dphi = TMath::Abs(TVector2::Phi_mpi_pi(jet_ak04its_phi[ijet] - jet_ak04its_phi[kjet]));
-                    Float_t dEta = TMath::Abs(jet_truth_ak04_eta[ijet] -jet_truth_ak04_eta[kjet]);
+                    Float_t dEta = TMath::Abs(jet_ak04its_eta_raw[ijet] - jet_ak04its_eta_raw[kjet]);
                     Float_t AvgEta = (jet_ak04its_eta_raw[ijet] + jet_ak04its_eta_raw[kjet])/2;
                     
                     hjet_dPhi.Fill(dphi,weight);
                     hjet_dEta.Fill(dEta, weight);
                     hjet_AvgEta.Fill(AvgEta, weight);
                     
+                    if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[kjet]) {
+                        hjet_leadingEta.Fill(jet_ak04its_eta_raw[kjet], weight);
+                        hjet_leadingPhi.Fill(jet_ak04its_phi[kjet], weight);
+                    }
+                    else {
+                        hjet_leadingEta.Fill(jet_ak04its_eta_raw[ijet], weight);
+                        hjet_leadingPhi.Fill(jet_ak04its_phi[ijet], weight);
+                    }
+                    hjet_leadingpT.Fill(jet_ak04its_pt_raw[kjet], weight);
+                    
+                    
                     if (!isRealData){
                         Float_t dphi_truth = TMath::Abs(TVector2::Phi_mpi_pi(jet_ak04its_phi_truth[ijet] - jet_ak04its_phi_truth[kjet]));
-                        Float_t dEta_truth = TMath::Abs(jet_ak04its_eta_truth[ijet] - jet_ak04its_eta_truth[nmc]);
-                        Float_t AvgEta_truth = (jet_ak04its_eta_truth[ijet] + jet_ak04its_eta_truth[nmc])/2;
+                        Float_t dEta_truth = TMath::Abs(jet_ak04its_eta_truth[ijet] - jet_ak04its_eta_truth[kjet]);
+                        Float_t AvgEta_truth = (jet_ak04its_eta_truth[ijet] + jet_ak04its_eta_truth[kjet])/2;
                         
                         hjet_dPhi_truth.Fill(dphi_truth,weight);
                         hjet_dEta_truth.Fill(dEta_truth, weight);
                         hjet_AvgEta_truth.Fill(AvgEta_truth, weight);
+                        
+                        if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[kjet]) {
+                            hjet_leadingEta_truth.Fill(jet_ak04its_eta_truth[kjet], weight);
+                            hjet_leadingPhi_truth.Fill(jet_ak04its_phi_truth[kjet], weight);
+                        }
+                        else {
+                            hjet_leadingEta_truth.Fill(jet_ak04its_eta_truth[ijet], weight);
+                            hjet_leadingPhi_truth.Fill(jet_ak04its_phi_truth[ijet], weight);
+                        }
                     }
                     
                     if(not (dphi>(TMath::Pi()/2))) continue;
@@ -393,9 +407,11 @@ int main(int argc, char *argv[])
                         
                         if (jet_ak04its_pt_raw[ijet] < jet_ak04its_pt_raw[kjet]) {
                             xj_truth = jet_ak04its_pt_truth[ijet]/jet_ak04its_pt_truth[kjet];
+                            hjet_leadingpT_truth.Fill(jet_ak04its_pt_truth[kjet], weight);
                         }
                         else {
                             xj_truth = jet_ak04its_pt_truth[kjet]/jet_ak04its_pt_truth[ijet];
+                            hjet_leadingpT_truth.Fill(jet_ak04its_pt_truth[ijet], weight);
                         }
                         hjet_Xj_truth.Fill(xj_truth,weight);
                     }
@@ -462,70 +478,73 @@ int main(int argc, char *argv[])
                 //SR_Xj.Draw("e1x0nostack");
                 hjet_dPhi.Draw("e1x0nostack");
                 std::cout << ievent << " " << _tree_event->GetEntries() << std::endl;
-                std::cout << "Weight: " << weight
+                std::cout << "Weight: " << weight << std::endl;
                 canvas->Update();
             }
             
         }//end over events
         
-        std::cout << " Numbers of events passing selection " << N_eventpassed << std::endl;
-        std::cout << " Number of individual jets " << N_jets << std::endl;
-        std::cout << " Number of truth jets " << N_truth << std::endl;
-        
-        std::string opened_files = "";
-        //  for (int iarg = 1; iarg < argc; iarg++) {
-        std::string filepath = argv[iarg];
-        opened_files = "_" + filepath.substr(filepath.find_last_of("/")+1, filepath.find_last_of(".")-filepath.find_last_of("/")-1);
-        
-        TFile* fout = new TFile(Form("JetJet_config%s.root", opened_files.c_str()),"RECREATE");
-        fout->Print();
-        hjet_Xj.Scale(1.0/weightsum_individual_jets);
-        hjet_dPhi.Scale(1.0/weightsum_individual_jets);
-        hjet_pTD.Scale(1.0/weightsum_individual_jets);
-        hjet_Multiplicity.Scale(1.0/weightsum_individual_jets);
-        hjet_jetwidth.Scale(1.0/weightsum_individual_jets);
-        hjet_dEta.Scale(1.0/weightsum_individual_jets);
-        hjet_AvgEta.Scale(1.0/weightsum_individual_jets);
-        hjet_leadingpT.Scale(1.0/weightsum_individual_jets);
-        hjet_leadingEta.Scale(1.0/weightsum_individual_jets);
-        hjet_leadingPhi.Scale(1.0/weightsum_individual_jets);
-        
-        hjet_dPhi_truth.Scale(1.0/weightsum_individual_jets);
-        hjet_Xj_truth.Scale(1.0/weightsum_individual_jets);
-        hjet_dEta_truth.Scale(1.0/weightsum_individual_jets);
-        hjet_AvgEta_truth.Scale(1.0/weightsum_individual_jets);
-        hjet_leadingpT_truth.Scale(1.0/weightsum_individual_jets);
-        hjet_leadingEta_truth.Scale(1.0/weightsum_individual_jets);
-        hjet_leadingPhi_truth.Scale(1.0/weightsum_individual_jets);
-        
-        hjet_Xj.Write("hjet_Xj");
-        hjet_Xj_truth.Write("hjet_Xj_truth");
-        
-        hjet_dPhi.Write("hjet_dPhi");
-        hjet_dPhi_truth.Write("hjet_dPhi_truth");
-        
-        hjet_pTD.Write("hjet_ptD");
-        hjet_Multiplicity.Write("hjet_Multiplicity");
-        hjet_jetwidth.Write("hjet_jetwidth");
-        
-        hjet_dEta.Write("hjet_dEta");
-        hjet_dEta_truth.Write("hjet_dEta_truth");
-        
-        hjet_AvgEta.Write("hjet_AvgEta");
-        hjet_AvgEta_truth.Write("hjet_AvgEta_truth");
-        
-        hjet_leadingpT.Write("hjet_leading_pT");
-        hjet_leadingpT_truth.Write("hjet_leading_pT_truth");
-        
-        hjet_leadingEta.Write("hjet_leading_Eta");
-        hjet_leadingEta_truth.Write("hjet_leading_Eta_truth");
-        
-        hjet_leadingPhi.Write("hjet_leading_Phi");
-        hjet_leadingPhi_truth.Write("hjet_leadingPhi_truth");
-
-        std::cout << "Sum of weights over events: " << sum_of_weights << "\nover Nindividualjets: " << weightsum_individual_jets << std::endl;
-        std::cout << " ending " << std::endl;
     }//end of arguments
+    
+    std::cout << " Numbers of events passing selection " << N_eventpassed << std::endl;
+    std::cout << " Number of individual jets " << N_individual_jets << std::endl;
+    //std::cout << " Number of truth jets " << N_truth << std::endl;
+    
+    std::string opened_files = "";
+    for (int iarg = 1; iarg < argc; iarg++) {
+        std::string filepath = argv[iarg];
+        opened_files += "_" + filepath.substr(filepath.find_last_of("/")+1, filepath.find_last_of(".")-filepath.find_last_of("/")-1);
+    }
+    
+    TFile* fout = new TFile(Form("JetJet_config%s.root", opened_files.c_str()),"RECREATE");
+    fout->Print();
+    hjet_Xj.Scale(1.0/weightsum_individual_jets);
+    hjet_dPhi.Scale(1.0/weightsum_individual_jets);
+    hjet_pTD.Scale(1.0/weightsum_individual_jets);
+    hjet_Multiplicity.Scale(1.0/weightsum_individual_jets);
+    hjet_jetwidth.Scale(1.0/weightsum_individual_jets);
+    hjet_dEta.Scale(1.0/weightsum_individual_jets);
+    hjet_AvgEta.Scale(1.0/weightsum_individual_jets);
+    hjet_leadingpT.Scale(1.0/weightsum_individual_jets);
+    hjet_leadingEta.Scale(1.0/weightsum_individual_jets);
+    hjet_leadingPhi.Scale(1.0/weightsum_individual_jets);
+    
+    hjet_dPhi_truth.Scale(1.0/weightsum_individual_jets);
+    hjet_Xj_truth.Scale(1.0/weightsum_individual_jets);
+    hjet_dEta_truth.Scale(1.0/weightsum_individual_jets);
+    hjet_AvgEta_truth.Scale(1.0/weightsum_individual_jets);
+    hjet_leadingpT_truth.Scale(1.0/weightsum_individual_jets);
+    hjet_leadingEta_truth.Scale(1.0/weightsum_individual_jets);
+    hjet_leadingPhi_truth.Scale(1.0/weightsum_individual_jets);
+    
+    hjet_Xj.Write("hjet_Xj");
+    hjet_Xj_truth.Write("hjet_Xj_truth");
+    
+    hjet_dPhi.Write("hjet_dPhi");
+    hjet_dPhi_truth.Write("hjet_dPhi_truth");
+    
+    hjet_pTD.Write("hjet_ptD");
+    hjet_Multiplicity.Write("hjet_Multiplicity");
+    hjet_jetwidth.Write("hjet_jetwidth");
+    
+    hjet_dEta.Write("hjet_dEta");
+    hjet_dEta_truth.Write("hjet_dEta_truth");
+    
+    hjet_AvgEta.Write("hjet_AvgEta");
+    hjet_AvgEta_truth.Write("hjet_AvgEta_truth");
+    
+    hjet_leadingpT.Write("hjet_leading_pT");
+    hjet_leadingpT_truth.Write("hjet_leading_pT_truth");
+    
+    hjet_leadingEta.Write("hjet_leading_Eta");
+    hjet_leadingEta_truth.Write("hjet_leading_Eta_truth");
+    
+    hjet_leadingPhi.Write("hjet_leading_Phi");
+    hjet_leadingPhi_truth.Write("hjet_leadingPhi_truth");
+    
+    std::cout << "Sum of weights over events: " << sum_of_weights << "\nover Nindividualjets: " << weightsum_individual_jets << std::endl;
+    std::cout << " ending " << std::endl;
+    
     return EXIT_SUCCESS;
     
 }

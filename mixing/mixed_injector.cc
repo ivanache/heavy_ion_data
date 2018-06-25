@@ -3,6 +3,8 @@
 */
 // Author: Ivan Chernyshev; Date: 6/18/2018
 
+// Syntax: ./mixed_injector <ROOT file for mixed events to be injected into goes here> <Run number goes here (13d, 13e, 13f, etc.)> <Track pair energy, in GeV (must be an integer or the program will fail>
+
 #include <TFile.h>
 #include <TTree.h>
 #include <TLorentzVector.h>
@@ -25,10 +27,13 @@
 
 int num_of_files = 15;
 
+int fileArg = 1;
+int runArg = 2;
+int trackpairenergyArg = 3;
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2) {
+    if (argc < 4) {
         exit(EXIT_FAILURE);
     }
     int dummyc = 1;
@@ -36,9 +41,9 @@ int main(int argc, char *argv[])
     
     dummyv[0] = strdup("main");
     
-    for (int iarg = 1; iarg < argc; iarg++) {
-        std::cout << "Opening: " << (TString)argv[iarg] << std::endl;
-        TFile *file = TFile::Open((TString)argv[iarg]);
+    
+        std::cout << "Opening: " << (TString)argv[fileArg] << std::endl;
+        TFile *file = TFile::Open((TString)argv[fileArg]);
         
         if (file == NULL) {
             std::cout << " fail" << std::endl;
@@ -63,7 +68,7 @@ int main(int argc, char *argv[])
         std::cout << " Total Number of entries in TTree: " << _tree_event->GetEntries() << std::endl;
         
         // New file
-        TFile *newfile = new TFile("13def_mixedadded.root", "RECREATE");
+        TFile *newfile = new TFile(Form("%s_mixedadded_output.root", ((std::string)argv[runArg]).c_str()), "RECREATE");
         TTree *newtree = _tree_event->CloneTree(0);
         
         //new branch: mixed_events
@@ -76,7 +81,7 @@ int main(int argc, char *argv[])
         std::ifstream mixed_textfiles[num_of_files];
         for(int i = 0; i < num_of_files; i++) {
             std::ostringstream filename;
-            filename << Form("4GeVpairs_v1_%i_%i.txt", i*20, ((i+1)*20)-1);
+            filename << Form("%s_%iGeVTrack_Pairs_%i_to_%i.txt", ((std::string)argv[runArg]).c_str(), std::stoi((std::string)argv[trackpairenergyArg]), i*20, ((i+1)*20)-1);
             mixed_textfiles[i].open(filename.str());
         }
         
@@ -128,7 +133,7 @@ int main(int argc, char *argv[])
         delete newfile;
         delete file;
         std::cout << "Deleted newfile" << std::endl;
-    }
+    
     std::cout << " ending " << std::endl;
     return EXIT_SUCCESS;
 }
