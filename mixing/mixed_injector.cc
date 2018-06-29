@@ -66,13 +66,13 @@ int main(int argc, char *argv[])
 
         
         std::cout << " Total Number of entries in TTree: " << _tree_event->GetEntries() << std::endl;
-        
+    
         // New file
         TFile *newfile = new TFile(Form("%s_mixedadded_output.root", ((std::string)argv[runArg]).c_str()), "RECREATE");
         TTree *newtree = _tree_event->CloneTree(0);
         
         //new branch: mixed_events
-        Float_t mixed_events[NTRACK_MAX];
+        Long64_t mixed_events[NTRACK_MAX];
         newtree->Branch("mixed_events", mixed_events, "mixed_events[300]/L"); // One more entry needed for this to work
         
         std::cout<< "New branch successfully created " <<std::endl;
@@ -115,7 +115,9 @@ int main(int argc, char *argv[])
             for(int m = 0; m <300; m++) {
                 currentindex = m/20;
                 getline(parsers[currentindex], mixednum_string, '\t');
-                mixed_events[m] = stol(mixednum_string);
+                mixed_events[m] = stoul(mixednum_string);
+                //fprintf(stderr, "%lu\n", stoul(mixednum_string));
+                //fprintf(stderr, "Mixedeventarray: %llu\n", mixed_events[m]);
             }
             //}
             //catch(std::invalid_argument) {
