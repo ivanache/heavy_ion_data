@@ -323,11 +323,11 @@ int main(int argc, char *argv[])
     fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "track dataset read into array: OK");
     //MONEY MAKING LOOP
     Long64_t nentries = _tree_event->GetEntries();
-    for(Long64_t ievent = 0; ievent < nentries ; ievent++){
+    for(Long64_t ievent = 0; ievent < nentries ; ievent+= 100){
         _tree_event->GetEntry(ievent);
         
         //Cuts/Variables from the ROOT file go here
-        for (Long64_t imix = mix_start; imix < mix_end+1; imix++){
+        for (Long64_t imix = mix_start; imix < 100; imix++){
             Long64_t mix_event = mix_events[imix];
             fprintf(stderr,"\n %s:%d: Mixed event = %lu",__FILE__,__LINE__,mix_event);
             //if (mix_event == ievent) continue; //not needed for gamma-MB pairing: Different Triggers
