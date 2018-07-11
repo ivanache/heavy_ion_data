@@ -32,67 +32,10 @@ using namespace H5;
 
 int main(int argc, char *argv[])
 {
-    if (argc < 6) {
-        fprintf(stderr,"Batch Syntax is [Gamma-Triggered Paired Root], [Min-Bias HDF5] [Mix Start] [Mix End] [Track Skim GeV]");
+    if (argc < 9) {
+        fprintf(stderr,"Batch Syntax is [Gamma-Triggered Paired Root], [Min-Bias HDF5] [Mix Start] [Mix End] [Track Skim GeV] [Min cluster pT] [Max cluster pT] [Min jet pT]");
         exit(EXIT_FAILURE);
     }
-    
-    // Declare histograms
-    TH1D* SIGcluster_pt_dist = new TH1D("sig_Cluster_pT", "Signal Cluster p_{T} distribution; cluster p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 7, 10, 16);
-    TH1D* SIGjet_pt_dist = new TH1D("sig_Jet_pT", "Signal Jet p_{T} distribution; jet p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 25, 5, 30);
-    TH1D* SIGpt_diff_dist = new TH1D("sig_clusjet_pT_diff", "Signal p_{T}^{cluster}-p_{T}^{jet} distribution; #Delta p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, 20);
-    SIGcluster_pt_dist->Sumw2();
-    SIGjet_pt_dist->Sumw2();
-    SIGpt_diff_dist->Sumw2();
-    
-    TH1D* SIGdPhi = new TH1D("sig_dPhi", "Signal #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, TMath::Pi());
-    TH1D* SIGclusterPhi = new TH1D("sig_clusterPhi", "Signal #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
-    TH1D* SIGjetPhi = new TH1D("sig_jetPhi", "Signal #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
-    SIGdPhi->Sumw2();
-    SIGclusterPhi->Sumw2();
-    SIGjetPhi->Sumw2();
-    
-    TH1D* SIGdEta = new TH1D("sig_dEta", "Signal #Delta #eta distribution; #Delta #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -2.4, 2.4);
-    TH1D* SIGclusterEta = new TH1D("sig_clusterEta", "#Signal eta_{cluster} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
-    TH1D* SIGjetEta = new TH1D("sig_jetEta", "Signal #eta_{jet} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
-    SIGdEta->Sumw2();
-    SIGclusterEta->Sumw2();
-    SIGjetEta->Sumw2();
-    
-    TH1D* SIGXj = new TH1D("sig_Xj", "Signal Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, 0.0,2.0);
-    TH1D* SIGpTD = new TH1D("sig_pTD", "Signal pTD difference distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 60, 0.0,1.0);
-    TH1D* SIGMultiplicity = new TH1D("sig_Multiplicity", "Signal Multiplicity difference distribution; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0.0 , 20.0);
-    SIGXj->Sumw2();
-    SIGpTD->Sumw2();
-    SIGMultiplicity->Sumw2();
-    
-    TH1D* BKGcluster_pt_dist = new TH1D("bkg_Cluster_pT", "Background Cluster p_{T} distribution; cluster p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 7, 10, 16);
-    TH1D* BKGjet_pt_dist = new TH1D("bkg_Jet_pT", "Background Jet p_{T} distribution; jet p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 25, 5, 30);
-    TH1D* BKGpt_diff_dist = new TH1D("bkg_clusjet_pT_diff", "Background p_{T}^{cluster}-p_{T}^{jet} distribution; #Delta p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, 20);
-    BKGcluster_pt_dist->Sumw2();
-    BKGjet_pt_dist->Sumw2();
-    BKGpt_diff_dist->Sumw2();
-    
-    TH1D* BKGdPhi = new TH1D("bkg_dPhi", "Background #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, TMath::Pi());
-    TH1D* BKGclusterPhi = new TH1D("bkg_clusterPhi", "Background #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
-    TH1D* BKGjetPhi = new TH1D("bkg_jetPhi", "Background #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
-    BKGdPhi->Sumw2();
-    BKGclusterPhi->Sumw2();
-    BKGjetPhi->Sumw2();
-    
-    TH1D* BKGdEta = new TH1D("bkg_dEta", "Background #Delta #eta distribution; #Delta #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -2.4, 2.4);
-    TH1D* BKGclusterEta = new TH1D("bkg_clusterEta", "Background #eta_{cluster} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
-    TH1D* BKGjetEta = new TH1D("bkg_jetEta", "Background #eta_{jet} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
-    BKGdEta->Sumw2();
-    BKGclusterEta->Sumw2();
-    BKGjetEta->Sumw2();
-    
-    TH1D* BKGXj = new TH1D("bkg_Xj", "Background Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, 0.0,2.0);
-    TH1D* BKGpTD = new TH1D("bkg_pTD", "Background pTD difference distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 60, 0.0,1.0);
-    TH1D* BKGMultiplicity = new TH1D("bkg_Multiplicity", "Background Multiplicity difference distribution; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0.0 , 20.0);
-    BKGXj->Sumw2();
-    BKGpTD->Sumw2();
-    BKGMultiplicity->Sumw2();
     
     int dummyc = 1;
     char **dummyv = new char *[1];
@@ -114,8 +57,72 @@ int main(int argc, char *argv[])
     std::cout<<"mix end is "<<mix_end<<std::endl;
     fprintf(stderr,"Using %iGeV Track Skimmed from batch Script \n",GeV_Track_Skim);
     
+    double cluspTmin = atof(argv[6]);
+    double cluspTmax = atof(argv[7]);
+    std::cout<< "Cluster pT min: " << cluspTmin << "; max: " << cluspTmax << std::endl;
+    
+    double jetpTmin = atof(argv[8]);
+    std::cout << "Minimum jet pT: " << jetpTmin << std::endl;
+    
     size_t nmix = 300;
     fprintf(stderr,"Number of Mixed Events: %i \n",nmix);
+    
+    // Declare histograms
+    TH1D* SIGcluster_pt_dist = new TH1D("sig_Cluster_pT", "Signal Cluster p_{T} distribution; cluster p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 5, cluspTmin, cluspTmax);
+    TH1D* SIGjet_pt_dist = new TH1D("sig_Jet_pT", "Signal Jet p_{T} distribution; jet p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 25, 5, 30);
+    TH1D* SIGpt_diff_dist = new TH1D("sig_clusjet_pT_diff", "Signal p_{T}^{cluster}-p_{T}^{jet} distribution; #Delta p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, 20);
+    SIGcluster_pt_dist->Sumw2();
+    SIGjet_pt_dist->Sumw2();
+    SIGpt_diff_dist->Sumw2();
+    
+    TH1D* SIGdPhi = new TH1D("sig_dPhi", "Signal #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, TMath::Pi());
+    TH1D* SIGclusterPhi = new TH1D("sig_clusterPhi", "Signal #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
+    TH1D* SIGjetPhi = new TH1D("sig_jetPhi", "Signal #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
+    SIGdPhi->Sumw2();
+    SIGclusterPhi->Sumw2();
+    SIGjetPhi->Sumw2();
+    
+    TH1D* SIGdEta = new TH1D("sig_dEta", "Signal #Delta #eta distribution; #Delta #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -2.4, 2.4);
+    TH1D* SIGclusterEta = new TH1D("sig_clusterEta", "#Signal eta_{cluster} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
+    TH1D* SIGjetEta = new TH1D("sig_jetEta", "Signal #eta_{jet} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
+    SIGdEta->Sumw2();
+    SIGclusterEta->Sumw2();
+    SIGjetEta->Sumw2();
+    
+    TH1D* SIGXj = new TH1D("sig_Xj", "Signal Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, 0.0,2.0);
+    TH1D* SIGpTD = new TH1D("sig_pTD", "Signal Jet pTD distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 60, 0.0,1.0);
+    TH1D* SIGMultiplicity = new TH1D("sig_Multiplicity", "Signal Jet Multiplicity; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0.0 , 20.0);
+    SIGXj->Sumw2();
+    SIGpTD->Sumw2();
+    SIGMultiplicity->Sumw2();
+    
+    TH1D* BKGcluster_pt_dist = new TH1D("bkg_Cluster_pT", "Background Cluster p_{T} distribution; cluster p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 7, cluspTmin, cluspTmax);
+    TH1D* BKGjet_pt_dist = new TH1D("bkg_Jet_pT", "Background Jet p_{T} distribution; jet p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 25, 5, 30);
+    TH1D* BKGpt_diff_dist = new TH1D("bkg_clusjet_pT_diff", "Background p_{T}^{cluster}-p_{T}^{jet} distribution; #Delta p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, 20);
+    BKGcluster_pt_dist->Sumw2();
+    BKGjet_pt_dist->Sumw2();
+    BKGpt_diff_dist->Sumw2();
+    
+    TH1D* BKGdPhi = new TH1D("bkg_dPhi", "Background #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, TMath::Pi());
+    TH1D* BKGclusterPhi = new TH1D("bkg_clusterPhi", "Background #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
+    TH1D* BKGjetPhi = new TH1D("bkg_jetPhi", "Background #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
+    BKGdPhi->Sumw2();
+    BKGclusterPhi->Sumw2();
+    BKGjetPhi->Sumw2();
+    
+    TH1D* BKGdEta = new TH1D("bkg_dEta", "Background #Delta #eta distribution; #Delta #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -2.4, 2.4);
+    TH1D* BKGclusterEta = new TH1D("bkg_clusterEta", "Background #eta_{cluster} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
+    TH1D* BKGjetEta = new TH1D("bkg_jetEta", "Background #eta_{jet} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
+    BKGdEta->Sumw2();
+    BKGclusterEta->Sumw2();
+    BKGjetEta->Sumw2();
+    
+    TH1D* BKGXj = new TH1D("bkg_Xj", "Background Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, 0.0,2.0);
+    TH1D* BKGpTD = new TH1D("bkg_pTD", "Background Jet pTD distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 60, 0.0,1.0);
+    TH1D* BKGMultiplicity = new TH1D("bkg_Multiplicity", "Background Jet Multiplicity distribution; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0.0 , 20.0);
+    BKGXj->Sumw2();
+    BKGpTD->Sumw2();
+    BKGMultiplicity->Sumw2();
     
     //Config File ---------------------------------------------------------------------------
     
@@ -459,7 +466,7 @@ int main(int argc, char *argv[])
     
     int num_of_triggers = 0;
     
-    for(Long64_t ievent = 0; ievent < nentries ; ievent+= 10){
+    for(Long64_t ievent = 0; ievent < nentries ; ievent++){
         _tree_event->GetEntry(ievent);
 
         //Cuts/Variables from the ROOT file go here
@@ -484,8 +491,8 @@ int main(int argc, char *argv[])
             double jet_pTD = -9000;
             double jet_multiplicity = -9000;
             for(Long64_t icluster = 0; icluster < ncluster; icluster++) {
-                if(not(cluster_pt[icluster] > 15)) {continue;}
-                if(not(cluster_pt[icluster] < 20)) {continue;}
+                if(not(cluster_pt[icluster] > cluspTmin)) {continue;}
+                if(not(cluster_pt[icluster] < cluspTmax)) {continue;}
                 if( not(cluster_ncell[icluster]>2)) {continue;}   //removes clusters with 1 or 2 cells
                 if( not(cluster_e_cross[icluster]/cluster_e[icluster]>0.05)) {continue;} //removes "spiky" clusters
                 if( not(cluster_nlocal_maxima[icluster]<= 2)) {continue;} //require to have at most 2 local maxima.
@@ -501,13 +508,14 @@ int main(int argc, char *argv[])
                // After cluster cuts, increment number of triggers and loop over jets
                 num_of_triggers++;
                 for(Long64_t ijet = 0; ijet < njet_ak04its; ijet++){
-                    if(not(jet_data_out[0][ijet][0] > 5)) {continue;}
+                    if(not(jet_data_out[0][ijet][0] > jetpTmin)) {continue;}
                     // After the jet cuts, fill histograms
                     jet_pT = jet_data_out[0][ijet][0];
                     jet_phi = jet_data_out[0][ijet][2];
                     jet_eta = jet_data_out[0][ijet][1];
                     jet_pTD = jet_data_out[0][ijet][3];
                     jet_multiplicity = jet_data_out[0][ijet][4];
+                    if (not(TMath::Abs(jet_eta) < 0.5)) {continue;}
                     
                     while(jet_phi >= TMath::Pi()) jet_phi -= (2*TMath::Pi());
                     while(jet_phi <= -TMath::Pi()) jet_phi += (2*TMath::Pi());
@@ -566,7 +574,7 @@ int main(int argc, char *argv[])
     // Write to fout
     std::string rawname = ((std::string)root_file).substr(((std::string)root_file).find_last_of("/")+1, ((std::string)root_file).find_last_of(".")-((std::string)root_file).find_last_of("/")-1);
     //std::string rawname = std::string(argv[1]);
-    TFile* fout = new TFile(Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end),"RECREATE");
+    TFile* fout = new TFile(Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin),"RECREATE");
     
     // Normalize
     SIGcluster_pt_dist->Scale(1.0/num_of_triggers);
@@ -648,6 +656,10 @@ int main(int argc, char *argv[])
     SIGclusterEta->Write();
     SIGjetEta->Write();
     
+    SIGXj->Write();
+    SIGpTD->Write();
+    SIGMultiplicity->Write();
+    
     BKGcluster_pt_dist->Write();
     BKGjet_pt_dist->Write();
     BKGpt_diff_dist->Write();
@@ -665,83 +677,83 @@ int main(int argc, char *argv[])
     BKGMultiplicity->Write();
     
     SIGcluster_pt_dist->Draw();
-    canvas.SaveAs(Form("signal_cluster_pT_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_cluster_pT_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     SIGjet_pt_dist->Draw();
-    canvas.SaveAs(Form("signal_jet_pt_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_jet_pt_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f._minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     SIGpt_diff_dist->Draw();
-    canvas.SaveAs(Form("signal_pt_diff_differences_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_pt_diff_differences_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
     SIGclusterPhi->Draw();
-    canvas.SaveAs(Form("signal_cluster_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_cluster_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     SIGjetPhi->Draw();
-    canvas.SaveAs(Form("signal_jet_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_jet_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     SIGdPhi->Draw();
-    canvas.SaveAs(Form("signal_delta_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_delta_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
     SIGdEta->Draw();
-    canvas.SaveAs(Form("signal_delta_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_delta_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     SIGclusterEta->Draw();
-    canvas.SaveAs(Form("signal_cluster_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_cluster_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     SIGjetEta->Draw();
-    canvas.SaveAs(Form("signal_jet_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_jet_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
     SIGXj->Draw();
-    canvas.SaveAs(Form("signal_Xj_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_Xj_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     SIGpTD->Draw();
-    canvas.SaveAs(Form("signal_pTD_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_pTD_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     SIGMultiplicity->Draw();
-    canvas.SaveAs(Form("signal_multiplicity_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("signal_multiplicity_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
     BKGcluster_pt_dist->Draw();
-    canvas.SaveAs(Form("background_cluster_pT_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_cluster_pT_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     BKGjet_pt_dist->Draw();
-    canvas.SaveAs(Form("background_jet_pt_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_jet_pt_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     BKGpt_diff_dist->Draw();
-    canvas.SaveAs(Form("background_pt_diff_differences_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_pt_diff_differences_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
     BKGclusterPhi->Draw();
-    canvas.SaveAs(Form("background_cluster_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_cluster_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     BKGjetPhi->Draw();
-    canvas.SaveAs(Form("background_jet_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_jet_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     BKGdPhi->Draw();
-    canvas.SaveAs(Form("background_delta_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_delta_phi_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
     BKGdEta->Draw();
-    canvas.SaveAs(Form("background_delta_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_delta_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     BKGclusterEta->Draw();
-    canvas.SaveAs(Form("background_cluster_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_cluster_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     BKGjetEta->Draw();
-    canvas.SaveAs(Form("background_jet_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_jet_eta_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
     BKGXj->Draw();
-    canvas.SaveAs(Form("background_Xj_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_Xj_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     BKGpTD->Draw();
-    canvas.SaveAs(Form("background_pTD_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_pTD_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     BKGMultiplicity->Draw();
-    canvas.SaveAs(Form("background_multiplicity_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("background_multiplicity_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
     canvas.Close();
