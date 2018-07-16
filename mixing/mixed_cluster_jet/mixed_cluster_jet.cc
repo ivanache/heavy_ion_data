@@ -529,6 +529,7 @@ int main(int argc, char *argv[])
                         while(dphinum < -TMath::Pi()) dphinum += 2*TMath::Pi();
                         while(dphinum > TMath::Pi()) dphinum -= 2*TMath::Pi();
                         SIGdPhi->Fill(TMath::Abs(dphinum));
+                        if(not(dphinum > TMath::Pi()/2)) continue;
                         SIGclusterPhi->Fill(clusphi);
                         SIGjetPhi->Fill(jet_phi);
                         
@@ -550,6 +551,7 @@ int main(int argc, char *argv[])
                         while(dphinum < -TMath::Pi()) dphinum += 2*TMath::Pi();
                         while(dphinum > TMath::Pi()) dphinum -= 2*TMath::Pi();
                         BKGdPhi->Fill(TMath::Abs(dphinum));
+                        if(not(dphinum > TMath::Pi()/2)) continue;
                         BKGclusterPhi->Fill(clusphi);
                         BKGjetPhi->Fill(jet_phi);
                         

@@ -1,0 +1,8 @@
+% This is the appendix, to be put at the end of the article, to describe pp efficiency
+\begin{appendices}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
+\section{Photon Efficiency: pp}
+In this section, the $\gamma$ efficiency of the EMCal and DCal is determined using the 18b10a and 18b10b simulations. The 18b10a simulates the EMCal, while the 18b10b simulates the DCal. To obtain the efficiency, first I loop over all measured clusters within the Monte-carlo ROOT file and apply all cuts needed to select a direct photon, and make 2 projections of the data, one over $p_T$ and the other over $\Delta \phi$ and $\Delta \eta$. These are graphs of the measured data with respect to $p_T$ and $\Delta \phi$ and $\Delta \eta$. I would then obtain a similar pair of plots for truth events in order to generate the graphs of the generated data, except that the only cuts that I would use are pdg code = parent pdg code = 22 (codes for direct photons) and the condition that all generated photons lie within the area covered either by the EMCal or DCal. 
+
+Afterwards, I would divide all bins in the measured data graphs by their corresponding bins in the generated data graphs, and I would get the efficiency plots with respect to both $p_T$ and $\Delta \eta$ and $\Delta \phi$. The efficiency plots are shown in Figure X.
+\end{appendices}

@@ -66,7 +66,7 @@ SetAtlasStyle()
 
 
 color = [1,2,4,7,9,8]
-style = [20,21,24,26] 
+style = [20,21,24,26,27,32] 
 
 def DivideGraphs(den,num): 
     x = ROOT.Double() 
