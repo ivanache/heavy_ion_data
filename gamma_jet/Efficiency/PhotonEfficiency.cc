@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
                     double phi = cluster_phi[n]/(TMath::Pi());
                     while(phi < 1.2)
                         phi += 2;
-                    while (phi > 3.2)
+                    while (phi > 3.2)1
                         phi -= 2;
                     double eta = cluster_eta[n];
                     if(TMath::Abs(eta) > 0.7) continue;

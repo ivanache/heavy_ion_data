@@ -114,11 +114,16 @@ int main(int argc, char *argv[])
         file->Print();
         
         // Get all the TTree variables from the file to open, I guess
-        TTree *_tree_event = dynamic_cast<TTree *>(file->Get("_tree_event"));
+        TTree *_tree_event = NULL;
+        _tree_event = dynamic_cast<TTree *> (file->Get("_tree_event"));
         
         if (_tree_event == NULL) {
-            std::cout << " fail " << std::endl;
-            exit(EXIT_FAILURE);
+            std::cout << "First try did not got (AliAnalysisTaskNTGJ does not exist, trying again" << std::endl;
+            _tree_event = dynamic_cast<TTree *> (dynamic_cast<TDirectoryFile *>   (file->Get("AliAnalysisTaskNTGJ"))->Get("_tree_event"));
+            if (_tree_event == NULL) {
+                std::cout << " fail " << std::endl;
+                exit(EXIT_FAILURE);
+            }
         }
         //_tree_event->Print();
         
@@ -295,21 +300,21 @@ int main(int argc, char *argv[])
         canvas->SaveAs(Form("efficiency%s.png", opened_files.c_str()));
         canvas->Clear();
         
-        phietamap_measured->SetTitle("Measured Photons; #phi (#frac{rad}{#pi}); #eta");
+        phietamap_measured->SetTitle("Measured Photons; #phi (rad); #eta");
         phietamap_measured->GetXaxis()->SetTitleOffset(1.5);
         phietamap_measured->GetYaxis()->SetTitleOffset(1.5);
         phietamap_measured->Draw("COLZ");
         canvas->SaveAs(Form("measured_photons_phietamap_%s.png", opened_files.c_str()));
         canvas->Clear();
         
-        phietamap_generated->SetTitle("Generated Photons; #phi (#frac{rad}{#pi}); #eta");
+        phietamap_generated->SetTitle("Generated Photons; #phi (rad); #eta");
         phietamap_generated->GetXaxis()->SetTitleOffset(1.5);
         phietamap_generated->GetYaxis()->SetTitleOffset(1.5);
         phietamap_generated->Draw("COLZ");
         canvas->SaveAs(Form("generated_photons_phietamap_%s.png", opened_files.c_str()));
         canvas->Clear();
         
-        phietamap_ratio->SetTitle("Efficiency; #phi (#frac{rad}{#pi}); #eta");
+        phietamap_ratio->SetTitle("Efficiency; #phi (rad); #eta");
         phietamap_ratio->GetXaxis()->SetTitleOffset(1.5);
         phietamap_ratio->GetYaxis()->SetTitleOffset(1.5);
         phietamap_ratio->Draw("COLZ");

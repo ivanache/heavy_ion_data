@@ -24,7 +24,7 @@ void grapher(std::string filename, int canvas_rows, int canvas_cols, std::string
     
     // Read the contents of the canvas arguments into the corresponding vectors. Note that it does require at least one element in the canvas argument, so a little re-working will be needed for implementation outside canvas1
     char* canvasgraphs;
-    canvasgraphs = strtok(canvas1.c_str(), ";");
+    canvasgraphs = strtok((char*) canvas1.c_str(), ";");
     canvas1graphs.push_back(canvasgraphs);
     
     canvasgraphs = strtok(NULL, ";");

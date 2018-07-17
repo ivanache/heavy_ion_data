@@ -257,36 +257,6 @@ int main(int argc, char *argv[])
   TApplication application("", &dummyc, dummyv);    
   std::cout <<" Number of arguments " << argc << std::endl; 
 
-  std::cout << "Opening: " << (TString)argv[1] << std::endl;
-  TFile *file = TFile::Open((TString)argv[1]);
-       
-  if (file == NULL) {
-    std::cout << " fail; could not open file" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-    file->Print();
-        
-  // Get all the TTree variables from the file to open, I guess
-  TTree *_tree_event = NULL;
-  std::cout << " About to try getting the ttree" << std::endl;
-  _tree_event = dynamic_cast<TTree *> (file->Get("_tree_event"));
-  if (_tree_event == NULL) {
-    std::cout << "First try did not got trying again" << std::endl;
-    _tree_event = dynamic_cast<TTree *> (dynamic_cast<TDirectoryFile *>   (file->Get("AliAnalysisTaskNTGJ"))->Get("_tree_event"));
-    if (_tree_event == NULL) {
-    std::cout << " fail; could not find _tree_event " << std::endl;
-    exit(EXIT_FAILURE);
-    }
-  }
-
-  if (_tree_event == NULL) {
-    std::cout << " fail; the _tree_event is NULL " << std::endl;
-    exit(EXIT_FAILURE);
-  }
-        
-    //
-
-  std::cout <<"_tree_event->GetEntries() " << _tree_event->GetEntries() << std::endl;
 
   TH1D h_zvertex("h_zvertex","vertex z " , 100, -20.0, 20.0);
 
@@ -462,23 +432,62 @@ int main(int argc, char *argv[])
 
     
   TCanvas* canvas = new TCanvas();
-        
+  Float_t N_SR = 0; //float because it might be weighted in MC
+  Float_t N_BR = 0;
+  Float_t N_eventpassed = 0;
+  Float_t N_truth = 0;
+    
+  TH1D hBR("hBR", "Isolated cluster, bkg region", 40, 10.0, 50.0);
+  TH1D hweight("hweight", "Isolated cluster, signal region", 40, 10.0, 50.0);
+    
+  for (int iarg = 1; iarg < argc; iarg++) {
+    std::cout << "Opening: " << (TString)argv[1] << std::endl;
+    TFile *file = TFile::Open((TString)argv[1]);
+    
+    if (file == NULL) {
+        std::cout << " fail; could not open file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    file->Print();
+    
+    // Get all the TTree variables from the file to open, I guess
+    TTree *_tree_event = NULL;
+    std::cout << " About to try getting the ttree" << std::endl;
+    _tree_event = dynamic_cast<TTree *> (file->Get("_tree_event"));
+    if (_tree_event == NULL) {
+        std::cout << "First try did not got trying again" << std::endl;
+        _tree_event = dynamic_cast<TTree *> (dynamic_cast<TDirectoryFile *>   (file->Get("AliAnalysisTaskNTGJ"))->Get("_tree_event"));
+        if (_tree_event == NULL) {
+            std::cout << " fail; could not find _tree_event " << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    if (_tree_event == NULL) {
+        std::cout << " fail; the _tree_event is NULL " << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    //
+    
+    std::cout <<"_tree_event->GetEntries() " << _tree_event->GetEntries() << std::endl;
+    
     //you define variables
-  Double_t primary_vertex[3];
-  Bool_t is_pileup_from_spd_5_08;
-  Bool_t is_pileup_from_spd_3_08;
-  Float_t ue_estimate_its_const;
-  Float_t ue_estimate_tpc_const;
+    Double_t primary_vertex[3];
+    Bool_t is_pileup_from_spd_5_08;
+    Bool_t is_pileup_from_spd_3_08;
+    Float_t ue_estimate_its_const;
+    Float_t ue_estimate_tpc_const;
    
-  UInt_t ntrack;
-  Float_t track_e[NTRACK_MAX];
-  Float_t track_pt[NTRACK_MAX];
-  Float_t track_eta[NTRACK_MAX];
-  Float_t track_phi[NTRACK_MAX];
-  UChar_t track_quality[NTRACK_MAX];
+    UInt_t ntrack;
+    Float_t track_e[NTRACK_MAX];
+    Float_t track_pt[NTRACK_MAX];
+    Float_t track_eta[NTRACK_MAX];
+    Float_t track_phi[NTRACK_MAX];
+    UChar_t track_quality[NTRACK_MAX];
         
-  UInt_t ncluster;
-  Float_t cluster_e[NTRACK_MAX];
+    UInt_t ncluster;
+    Float_t cluster_e[NTRACK_MAX];
     Float_t cluster_e_cross[NTRACK_MAX];
     Float_t cluster_pt[NTRACK_MAX];
     Float_t cluster_eta[NTRACK_MAX];
@@ -632,16 +641,9 @@ int main(int argc, char *argv[])
     Bool_t isRealData = true;
     _tree_event->GetEntry(1);
     if(nmc_truth>0) isRealData= false;
-    Float_t N_SR = 0; //float because it might be weighted in MC
-    Float_t N_BR = 0;
-    Float_t N_eventpassed = 0;
-    Float_t N_truth = 0;
      
  
     std::cout<<" About to start looping over events to get weights" << std::endl;
-
-    TH1D hBR("hBR", "Isolated cluster, bkg region", 40, 10.0, 50.0);
-    TH1D hweight("hweight", "Isolated cluster, signal region", 40, 10.0, 50.0);
 
     if( not(nevents>0)){
       nevents = _tree_event->GetEntries();
@@ -1023,18 +1025,19 @@ int main(int argc, char *argv[])
       } 
 
      }//end over events
-
+  } // end over files
     std::cout << " Numbers of events passing selection " << N_eventpassed << std::endl;
     std::cout << " Number of clusters in signal region " << N_SR << std::endl;
     std::cout << " Number of clusters in background region " << N_BR << std::endl;
     std::cout << " Number of truth photons " << N_truth << std::endl;
 
     std::string opened_files = "";
-    //  for (int iarg = 1; iarg < argc; iarg++) {
-    std::string filepath = argv[1];    
-    opened_files = "_" + filepath.substr(filepath.find_last_of("/")+1, filepath.find_last_of(".")-filepath.find_last_of("/")-1);
+    for (int iarg = 1; iarg < argc; iarg++) {
+        std::string filepath = argv[iarg];
+        opened_files += "_" + filepath.substr(filepath.find_last_of("/")+1, filepath.find_last_of(".")-filepath.find_last_of("/")-1);
+    }
     
-    TFile* fout = new TFile(Form("GammaJet_config_ptmin%2.1f_ptmax%2.1f_JETPTMIN_%2.1f_DATANAME_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, opened_files.c_str()),"RECREATE");
+    TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, opened_files.c_str()),"RECREATE");
     fout->Print();
 
     //Save the sum of weights 

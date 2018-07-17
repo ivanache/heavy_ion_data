@@ -43,11 +43,16 @@ int main(int argc, char *argv[])
         file->Print();
         
         // Get all the TTree variables from the file to open, I guess
-        TTree *_tree_event = dynamic_cast<TTree *>(file->Get("_tree_event"));
+        TTree *_tree_event = NULL;
+        _tree_event = dynamic_cast<TTree *> (file->Get("_tree_event"));
         
         if (_tree_event == NULL) {
-            std::cout << " fail " << std::endl;
-            exit(EXIT_FAILURE);
+            std::cout << "First try did not got (AliAnalysisTaskNTGJ does not exist, trying again" << std::endl;
+            _tree_event = dynamic_cast<TTree *> (dynamic_cast<TDirectoryFile *>   (file->Get("AliAnalysisTaskNTGJ"))->Get("_tree_event"));
+            if (_tree_event == NULL) {
+                std::cout << " fail " << std::endl;
+                exit(EXIT_FAILURE);
+            }
         }
         
         // The histograms
