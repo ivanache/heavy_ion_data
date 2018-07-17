@@ -441,8 +441,8 @@ int main(int argc, char *argv[])
   TH1D hweight("hweight", "Isolated cluster, signal region", 40, 10.0, 50.0);
     
   for (int iarg = 1; iarg < argc; iarg++) {
-    std::cout << "Opening: " << (TString)argv[1] << std::endl;
-    TFile *file = TFile::Open((TString)argv[1]);
+    std::cout << "Opening: " << (TString)argv[iarg] << std::endl;
+    TFile *file = TFile::Open((TString)argv[iarg]);
     
     if (file == NULL) {
         std::cout << " fail; could not open file" << std::endl;
