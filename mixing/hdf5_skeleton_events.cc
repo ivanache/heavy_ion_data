@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
     
     TH1D* Multiplicity_individual = new TH1D("mult_Vertices_individual", "Multiplicity (ROOT)", 427, 0, 1281);
     TH1D* Multiplicity_hdf5 = new TH1D("mult_Vertices_hdf5", "Multiplicity (hdf5)", 427, 0, 1281);
-    TH1D* Multiplicity = new TH1D("mult_Vertices", "Multiplicity differnce distribution", 427, 0, 1281);
+    TH1D* Multiplicity = new TH1D("mult_Vertices", "Multiplicity differnce distribution", 1281, 0, 1281);
     
     //TH2D* Signal_pT_Dist = new TH2D("Signal_pT_Dist","Cluster Pt Spectrum For Isolation (its_04) bins 0.55 < DNN < 0.85",59,0.5,30,59,0.5,30);
     //For this example, fill with pt and energy
@@ -406,7 +406,7 @@ int main(int argc, char *argv[])
     //MONEY MAKING LOOP
     Long64_t nentries = _tree_event->GetEntries();
     
-    for(Long64_t ievent = 0; ievent < nentries ; ievent++){
+    for(Long64_t ievent = 0; ievent < nentries ; ievent+=100){
         _tree_event->GetEntry(ievent);
 
         //Cuts/Variables from the ROOT file go here
@@ -458,34 +458,40 @@ int main(int argc, char *argv[])
     
     //very particular about file names to ease scripting
     // Write to fout
-    size_t lastindex = std::string(root_file).find_last_of(".");
-    std::string rawname = std::string(root_file).substr(0, lastindex);
+    std::string filepath = argv[1];
+    std::string opened_files = "_" + filepath.substr(filepath.find_last_of("/")+1, filepath.find_last_of(".")-filepath.find_last_of("/")-1);
     //std::string rawname = std::string(argv[1]);
-    TFile* fout = new TFile(Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end),"RECREATE");
+    TFile* fout = new TFile(Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.root", opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end),"RECREATE");
+    std::cout<< "Created ROOT file " << Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.root",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end) << std::endl;
+    
     
     //Write histograms here
     
     z_Vertices->Write();
     Multiplicity->Write();
+    z_Vertices_individual->Write();
+    z_Vertices_hdf5->Write();
+    Multiplicity_individual->Write();
+    Multiplicity_hdf5->Write();
     
     z_Vertices->Draw();
-    canvas.SaveAs(Form("z_Vertices_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("z_Vertices_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
     canvas.Clear();
     Multiplicity->Draw();
-    canvas.SaveAs(Form("Multiplicity_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("Multiplicity_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
     //Signal_pT_Dist->Write();
     canvas.Clear();
     z_Vertices_individual->Draw();
-    canvas.SaveAs(Form("z_Vertices_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("z_Vertices_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
     canvas.Clear();
     z_Vertices_hdf5->Draw();
-    canvas.SaveAs(Form("z_Vertices_hdf5l_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("z_Vertices_hdf5l_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
     canvas.Clear();
     Multiplicity_individual->Draw();
-    canvas.SaveAs(Form("Multiplicity_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("Multiplicity_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
     canvas.Clear();
     Multiplicity_hdf5->Draw();
-    canvas.SaveAs(Form("Multiplicity_hdf5_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.SaveAs(Form("Multiplicity_hdf5_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
     canvas.Clear();
     
     canvas.Close();

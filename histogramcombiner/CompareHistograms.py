@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from AtlasCommonUtils import *
+import time
 
 
 def my_callback(option, opt, value, parser):
@@ -27,6 +28,14 @@ op.add_option("-l","--RatioLimit",dest="RatioLimit",
 op.add_option("-t","--Tag",dest="Tag",
               default="",
               help="tag to add to plots")
+
+op.add_option("-m","--legendname",dest="legendname",
+              default="",
+              help="legend name")
+
+op.add_option("-x","--xaxislabel",dest="xaxislabel",
+              default="",
+              help="x axis label")
 
 op.add_option("","--hists",type='string', dest = "hists",
               action='callback', callback=my_callback,
@@ -112,7 +121,7 @@ def NormalizeGraph(graph):
 def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
     c = ROOT.TCanvas()
     start = 0
-    label = Legend("")
+    label = Legend(p_ops.legendname)
     multi = ROOT.TMultiGraph()
 
     for i in range(len(hists)): #This loops over the files. nhists(f1,f2,f3) is the format of hists.
@@ -126,6 +135,8 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
        # print 'i ' , i , ' MINIMUM:  ' , hists[i].GetHistogram().GetMinimum() , ' MAXIMUM : ' , hists[i].GetHistogram().GetMaximum(), 
         label.Add(hists[i],tag[i],"L")
         multi.Add(hists[i])
+    
+    cluslabel = Legend("15 GeV < p_{T_{trigger}} < 20 GeV")
 
     #multi.SetMaximum(15)
     #multi.SetMinimum(5)
@@ -135,11 +146,18 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
     multi.SetTitle(title)
     multi.GetXaxis().SetTitle(xtitle)
     multi.GetYaxis().SetTitle(ytitle)
-    multi.GetXaxis().SetTitle('Median density #rho [GeV]')
-    multi.GetYaxis().SetTitle('normalized counts')
+    #multi.GetXaxis().SetTitle('x_{obs}^{Pb}:= #frac{p_{T}^{#gamma}e^{-#eta^{#gamma}} + p_{T}^{jet}e^{-#eta^{jet}}}{2E_{Pb}}')
+    multi.GetXaxis().SetTitleSize(0.04)
+    #multi.GetXaxis().SetTitleOffset(1.6)
+    #multi.GetYaxis().SetTitle('#frac{1}{N_{trig}}#frac{dN}{dx_{obs}^{Pb}}')
+    #multi.GetXaxis().SetTitle('#Delta #phi (rads)')
+    multi.GetXaxis().SetTitle(p_ops.xaxislabel)
+    multi.GetYaxis().SetTitle('#frac{1}{N_{trig}}#frac{dN}{d#Delta #phi}}')
+#multi.GetXaxis().SetRangeUser(0.005, 0.020)
     multi.GetXaxis().SetNdivisions(10)
 
-    label.Draw(0.6,.95)
+    label.Draw(0.6,.96)
+    cluslabel.Draw(0.55, 0.65)
 
     if ly==True:
         ROOT.gPad.SetLogy(1)
@@ -198,7 +216,9 @@ c = ROOT.TCanvas()
 
 allhists = get_hists(files, hists) #gets all histograms 
 temp = get_hists(files,hists)
+print "Waiting..."
 for i in range(len(hists)):
+    print "Waiting..."
     plotHists(temp[i], files, allhists[i][0].GetXaxis().GetTitle(),allhists[i][0].GetYaxis().GetTitle() ,  allhists[i][0].GetTitle(),  output_dir + "/"+hists[i]+Tag+'_Comparison.pdf',ly=False)
 
 print 'there are a total of ', len(tag)

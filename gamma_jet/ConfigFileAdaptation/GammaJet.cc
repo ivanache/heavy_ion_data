@@ -25,6 +25,9 @@
 
 const int MAX_INPUT_LENGTH = 200;
 
+// Energy of lead, in GeV
+const double EPb = 1560;
+
 enum isolationDet {CLUSTER_ISO_TPC_04, CLUSTER_ISO_ITS_04, CLUSTER_FRIXIONE_TPC_04_02, CLUSTER_FRIXIONE_ITS_04_02};
 
 int main(int argc, char *argv[])
@@ -345,6 +348,10 @@ int main(int argc, char *argv[])
   TH1D hSR_AvgEta_truth("hSR_AvgEta_truth", "Average eta gamma-jet signal region, truth", 2*etabins, -1.2, 1.2);
   TH1D hBR_AvgEta_truth("hBR_AvgEta_truth", "Average eta gamma-jet background region, truth", 2*etabins, -1.2, 1.2);
 
+  TH1D hSR_XobsPb("hSR_XobsPb", "x_{pPb}^{obs} distribution: signal region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 16, 0, 0.008);
+  TH1D hBR_XobsPb("hBR_XobsPb", "x_{pPb}^{obs} distribution: background region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 16, 0, 0.008);
+  TH1D hSR_XobsPb_truth("hSR_XobsPb", "x_{pPb}^{obs} distribution: signal region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0, 0.008);
+  TH1D hBR_XobsPb_truth("hBR_XobsPb", "x_{pPb}^{obs} distribution: background region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0, 0.008);
 
   TH1D h_dPhi_truth("h_dPhi_truth", "delta phi gamma-jet truth MC", phibins, 0, TMath::Pi());
 
@@ -421,6 +428,11 @@ int main(int argc, char *argv[])
   hBR_jetphi_truth.Sumw2();
   hSR_jetphi_truth.Sumw2();
 
+  hSR_XobsPb.Sumw2();
+  hBR_XobsPb.Sumw2();
+  hSR_XobsPb_truth.Sumw2();
+  hBR_XobsPb_truth.Sumw2();
+
   h_evt_rhoITS.Sumw2();
   h_evt_rhoTPC.Sumw2();
 
@@ -441,6 +453,7 @@ int main(int argc, char *argv[])
   TH1D hweight("hweight", "Isolated cluster, signal region", 40, 10.0, 50.0);
     
   for (int iarg = 1; iarg < argc; iarg++) {
+      std::string filestring = (std::string)argv[iarg];
     std::cout << "Opening: " << (TString)argv[iarg] << std::endl;
     TFile *file = TFile::Open((TString)argv[iarg]);
     
@@ -751,6 +764,27 @@ int main(int argc, char *argv[])
 	if(eg_cross_section>0 and eg_ntrial>0){
           weight = eg_cross_section/(double)eg_ntrial;
         }
+          //17g6a1 weights
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat2_4L_allruns_ptmin15.0.root"){
+              if(ievent == 0)
+                  std::cout << "PtHat 2 of 17g6a1 series opened" << std::endl;
+              weight = 2.72e-12;
+          }
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat3_4L_allruns_ptmin15.0.root"){
+              if(ievent == 0)
+                  std::cout << "PtHat 3 of 17g6a1 series opened" << std::endl;
+              weight = 3.69e-13;
+          }
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat4_4L_allruns_ptmin15.0.root"){
+              if(ievent == 0)
+                  std::cout << "PtHat 4 of 17g6a1 series opened" << std::endl;
+              weight = 6.14e-14;
+          }
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat5_4L_allruns_ptmin15.0.root"){
+              if(ievent == 0)
+                  std::cout << "PtHat 5 of 17g6a1 series opened" << std::endl;
+              weight = 1.27e-14;
+          }
       }
       //std::cout << " weight " << weight << std::endl;        
 
@@ -912,7 +946,11 @@ int main(int argc, char *argv[])
             hSR_Xj_truth.Fill(xj_truth, weight);
             hSR_dEta_truth.Fill(deta_truth,weight);
             hSR_AvgEta_truth.Fill(0.5*(jet_ak04its_eta_truth[ijet] +  truth_eta), weight);
-
+          
+        hSR_XobsPb.Fill(((cluster_pt[n]*TMath::Abs(-cluster_eta[n]))+(jet_ak04its_pt_raw[ijet]*TMath::Abs(-jet_ak04its_eta_raw[ijet])))/(2*EPb), weight);
+          
+            hSR_XobsPb_truth.Fill(((truth_pt*TMath::Abs(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Abs(-jet_ak04its_eta_truth[ijet])))/(2*EPb), weight);
+          
             h_Xj_Matrix.Fill(xj_truth, xj, weight);
 	    //std::cout<<" xj " << xj << " " << " xj_truth "<< xj_truth << std::endl;
 
@@ -938,6 +976,10 @@ int main(int argc, char *argv[])
             hBR_Xj_truth.Fill(xj_truth,weight);
 	    hBR_dEta_truth.Fill(deta_truth,weight);
 	    hSR_AvgEta_truth.Fill(0.5*(jet_ak04its_eta_truth[ijet] +  truth_eta), weight);
+              
+        hBR_XobsPb.Fill(((cluster_pt[n]*TMath::Abs(-cluster_eta[n]))+(jet_ak04its_pt_raw[ijet]*TMath::Abs(-jet_ak04its_eta_raw[ijet])))/(2*EPb), weight);
+              
+        hBR_XobsPb_truth.Fill(((truth_pt*TMath::Abs(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Abs(-jet_ak04its_eta_truth[ijet])))/(2*EPb), weight);
 	  }
 
 
@@ -1104,8 +1146,10 @@ int main(int argc, char *argv[])
     hSR_clusterphi.Scale(1.0/N_SR);
     hBR_clusterphi.Scale(1.0/N_BR);
 
-
-
+    hSR_XobsPb.Scale(1.0/N_SR);
+    hBR_XobsPb.Scale(1.0/N_BR);
+    hSR_XobsPb_truth.Scale(1.0/N_SR);
+    hBR_XobsPb_truth.Scale(1.0/N_BR);
 
 
 
@@ -1175,6 +1219,11 @@ int main(int argc, char *argv[])
     hBR_jetphi.Write("hBR_jetphi");
     hSR_jetphi_truth.Write("hSR_jetphi_truth");
     hBR_jetphi_truth.Write("hBR_jetphi_truth");
+    
+    hSR_XobsPb.Write("hSR_XobsPb");
+    hBR_XobsPb.Write("hBR_XobsPb");
+    hSR_XobsPb_truth.Write("hSR_XobsPb_truth");
+    hBR_XobsPb_truth.Write("hBR_XobsPb_truth");
 
 
     //Cluster pt

@@ -1,5 +1,5 @@
-clus_pT_min:                   10
-clus_pT_max:                   16
+clus_pT_min:                   15
+clus_pT_max:                   20
 track_pT_max:                  1.0
 jet_pT_min:                    10.0
 SIG_DNN_min:                   0.75
