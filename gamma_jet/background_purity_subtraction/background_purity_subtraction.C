@@ -52,7 +52,7 @@ TH1D* purityadjustment_histograms1D(TH1D* sig_graph, TH1D* bkg_graph, double pur
     return result;
 }
 
-void background_purity_subtraction(std::string fdataname, std::string signalhistname, std::string backgroundhistname, std::string subtractedstringname, double purity, double deltapurity) {
+void background_purity_subtraction(std::string fdataname, std::string signalhistname, std::string backgroundhistname, std::string subtractedstringname, double purity, double deltapurity, std::string outfilename) {
     
     // Get the file, signal, background, and purity
     TFile *fdata = new TFile(fdataname.c_str(), "READ");
@@ -82,7 +82,7 @@ void background_purity_subtraction(std::string fdataname, std::string signalhist
     TH1D* processResult = purityadjustment_histograms1D(signal, background, purity, deltapurity);
     processResult->SetName(subtractedstringname.c_str());
     
-    TFile *fout = new TFile("fout_1.root", "RECREATE");
+    TFile *fout = new TFile(Form("%s", outfilename.c_str()), "RECREATE");
     
     processResult->Write();
     

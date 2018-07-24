@@ -35,55 +35,56 @@ int main(int argc, char *argv[])
   if (argc < 2) {
     exit(EXIT_FAILURE);
   }
-  // Read configuration file for the cut variables
-  FILE* config = fopen("GammaJet_config.yaml", "r");
-  if (config == NULL)  std::cout<<"no config"<<std::endl;
-  // Default values of various variables used in the file (actual values are to be determined by the configuration file)
-  // Cut variables
-  double primary_vertex_max = 10.0;
-  double SIG_DNN_min = 0.55;
-  double SIG_DNN_max = 0.85;
-  double BKG_DNN_min = 0.0;
-  double BKG_DNN_max = 0.3;
-  double SIG_lambda_min = 0.0;
-  double SIG_lambda_max = 0.4;
-  double BKG_lambda_min = 0.5;
-  double BKG_lambda_max = 2.0;
-  double clus_pT_min = 10;
-  double clus_pT_max = 16;
-  double track_pT_max = 1;
-  double jet_pT_min = 10.0;
-  double Eta_max = 0.5;
-  double Cluster_ncell_min = 2;
-  double Cluster_locmaxima_max = 2.0;
-  double Cluster_distobadchannel = 2.0;
-  double EcrossoverE_min = 0.05;
+
+    // Read configuration file for the cut variables
+    FILE* config = fopen("GammaJet_config.yaml", "r");
+    if (config == NULL)  std::cout<<"no config"<<std::endl;
+    // Default values of various variables used in the file (actual values are to be determined by the configuration file)
+    // Cut variables
+    double primary_vertex_max = 10.0;
+    double SIG_DNN_min = 0.55;
+    double SIG_DNN_max = 0.85;
+    double BKG_DNN_min = 0.0;
+    double BKG_DNN_max = 0.3;
+    double SIG_lambda_min = 0.0;
+    double SIG_lambda_max = 0.4;
+    double BKG_lambda_min = 0.5;
+    double BKG_lambda_max = 2.0;
+    double clus_pT_min = 10;
+    double clus_pT_max = 16;
+    double track_pT_max = 1;
+    double jet_pT_min = 10.0;
+    double Eta_max = 0.5;
+    double Cluster_ncell_min = 2;
+    double Cluster_locmaxima_max = 2.0;
+    double Cluster_distobadchannel = 2.0;
+    double EcrossoverE_min = 0.05;
     
-  // The bounds for the events to fal into the isolation and nonisolation areas
-  double iso_max = 1.0;
-  double noniso_min = 2.0;
-  double noniso_max = 10.0;
+    // The bounds for the events to fal into the isolation and nonisolation areas
+    double iso_max = 1.0;
+    double noniso_min = 2.0;
+    double noniso_max = 10.0;
     
-  // Delta eta
-  double deta_max = 0.5;
+    // Delta eta
+    double deta_max = 0.5;
     
-  // Number of bins in correlation functions
-  int xjbins = 40;
-  int phibins = 20;
-  int etabins = 20;
+    // Number of bins in correlation functions
+    int xjbins = 40;
+    int phibins = 20;
+    int etabins = 20;
     
-  // Which branch should be used to determine whether a cluster should fall into iso, noniso, or neither
-  isolationDet determiner = CLUSTER_ISO_ITS_04;
-  
-  // Truth cuts
-  int rightpdgcode = 22;
-  int rightparentpdgcode = 22;
+    // Which branch should be used to determine whether a cluster should fall into iso, noniso, or neither
+    isolationDet determiner = CLUSTER_ISO_ITS_04;
     
-  // Number of events
-  int nevents = 0;
-  // Loop through config file
-  char line[MAX_INPUT_LENGTH];
-  while (fgets(line, MAX_INPUT_LENGTH, config) != NULL) {
+    // Truth cuts
+    int rightpdgcode = 22;
+    int rightparentpdgcode = 22;
+    
+    // Number of events
+    int nevents = 0;
+    // Loop through config file
+    char line[MAX_INPUT_LENGTH];
+    while (fgets(line, MAX_INPUT_LENGTH, config) != NULL) {
         if (line[0] == '#') {
             continue;
         }
@@ -100,9 +101,9 @@ int main(int argc, char *argv[])
         
         // Use if statements to detect, based on key, which variable the line's content should be used to fill and fill that variable
         if (strcmp(key, "primary_vertex_max") == 0) {
-          // Assign primary_vertex_max to the double-converted version of value
-          primary_vertex_max = atof(value);
-          std::cout << "primary_vertex_max is " << primary_vertex_max << std::endl;
+            // Assign primary_vertex_max to the double-converted version of value
+            primary_vertex_max = atof(value);
+            std::cout << "primary_vertex_max is " << primary_vertex_max << std::endl;
         }
         else if (strcmp(key, "SIG_DNN_min") == 0) {
             // Assign SIG_DNN_min to the double-converted version of value
@@ -245,8 +246,8 @@ int main(int argc, char *argv[])
         else {
             std::cout << "WARNING: Unrecognized keyvariable " << key << std::endl;
         }
-  }
-  fclose(config);
+    }
+    fclose(config);
   
   int dummyc = 1;
   char **dummyv = new char *[1];
@@ -319,8 +320,8 @@ int main(int argc, char *argv[])
 
   TH1D hSR_Xj("hSR_Xj", "Xj distribution, Signal region", xjbins, 0.0,2.0);
   TH1D hBR_Xj("hBR_Xj", "Xj distribution, BKG region", xjbins, 0.0,2.0);
-  TH1D hSR_pTD("hSR_pTD", "pTD distribution, Signal region", 60, 0.0,1.0);
-  TH1D hBR_pTD("hBR_pTD", "pTD distribution, BKG region", 60, 0.0,1.0);
+  TH1D hSR_pTD("hSR_pTD", "pTD distribution, Signal region", 20, 0.0,1.0);
+  TH1D hBR_pTD("hBR_pTD", "pTD distribution, BKG region", 20, 0.0,1.0);
   TH1D hSR_Multiplicity("hSR_Multiplicity", "Jet Multiplicity distribution, Signal region", 20, 0.0 , 20.0);
   TH1D hBR_Multiplicity("hBR_Multiplicity", "Jet Multiplicity distribution, BKG region", 20, 0.0, 20.0);
   TH1D hSR_jetwidth("hSR_jetwidth", "jet width distribution, Signal region", 20, -10, 0);

@@ -148,11 +148,11 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
     multi.GetYaxis().SetTitle(ytitle)
     #multi.GetXaxis().SetTitle('x_{obs}^{Pb}:= #frac{p_{T}^{#gamma}e^{-#eta^{#gamma}} + p_{T}^{jet}e^{-#eta^{jet}}}{2E_{Pb}}')
     multi.GetXaxis().SetTitleSize(0.04)
-    #multi.GetXaxis().SetTitleOffset(1.6)
+    multi.GetXaxis().SetTitleOffset(1.6)
     #multi.GetYaxis().SetTitle('#frac{1}{N_{trig}}#frac{dN}{dx_{obs}^{Pb}}')
     #multi.GetXaxis().SetTitle('#Delta #phi (rads)')
     multi.GetXaxis().SetTitle(p_ops.xaxislabel)
-    multi.GetYaxis().SetTitle('#frac{1}{N_{trig}}#frac{dN}{d#Delta #phi}}')
+#multi.GetYaxis().SetTitle('#frac{1}{N_{trig}}#frac{dN}{d#Delta #phi}}')
 #multi.GetXaxis().SetRangeUser(0.005, 0.020)
     multi.GetXaxis().SetNdivisions(10)
 
