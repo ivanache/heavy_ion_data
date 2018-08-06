@@ -52,7 +52,7 @@ TH1D* purityadjustment_histograms1D(TH1D* sig_graph, TH1D* bkg_graph, double pur
     return result;
 }
 
-void background_purity_subtraction(std::string fdataname, std::string signalhistname, std::string backgroundhistname, std::string subtractedstringname, double purity, double deltapurity, std::string outfilename) {
+void background_purity_subtraction(std::string fdataname, std::string outfilename, std::string signalhistname, std::string backgroundhistname, std::string subtractedstringname, double purity, double deltapurity) {
     
     // Get the file, signal, background, and purity
     TFile *fdata = new TFile(fdataname.c_str(), "READ");
@@ -85,6 +85,20 @@ void background_purity_subtraction(std::string fdataname, std::string signalhist
     TFile *fout = new TFile(Form("%s", outfilename.c_str()), "RECREATE");
     
     processResult->Write();
+    /*
+    for(TObject *keyasObj : *fdata->GetListOfKeys()) {
+        TH1D* transferhisto = 0;
+        std::string* objname = dynamic_cast<std::string*>(keyasObj);
+        fdata->GetObject(objname->c_str(), transferhisto);
+        transferhisto->Write();
+    }
+    */
+    for (TObject* keyAsObj : *fdata->GetListOfKeys()){
+        auto key = dynamic_cast<TKey*>(keyAsObj);
+        TObject* transferobj = NULL;
+        fdata->GetObject(key->GetName(), transferobj);
+        transferobj->Write();
+    }
     
     fdata->Close();
     fout->Close();

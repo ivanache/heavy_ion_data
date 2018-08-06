@@ -29,6 +29,7 @@ const int MAX_INPUT_LENGTH = 200;
 const double EPb = 1560;
 
 enum isolationDet {CLUSTER_ISO_TPC_04, CLUSTER_ISO_ITS_04, CLUSTER_FRIXIONE_TPC_04_02, CLUSTER_FRIXIONE_ITS_04_02};
+enum photon_IDVARS {LAMBDA_0, DNN, EMAX_OVER_ECLUSTER};
 
 int main(int argc, char *argv[])
 {
@@ -50,6 +51,10 @@ int main(int argc, char *argv[])
     double SIG_lambda_max = 0.4;
     double BKG_lambda_min = 0.5;
     double BKG_lambda_max = 2.0;
+    double SIG_Emax_over_Ecluster_min = 0.0;
+    double SIG_Emax_over_Ecluster_max = 0.5;
+    double BKG_Emax_over_Ecluster_min = 0.5;
+    double BKG_Emax_over_Ecluster_max = 1.0;
     double clus_pT_min = 10;
     double clus_pT_max = 16;
     double track_pT_max = 1;
@@ -75,6 +80,7 @@ int main(int argc, char *argv[])
     
     // Which branch should be used to determine whether a cluster should fall into iso, noniso, or neither
     isolationDet determiner = CLUSTER_ISO_ITS_04;
+    photon_IDVARS photon_identifier = LAMBDA_0;
     
     // Truth cuts
     int rightpdgcode = 22;
@@ -145,6 +151,26 @@ int main(int argc, char *argv[])
             BKG_lambda_max = atof(value);
             std::cout << "BKG_lambda_max is " << BKG_lambda_max << std::endl;
         }
+        else if (strcmp(key, "SIG_Emax_over_Ecluster_min") == 0) {
+            // Assign SIG_lambda_min to the double-converted version of value
+            SIG_Emax_over_Ecluster_min = atof(value);
+            std::cout << "SIG_Emax_over_Ecluster_min is " << SIG_Emax_over_Ecluster_min << std::endl;
+        }
+        else if (strcmp(key, "SIG_Emax_over_Ecluster_max") == 0) {
+            // Assign SIG_lambda_max to the double-converted version of value
+            SIG_Emax_over_Ecluster_max = atof(value);
+            std::cout << "SIG_Emax_over_Ecluster_max is " << SIG_Emax_over_Ecluster_max << std::endl;
+        }
+        else if (strcmp(key, "BKG_Emax_over_Ecluster_min") == 0) {
+            // Assign BKG_lambda_min to the double-converted version of value
+            BKG_Emax_over_Ecluster_min = atof(value);
+            std::cout << "BKG_Emax_over_Ecluster_min is " << BKG_Emax_over_Ecluster_min << std::endl;
+        }
+        else if (strcmp(key, "BKG_Emax_over_Ecluster_max") == 0) {
+            // Assign BKG_lambda_max to the double-converted version of value
+            BKG_Emax_over_Ecluster_max = atof(value);
+            std::cout << "BKG_Emax_over_Ecluster_max is " << BKG_Emax_over_Ecluster_max << std::endl;
+        }
         else if (strcmp(key, "clus_pT_min") == 0) {
             clus_pT_min = atof(value);
             std::cout << "clus_pT_min is " << clus_pT_min << std::endl;
@@ -208,6 +234,24 @@ int main(int argc, char *argv[])
         else if (strcmp(key, "xj_func_bins") == 0) {
             xjbins = atoi(value);
             std::cout << "Bins in an xj function: " << xjbins << std::endl;
+        }
+        else if (strcmp(key, "photon_idvar") == 0) {
+            if (strcmp(value, "lambda_0") == 0){
+                photon_identifier = LAMBDA_0;
+                std::cout << "lambda_0 will determine photon selection" << std::endl;
+            }
+            else if (strcmp(value, "DNN") == 0){
+                photon_identifier = DNN;
+                std::cout << "Deep Neural Net will determine photon selection" << std::endl;
+            }
+            else if (strcmp(value, "Emax_over_Ecluster") == 0){
+                photon_identifier = EMAX_OVER_ECLUSTER;
+                std::cout << "#frac{E_{max}}{E_{cluster}} will determine photon selection" << std::endl;
+            }
+            else {
+                std::cout << "ERROR: Photon selection determinant in configuration file must be \"lambda_0\", \"DNN\", or \"Emax_over_Ecluster\"" << std::endl << "Aborting the program" << std::endl;
+                exit(EXIT_FAILURE);
+            }
         }
         else if (strcmp(key, "Cluster_isolation_determinant") == 0) {
             if (strcmp(value, "cluster_iso_tpc_04") == 0){
@@ -503,6 +547,7 @@ int main(int argc, char *argv[])
     UInt_t ncluster;
     Float_t cluster_e[NTRACK_MAX];
     Float_t cluster_e_cross[NTRACK_MAX];
+    Float_t cluster_e_max[NTRACK_MAX];
     Float_t cluster_pt[NTRACK_MAX];
     Float_t cluster_eta[NTRACK_MAX];
     Float_t cluster_phi[NTRACK_MAX];
@@ -593,6 +638,7 @@ int main(int argc, char *argv[])
     _tree_event->SetBranchAddress("ncluster", &ncluster);
     _tree_event->SetBranchAddress("cluster_e", cluster_e);
     _tree_event->SetBranchAddress("cluster_e_cross", cluster_e_cross);
+    _tree_event->SetBranchAddress("cluster_e_max", cluster_e_max);
     _tree_event->SetBranchAddress("cluster_pt", cluster_pt); // here
     _tree_event->SetBranchAddress("cluster_eta", cluster_eta);
     _tree_event->SetBranchAddress("cluster_phi", cluster_phi);
@@ -705,11 +751,22 @@ int main(int argc, char *argv[])
                 if( not(cluster_distance_to_bad_channel[n]>=Cluster_distobadchannel)) continue;
                 if( not(isolation < iso_max)) continue;
 
-                //Bool_t inSignalRegion = cluster_s_nphoton[n][1] > 0.55 and cluster_s_nphoton[n][1]<0.85;
-                //Bool_t inBkgRegion    = cluster_s_nphoton[n][1]<0.30;
-                Bool_t inSignalRegion = cluster_lambda_square[n][0]<SIG_lambda_max;
-                Bool_t inBkgRegion    = cluster_lambda_square[n][0]>BKG_lambda_min;
-     
+                Bool_t inSignalRegion;
+                Bool_t inBkgRegion;
+                
+                if (photon_identifier == DNN) {
+                    inSignalRegion = ((cluster_s_nphoton[n][1] > SIG_DNN_min) and (cluster_s_nphoton[n][1]<SIG_DNN_max));
+                    inBkgRegion    = ((cluster_s_nphoton[n][1]>BKG_DNN_min) and (cluster_s_nphoton[n][1]<BKG_DNN_max));
+                }
+                else if (photon_identifier == LAMBDA_0) {
+                    inSignalRegion = ((cluster_lambda_square[n][0]>SIG_lambda_min) and (cluster_lambda_square[n][0]<SIG_lambda_max));
+                    inBkgRegion    = ((cluster_lambda_square[n][0]>BKG_lambda_min) and (cluster_lambda_square[n][0]<BKG_lambda_max));
+                }
+                else {
+                    float eratio = cluster_e_max[n]/cluster_e[n];
+                    inSignalRegion = (( eratio > SIG_Emax_over_Ecluster_min) and (eratio < SIG_Emax_over_Ecluster_max));
+                    inBkgRegion    = ((eratio > BKG_Emax_over_Ecluster_min) and (eratio < BKG_Emax_over_Ecluster_max));
+                }
            
                 if(inSignalRegion){
 		    hweight.Fill(cluster_pt[n]);
@@ -869,11 +926,23 @@ int main(int argc, char *argv[])
 	  }
 	}
 	
-	//start jet loop 
-	//Bool_t inSignalRegion = cluster_s_nphoton[n][1] > 0.55 and cluster_s_nphoton[n][1]<0.85;
-	//Bool_t inBkgRegion    = cluster_s_nphoton[n][1]<0.30;
-	Bool_t inSignalRegion = cluster_lambda_square[n][0]<SIG_lambda_max;
-	Bool_t inBkgRegion    = cluster_lambda_square[n][0]>BKG_lambda_min;
+	//start jet loop
+          Bool_t inSignalRegion;
+          Bool_t inBkgRegion;
+          
+          if (photon_identifier == DNN) {
+              inSignalRegion = ((cluster_s_nphoton[n][1] > SIG_DNN_min) and (cluster_s_nphoton[n][1]<SIG_DNN_max));
+              inBkgRegion    = ((cluster_s_nphoton[n][1]>BKG_DNN_min) and (cluster_s_nphoton[n][1]<BKG_DNN_max));
+          }
+          else if (photon_identifier == LAMBDA_0) {
+              inSignalRegion = ((cluster_lambda_square[n][0]>SIG_lambda_min) and (cluster_lambda_square[n][0]<SIG_lambda_max));
+              inBkgRegion    = ((cluster_lambda_square[n][0]>BKG_lambda_min) and (cluster_lambda_square[n][0]<BKG_lambda_max));
+          }
+          else {
+              float eratio = cluster_e_max[n]/cluster_e[n];
+              inSignalRegion = ((eratio > SIG_Emax_over_Ecluster_min) and (eratio < SIG_Emax_over_Ecluster_max));
+              inBkgRegion    = ((eratio > BKG_Emax_over_Ecluster_min) and (eratio < BKG_Emax_over_Ecluster_max));
+          }
 
 
         if(inSignalRegion){

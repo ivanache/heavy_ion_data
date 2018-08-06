@@ -2,6 +2,7 @@ clus_pT_min:                   15
 clus_pT_max:                   20
 track_pT_max:                  1.0
 jet_pT_min:                    10.0
+photon_idvar:                  Emax_over_Ecluster
 SIG_DNN_min:                   0.75
 SIG_DNN_max:                   0.85
 BKG_DNN_min:                   0.0
@@ -10,6 +11,10 @@ SIG_lambda_min:                0.0
 SIG_lambda_max:                0.4
 BKG_lambda_min:                0.5
 BKG_lambda_max:                2.0
+SIG_Emax_over_Ecluster_min:    0.0
+SIG_Emax_over_Ecluster_max:    0.5
+BKG_Emax_over_Ecluster_min:    0.5
+BKG_Emax_over_Ecluster_max:    1.0
 Eta_max:                       0.5
 Cluster_ncell_min:             2
 Cluster_locmaxima_max:         2.0
@@ -28,4 +33,4 @@ Cluster_isolation_determinant: cluster_iso_its_04
 pdg_code:                      22
 parent_pdg_code:               22
 #
-Num_events:                    500000
+Num_events:                    100000
