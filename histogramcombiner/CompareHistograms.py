@@ -37,6 +37,18 @@ op.add_option("-x","--xaxislabel",dest="xaxislabel",
               default="",
               help="x axis label")
 
+op.add_option("-y","--yaxislabel",dest="yaxislabel",
+              default="",
+              help="y axis label")
+
+op.add_option("-a","--ymaximum",dest="ymaximum",
+              default="",
+              help="y axis maximum")
+
+op.add_option("-z","--yminimum",dest="yminimum",
+              default="",
+              help="y axis minimum")
+
 op.add_option("","--hists",type='string', dest = "hists",
               action='callback', callback=my_callback,
               help="comma separated list of histograms you would like to Compare, e.g. hists,hists_i,hists_o,hists_ss" )
@@ -125,18 +137,25 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
     multi = ROOT.TMultiGraph()
 
     for i in range(len(hists)): #This loops over the files. nhists(f1,f2,f3) is the format of hists.
-        temp = files[i].GetName()
-        if(p_ops.Normalized): hists[i] = NormalizeGraph(hists[i])     
-        hists[i].SetLineColor(color[i])
-        hists[i].SetMarkerColor(color[i])
-        hists[i].SetMarkerStyle(style[i])
-        hists[i].SetMarkerSize(1)
-        hists[i].SetLineWidth(2)
-       # print 'i ' , i , ' MINIMUM:  ' , hists[i].GetHistogram().GetMinimum() , ' MAXIMUM : ' , hists[i].GetHistogram().GetMaximum(), 
-        label.Add(hists[i],tag[i],"L")
-        multi.Add(hists[i])
-    
-    cluslabel = Legend("15 GeV < p_{T_{trigger}} < 20 GeV")
+        try:
+            temp = files[i].GetName()
+        
+            if(p_ops.Normalized): hists[i] = NormalizeGraph(hists[i])
+            hists[i].SetLineColor(color[i])
+            hists[i].SetMarkerColor(color[i])
+            hists[i].SetMarkerStyle(style[i])
+            hists[i].SetMarkerSize(1)
+            hists[i].SetLineWidth(2)
+            # print 'i ' , i , ' MINIMUM:  ' , hists[i].GetHistogram().GetMinimum() , ' MAXIMUM : ' , hists[i].GetHistogram().GetMaximum(),
+            label.Add(hists[i],tag[i],"L")
+            multi.Add(hists[i])
+        except:
+            print "Skipping over missing file or histogram"
+
+    if (multi.GetListOfGraphs().GetSize() == 0):
+        print "Multigraph is empty; aborting"
+        return
+    cluslabel = Legend("15 GeV < p_{T_{trigger}} < 30 GeV")
 
     #multi.SetMaximum(15)
     #multi.SetMinimum(5)
@@ -152,6 +171,8 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
     #multi.GetYaxis().SetTitle('#frac{1}{N_{trig}}#frac{dN}{dx_{obs}^{Pb}}')
     #multi.GetXaxis().SetTitle('#Delta #phi (rads)')
     multi.GetXaxis().SetTitle(p_ops.xaxislabel)
+    multi.GetYaxis().SetTitle(p_ops.yaxislabel)
+    multi.GetYaxis().SetRangeUser(float(p_ops.yminimum), float(p_ops.ymaximum))
 #multi.GetYaxis().SetTitle('#frac{1}{N_{trig}}#frac{dN}{d#Delta #phi}}')
 #multi.GetXaxis().SetRangeUser(0.005, 0.020)
     multi.GetXaxis().SetNdivisions(10)
@@ -176,7 +197,9 @@ def get_hists(files,hists):
         for f in files:
             f.Print()
             f.cd()
-            histo = f.Get(h) 
+            histo = f.Get(h)
+            if not histo:
+                continue
             #histo.Print()
             if 'TH1' in str(type(histo)): 
                 print 'Found TH1, transforming it into TGraphErrors:'
@@ -219,17 +242,23 @@ temp = get_hists(files,hists)
 print "Waiting..."
 for i in range(len(hists)):
     print "Waiting..."
-    plotHists(temp[i], files, allhists[i][0].GetXaxis().GetTitle(),allhists[i][0].GetYaxis().GetTitle() ,  allhists[i][0].GetTitle(),  output_dir + "/"+hists[i]+Tag+'_Comparison.pdf',ly=False)
+    try:
+        plotHists(temp[i], files, allhists[i][0].GetXaxis().GetTitle(),allhists[i][0].GetYaxis().GetTitle() ,  allhists[i][0].GetTitle(),  output_dir + "/"+hists[i]+Tag+'_Comparison.pdf',ly=False)
+    except IndexError:
+        print "Skipping Comparison step due to data not being there."
 
 print 'there are a total of ', len(tag)
 
 cRatio = ROOT.TCanvas()
 
 for i in range(len(hists)):
-    ref = allhists[i][0]
-    ratio =  DivideGraphs(ref, allhists[i][1])
-    ratio.Draw()
-    cRatio.SaveAs(output_dir + '/'+hists[i]+Tag+'_Ratio.pdf')
+    try:
+        ref = allhists[i][0]
+        ratio =  DivideGraphs(ref, allhists[i][1])
+        ratio.Draw()
+        cRatio.SaveAs(output_dir + '/'+hists[i]+Tag+'_Ratio.pdf')
+    except IndexError:
+        print "Skipping Ratio step due to data not being there."
 
 
 

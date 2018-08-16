@@ -1,0 +1,35 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+% \usepackage{beamerthemesplit} // Activate for custom appearance
+
+\title{Tabluation of Number of Jet-pairs that went into the histograms}
+\author{Ivan Chernyshev}
+\date{\today}
+
+\begin{document}
+
+\frame
+{
+\frametitle{Tabluation of Number of Jet-pairs that went into the histograms}
+\begin{table}
+\caption{How cuts affect data quality}
+\centering
+\begin{tabular}{c c c c c}
+\hline\hline
+Photon ID var & Purity & Plot var & Signal region & Background Region \\ [0.5ex]
+\hline
+DNN & 0.57 $\pm$ 0.03 & $\Delta \phi$ & 298 & 299 \\ 
+&& $x_{obs}^{Pb}$ & 224 & 246 \\ 
+\hline
+$\frac{E_{max}}{E_{cluster}}$ & 0.54 $\pm$ 0.03 & $\Delta \phi$ & 210 & 745 \\ 
+&& $x_{obs}^{Pb}$ & 157 & 578 \\  
+\hline
+$\lambda_{0}^{2}$ & 0.50 $\pm$ 0.03 & $\Delta \phi$ & 601 & 244 \\ 
+&& $x_{obs}^{Pb}$ & 457 & 189 \\
+\hline
+\end{tabular}
+\label{table:nonlin}
+\end{table}
+}
+
+\end{document}

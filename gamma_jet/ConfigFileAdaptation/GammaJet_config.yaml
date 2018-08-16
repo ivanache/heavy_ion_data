@@ -1,9 +1,9 @@
 clus_pT_min:                   15
-clus_pT_max:                   20
+clus_pT_max:                   30
 track_pT_max:                  1.0
-jet_pT_min:                    10.0
-photon_idvar:                  Emax_over_Ecluster
-SIG_DNN_min:                   0.75
+jet_pT_min:                    8.0
+photon_idvar:                  lambda_0
+SIG_DNN_min:                   0.55
 SIG_DNN_max:                   0.85
 BKG_DNN_min:                   0.0
 BKG_DNN_max:                   0.3
@@ -24,13 +24,13 @@ iso_max:                       1.0
 noniso_min:                    2.0
 noniso_max:                    15.0
 deta_max:                      0.5
-phi_func_bins:                 20
+phi_func_bins:                 5
 eta_func_bins:                 20
-xj_func_bins:                  40
+xj_func_bins:                  10
 primary_vertex_max:            10
 Cluster_isolation_determinant: cluster_iso_its_04
 #
 pdg_code:                      22
 parent_pdg_code:               22
 #
-Num_events:                    100000
+Num_events:                    0
