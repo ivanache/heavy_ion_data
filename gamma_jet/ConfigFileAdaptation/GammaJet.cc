@@ -458,14 +458,14 @@ int main(int argc, char *argv[])
     double hSR_AvgEta_truth_binwidth = calculatebinwidth(2*etabins, -1.2, 1.2);
     double hBR_AvgEta_truth_binwidth = calculatebinwidth(2*etabins, -1.2, 1.2);
 
-  TH1D hSR_XobsPb("hSR_XobsPb", "x_{pPb}^{obs} distribution: signal region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 6, 0, 0.008);
-  TH1D hBR_XobsPb("hBR_XobsPb", "x_{pPb}^{obs} distribution: background region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 6, 0, 0.008);
-  TH1D hSR_XobsPb_truth("hSR_XobsPb_truth", "x_{pPb}^{obs} distribution: signal region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 6, 0, 0.008);
-  TH1D hBR_XobsPb_truth("hBR_XobsPb_truth", "x_{pPb}^{obs} distribution: background region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 6, 0, 0.008);
-    double hSR_XobsPb_binwidth = calculatebinwidth(6, 0, 0.008);
-    double hBR_XobsPb_binwidth = calculatebinwidth(6, 0, 0.008);
-    double hSR_XobsPb_truth_binwidth = calculatebinwidth(6, 0, 0.008);
-    double hBR_XobsPb_truth_binwidth = calculatebinwidth(6, 0, 0.008);
+  TH1D hSR_XobsPb("hSR_XobsPb", "x_{pPb}^{obs} distribution: signal region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0.004, 0.024);
+  TH1D hBR_XobsPb("hBR_XobsPb", "x_{pPb}^{obs} distribution: background region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0.004, 0.024);
+  TH1D hSR_XobsPb_truth("hSR_XobsPb_truth", "x_{pPb}^{obs} distribution: signal region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0.004, 0.024);
+  TH1D hBR_XobsPb_truth("hBR_XobsPb_truth", "x_{pPb}^{obs} distribution: background region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0.004, 0.024);
+    double hSR_XobsPb_binwidth = calculatebinwidth(15, 0.004, 0.024);
+    double hBR_XobsPb_binwidth = calculatebinwidth(15, 0.004, 0.024);
+    double hSR_XobsPb_truth_binwidth = calculatebinwidth(15, 0.004, 0.024);
+    double hBR_XobsPb_truth_binwidth = calculatebinwidth(15, 0.004, 0.024);
 
   TH1D h_dPhi_truth("h_dPhi_truth", "delta phi gamma-jet truth MC", phibins, 0, TMath::Pi());
     double h_dPhi_truth_binwidth = calculatebinwidth(phibins, 0, TMath::Pi());
@@ -916,25 +916,30 @@ int main(int argc, char *argv[])
           weight = eg_cross_section/(double)eg_ntrial;
         }
           //17g6a1 weights
-          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat1_ptmin12.0_Nevent_200000.root"){
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat1_ptmin12.0_Nevent_500000.root"){
               if(ievent == 0)
                   std::cout << "PtHat 1 of 17g6a1 series opened" << std::endl;
               weight = 1.60e-11;
           }
-          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat2_ptmin12.0_Nevent_200000.root"){
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat2_ptmin12.0_Nevent_500000.root"){
               if(ievent == 0)
                   std::cout << "PtHat 2 of 17g6a1 series opened" << std::endl;
               weight = 2.72e-12;
           }
-          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat3_ptmin12.0_Nevent_200000.root"){
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat3_ptmin12.0_Nevent_500000.root"){
               if(ievent == 0)
                   std::cout << "PtHat 3 of 17g6a1 series opened" << std::endl;
               weight = 3.69e-13;
           }
-          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat4_ptmin12.0_Nevent_200000.root"){
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat4_ptmin12.0_Nevent_500000.root"){
               if(ievent == 0)
                   std::cout << "PtHat 4 of 17g6a1 series opened" << std::endl;
               weight = 6.14e-14;
+          }
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat5_ptmin12.0_Nevent_500000.root"){
+              if(ievent == 0)
+                  std::cout << "PtHat 5 of 17g6a1 series opened" << std::endl;
+              weight = 1.27e-14;
           }
           if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/17g6a1_pthat1.root"){
               if(ievent == 0)
@@ -955,6 +960,11 @@ int main(int argc, char *argv[])
               if(ievent == 0)
                   std::cout << "PtHat 4 of 17g6a1 series opened" << std::endl;
               weight = 6.14e-14;
+          }
+          if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/17g6a1_pthat5.root"){
+              if(ievent == 0)
+                  std::cout << "PtHat 5 of 17g6a1 series opened" << std::endl;
+              weight = 1.27e-14;
           }
           if(filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat2_4L_allruns_ptmin15.0.root"){
               if(ievent == 0)
@@ -1168,9 +1178,13 @@ int main(int argc, char *argv[])
             hSR_dEta_truth.Fill(deta_truth,weight);
             hSR_AvgEta_truth.Fill(0.5*(jet_ak04its_eta_truth[ijet] +  truth_eta), weight);
           
-        hSR_XobsPb.Fill(((cluster_pt[n]*TMath::Abs(-cluster_eta[n]))+(jet_ak04its_pt_raw[ijet]*TMath::Abs(-jet_ak04its_eta_raw[ijet])))/(2*EPb), weight);
+          //std::cout << "Signal region Xj truth: " << xj_truth << std::endl;
           
-            hSR_XobsPb_truth.Fill(((truth_pt*TMath::Abs(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Abs(-jet_ak04its_eta_truth[ijet])))/(2*EPb), weight);
+        hSR_XobsPb.Fill(((cluster_pt[n]*TMath::Exp(-cluster_eta[n]))+(jet_ak04its_pt_raw[ijet]*TMath::Exp(-jet_ak04its_eta_raw[ijet])))/(2*EPb), weight);
+          
+            hSR_XobsPb_truth.Fill(((truth_pt*TMath::Exp(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-jet_ak04its_eta_truth[ijet])))/(2*EPb), weight);
+          
+          //std::cout << "Signal region XobsPb truth: " << ((truth_pt*TMath::Exp(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-jet_ak04its_eta_truth[ijet])))/(2*EPb) << std::endl;
           
           num_sig_XobsPb++;
           
@@ -1200,9 +1214,13 @@ int main(int argc, char *argv[])
 	    hBR_dEta_truth.Fill(deta_truth,weight);
 	    hSR_AvgEta_truth.Fill(0.5*(jet_ak04its_eta_truth[ijet] +  truth_eta), weight);
               
-        hBR_XobsPb.Fill(((cluster_pt[n]*TMath::Abs(-cluster_eta[n]))+(jet_ak04its_pt_raw[ijet]*TMath::Abs(-jet_ak04its_eta_raw[ijet])))/(2*EPb), weight);
+              //std::cout << "Background region Xj truth: " << xj_truth << std::endl;
               
-        hBR_XobsPb_truth.Fill(((truth_pt*TMath::Abs(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Abs(-jet_ak04its_eta_truth[ijet])))/(2*EPb), weight);
+        hBR_XobsPb.Fill(((cluster_pt[n]*TMath::Exp(-cluster_eta[n]))+(jet_ak04its_pt_raw[ijet]*TMath::Exp(-jet_ak04its_eta_raw[ijet])))/(2*EPb), weight);
+              
+        hBR_XobsPb_truth.Fill(((truth_pt*TMath::Exp(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-jet_ak04its_eta_truth[ijet])))/(2*EPb), weight);
+        
+        //std::cout << "Background region XobsPb truth: " << ((truth_pt*TMath::Exp(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-jet_ak04its_eta_truth[ijet])))/(2*EPb) << std::endl;
               
               num_bkg_XobsPb++;
 	  }
@@ -1314,9 +1332,9 @@ int main(int argc, char *argv[])
     else {
         photonselectionvar = "EmaxOverEcluster";
     }
-    TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_%s_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, opened_files.c_str(), photonselectionvar.c_str()),"RECREATE");
-    //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MC_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
-    //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MCdijet_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
+    //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_%s_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, opened_files.c_str(), photonselectionvar.c_str()),"RECREATE");
+    //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MC17g6a1_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
+    TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MCdijet_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
     //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MCgammajet_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
     fout->Print();
 
