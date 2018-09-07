@@ -30,6 +30,10 @@ enum isolationDet {CLUSTER_ISO_TPC_04, CLUSTER_ISO_ITS_04, CLUSTER_FRIXIONE_TPC_
 
 using namespace H5;
 
+double calculatebinwidth(int numofbins, double binmin, double binmax){
+    return (binmax - binmin)/numofbins;
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 9) {
@@ -71,6 +75,9 @@ int main(int argc, char *argv[])
     TH1D* SIGcluster_pt_dist = new TH1D("sig_Cluster_pT", "Signal Cluster p_{T} distribution; cluster p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 5, cluspTmin, cluspTmax);
     TH1D* SIGjet_pt_dist = new TH1D("sig_Jet_pT", "Signal Jet p_{T} distribution; jet p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 25, 5, 30);
     TH1D* SIGpt_diff_dist = new TH1D("sig_clusjet_pT_diff", "Signal p_{T}^{cluster}-p_{T}^{jet} distribution; #Delta p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, 20);
+    double SIGcluster_pt_dist_binwidth = calculatebinwidth(5, cluspTmin, cluspTmax);
+    double SIGjet_pt_dist_binwidth = calculatebinwidth(25, 5, 30);
+    double SIGpt_diff_dist_binwidth = calculatebinwidth(25, 0, 20);
     SIGcluster_pt_dist->Sumw2();
     SIGjet_pt_dist->Sumw2();
     SIGpt_diff_dist->Sumw2();
@@ -78,6 +85,9 @@ int main(int argc, char *argv[])
     TH1D* SIGdPhi = new TH1D("sig_dPhi", "Signal #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, TMath::Pi());
     TH1D* SIGclusterPhi = new TH1D("sig_clusterPhi", "Signal #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
     TH1D* SIGjetPhi = new TH1D("sig_jetPhi", "Signal #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
+    double SIGdPhi_binwidth = calculatebinwidth(20, 0, TMath::Pi());
+    double SIGclusterPhi_binwidth = calculatebinwidth(40, -TMath::Pi(), TMath::Pi());
+    double SIGjetPhi_binwidth = calculatebinwidth(40, -TMath::Pi(), TMath::Pi());
     SIGdPhi->Sumw2();
     SIGclusterPhi->Sumw2();
     SIGjetPhi->Sumw2();
@@ -85,6 +95,9 @@ int main(int argc, char *argv[])
     TH1D* SIGdEta = new TH1D("sig_dEta", "Signal #Delta #eta distribution; #Delta #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -2.4, 2.4);
     TH1D* SIGclusterEta = new TH1D("sig_clusterEta", "#Signal eta_{cluster} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
     TH1D* SIGjetEta = new TH1D("sig_jetEta", "Signal #eta_{jet} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
+    double SIGdEta_binwidth = calculatebinwidth(40, -2.4, 2.4);
+    double SIGclusterEta_binwidth = calculatebinwidth(20, -1.2, 1.2);
+    double SIGjetEta_binwidth = calculatebinwidth(20, -1.2, 1.2);
     SIGdEta->Sumw2();
     SIGclusterEta->Sumw2();
     SIGjetEta->Sumw2();
@@ -92,6 +105,9 @@ int main(int argc, char *argv[])
     TH1D* SIGXj = new TH1D("sig_Xj", "Signal Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, 0.0,2.0);
     TH1D* SIGpTD = new TH1D("sig_pTD", "Signal Jet pTD distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 60, 0.0,1.0);
     TH1D* SIGMultiplicity = new TH1D("sig_Multiplicity", "Signal Jet Multiplicity; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0.0 , 20.0);
+    double SIGXj_binwidth = calculatebinwidth(40, 0.0,2.0);
+    double SIGpTD_binwidth = calculatebinwidth(60, 0.0,1.0);
+    double SIGMultiplicity_binwidth = calculatebinwidth(20, 0.0 , 20.0);
     SIGXj->Sumw2();
     SIGpTD->Sumw2();
     SIGMultiplicity->Sumw2();
@@ -99,6 +115,9 @@ int main(int argc, char *argv[])
     TH1D* BKGcluster_pt_dist = new TH1D("bkg_Cluster_pT", "Background Cluster p_{T} distribution; cluster p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 7, cluspTmin, cluspTmax);
     TH1D* BKGjet_pt_dist = new TH1D("bkg_Jet_pT", "Background Jet p_{T} distribution; jet p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 25, 5, 30);
     TH1D* BKGpt_diff_dist = new TH1D("bkg_clusjet_pT_diff", "Background p_{T}^{cluster}-p_{T}^{jet} distribution; #Delta p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, 20);
+    double BKGcluster_pt_dist_binwidth = calculatebinwidth(7, cluspTmin, cluspTmax);
+    double BKGjet_pt_dist_binwidth = calculatebinwidth(25, 5, 30);
+    double BKGpt_diff_dist_binwidth = calculatebinwidth(20, 0, 20);
     BKGcluster_pt_dist->Sumw2();
     BKGjet_pt_dist->Sumw2();
     BKGpt_diff_dist->Sumw2();
@@ -106,6 +125,9 @@ int main(int argc, char *argv[])
     TH1D* BKGdPhi = new TH1D("bkg_dPhi", "Background #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, TMath::Pi());
     TH1D* BKGclusterPhi = new TH1D("bkg_clusterPhi", "Background #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
     TH1D* BKGjetPhi = new TH1D("bkg_jetPhi", "Background #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
+    double BKGdPhi_binwidth = calculatebinwidth(20, 0, TMath::Pi());
+    double BKGclusterPhi_binwidth = calculatebinwidth(40, -TMath::Pi(), TMath::Pi());
+    double BKGjetPhi_binwidth = calculatebinwidth(40, -TMath::Pi(), TMath::Pi());
     BKGdPhi->Sumw2();
     BKGclusterPhi->Sumw2();
     BKGjetPhi->Sumw2();
@@ -113,6 +135,9 @@ int main(int argc, char *argv[])
     TH1D* BKGdEta = new TH1D("bkg_dEta", "Background #Delta #eta distribution; #Delta #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -2.4, 2.4);
     TH1D* BKGclusterEta = new TH1D("bkg_clusterEta", "Background #eta_{cluster} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
     TH1D* BKGjetEta = new TH1D("bkg_jetEta", "Background #eta_{jet} distribution; #eta; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, -1.2, 1.2);
+    double BKGdEta_binwidth = calculatebinwidth(40, -2.4, 2.4);
+    double BKGclusterEta_binwidth = calculatebinwidth(20, -1.2, 1.2);
+    double BKGjetEta_binwidth = calculatebinwidth(20, -1.2, 1.2);
     BKGdEta->Sumw2();
     BKGclusterEta->Sumw2();
     BKGjetEta->Sumw2();
@@ -120,9 +145,32 @@ int main(int argc, char *argv[])
     TH1D* BKGXj = new TH1D("bkg_Xj", "Background Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, 0.0,2.0);
     TH1D* BKGpTD = new TH1D("bkg_pTD", "Background Jet pTD distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 60, 0.0,1.0);
     TH1D* BKGMultiplicity = new TH1D("bkg_Multiplicity", "Background Jet Multiplicity distribution; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0.0 , 20.0);
+    double BKGXj_binwidth = calculatebinwidth(40, 0.0,2.0);
+    double BKGpTD_binwidth = calculatebinwidth(60, 0.0,1.0);
+    double BKGMultiplicity_binwidth = calculatebinwidth(20, 0.0 , 20.0);
     BKGXj->Sumw2();
     BKGpTD->Sumw2();
     BKGMultiplicity->Sumw2();
+    
+    TH1D* z_Vertices_individual = new TH1D("z_Vertices_individual", "Z-vertex (ROOT)", 50, 0, 25);
+    TH1D* z_Vertices_hdf5 = new TH1D("z_Vertices_hdf5", "Z-vertex (hdf5)", 50, 0, 25);
+    TH1D* z_Vertices = new TH1D("z_Vertices", "Z-vertex difference distribution", 50, 0, 25);
+    double z_Vertices_individual_binwidth = calculatebinwidth(50, 0, 25);
+    double z_Vertices_hdf5_binwidth = calculatebinwidth(50, 0, 25);
+    double z_Vertices_binwidth = calculatebinwidth(50, 0, 25);
+    z_Vertices_individual->Sumw2();
+    z_Vertices_hdf5->Sumw2();
+    z_Vertices->Sumw2();
+    
+    TH1D* Multiplicity_individual = new TH1D("mult_Vertices_individual", "Multiplicity (ROOT)", 427, 0, 1281);
+    TH1D* Multiplicity_hdf5 = new TH1D("mult_Vertices_hdf5", "Multiplicity (hdf5)", 427, 0, 1281);
+    TH1D* Multiplicity = new TH1D("mult_Vertices", "Multiplicity differnce distribution", 1281, 0, 1281);
+    double Multiplicity_individual_binwidth = calculatebinwidth(50, 0, 25);
+    double Multiplicity_hdf5_binwidth = calculatebinwidth(50, 0, 25);
+    double Multiplicity_binwidth = calculatebinwidth(50, 0, 25);
+    Multiplicity_individual->Sumw2();
+    Multiplicity_hdf5->Sumw2();
+    Multiplicity->Sumw2();
     
     //Config File ---------------------------------------------------------------------------
     
@@ -412,11 +460,61 @@ int main(int argc, char *argv[])
     
     //Using low level hdf5 API -------------------------------------------------------------------------------
     
-    //open hdf5: Define size of data from file, explicitly allocate memory in hdf5 space and array size
+    //open hdf5: Define size of data from file, explicitly allocate memory in hdf5 space and array size: event
+    const H5std_string event_ds_name( "event" );
+    H5File h5_file_event( hdf5_file_name, H5F_ACC_RDONLY ); //hdf5_file_name from argv[2]
+    DataSet event_dataset = h5_file_event.openDataSet( event_ds_name );
+    DataSpace event_dataspace = event_dataset.getSpace();
+    
+    //Load the dimensions of dataset from file, to be used in array/hyperslab
+    const int event_ndims = event_dataspace.getSimpleExtentNdims();
+    hsize_t event_maxdims[event_ndims];
+    hsize_t eventdims[event_ndims];
+    event_dataspace.getSimpleExtentDims(eventdims, event_maxdims);
+    //UInt_t nevent_max = eventdims[1];
+    UInt_t NEvent_Vars = eventdims[1];
+    fprintf(stderr, "\n%s:%d: n track variables\n", __FILE__, __LINE__, NEvent_Vars);
+    
+    //Define array hyperslab will be fed into
+    float event_data_out[1][NEvent_Vars];
+    
+    //Define hyperslab size and offset in  FILE;
+    hsize_t event_offset[2] = {0, 0};
+    hsize_t event_count[2] = {1, NEvent_Vars};
+    
+    /*
+     The Offset is how we iterate over the entire hdf5 file.
+     For example, To obtain data for event 68, set the
+     offset's to {68, ntrack_max, NTrack_Vars}.
+     */
+    
+    
+    event_dataspace.selectHyperslab( H5S_SELECT_SET, event_count, event_offset );
+    fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "select Hyperslab OK");
+    
+    //Define the memory dataspace in which to place hyperslab
+    const int RANK_OUT_event = 2; //# of Dimensions
+    DataSpace event_memspace( RANK_OUT_event, eventdims );
+    
+    //Define memory offset for hypreslab starting at begining:
+    hsize_t event_offset_out[2] = {0};
+    
+    //define Dimensions of array, for writing slab to array
+    hsize_t event_count_out[2] = {1, NEvent_Vars};
+    
+    //define space in memory for hyperslab, then write from file to memory
+    event_memspace.selectHyperslab( H5S_SELECT_SET, event_count_out, event_offset_out );
+    std::cout << "Made it to line 394" <<  std::endl;
+    event_dataset.read( event_data_out, PredType::NATIVE_FLOAT, event_memspace, event_dataspace );
+    fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "event dataset read into array: OK");
+    
+    
+    
+    //open hdf5: Define size of data from file, explicitly allocate memory in hdf5 space and array size: jet
     //cluster
     const H5std_string jet_ds_name( "jet" );
-    H5File h5_file( hdf5_file_name, H5F_ACC_RDONLY ); //hdf5_file_name from argv[2]
-    DataSet jet_dataset = h5_file.openDataSet( jet_ds_name );
+    H5File h5_file_jet( hdf5_file_name, H5F_ACC_RDONLY ); //hdf5_file_name from argv[2]
+    DataSet jet_dataset = h5_file_jet.openDataSet( jet_ds_name );
     DataSpace jet_dataspace = jet_dataset.getSpace();
     
     //Load the dimensions of dataset from file, to be used in array/hyperslab
@@ -446,8 +544,8 @@ int main(int argc, char *argv[])
     fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "select Hyperslab OK");
     
     //Define the memory dataspace in which to place hyperslab
-    const int RANK_OUT = 3; //# of Dimensions
-    DataSpace jet_memspace( RANK_OUT, jetdims );
+    const int RANK_OUT_jet = 3; //# of Dimensions
+    DataSpace jet_memspace( RANK_OUT_jet, jetdims );
     
     //Define memory offset for hypreslab starting at begining:
     hsize_t jet_offset_out[3] = {0};
@@ -490,6 +588,7 @@ int main(int argc, char *argv[])
             double jet_eta = -9000;
             double jet_pTD = -9000;
             double jet_multiplicity = -9000;
+            
             for(Long64_t icluster = 0; icluster < ncluster; icluster++) {
                 if(not(cluster_pt[icluster] > cluspTmin)) {continue;}
                 if(not(cluster_pt[icluster] < cluspTmax)) {continue;}
@@ -520,7 +619,7 @@ int main(int argc, char *argv[])
                     while(jet_phi >= TMath::Pi()) jet_phi -= (2*TMath::Pi());
                     while(jet_phi <= -TMath::Pi()) jet_phi += (2*TMath::Pi());
                     
-                    if(cluster_lambda_square[icluster][0] < 0.4) {
+                    if((cluster_lambda_square[icluster][0] > 0.05) && (cluster_lambda_square[icluster][0] < 0.3)) {
                         SIGcluster_pt_dist->Fill(cluspT);
                         SIGjet_pt_dist->Fill(jet_pT);
                         SIGpt_diff_dist->Fill(TMath::Abs(cluspT-jet_pT));
@@ -540,9 +639,20 @@ int main(int argc, char *argv[])
                         SIGXj->Fill(jet_pT/cluspT);
                         SIGpTD->Fill(jet_pTD);
                         SIGMultiplicity->Fill(jet_multiplicity);
+                        
+                        z_Vertices->Fill(TMath::Abs(event_data_out[0][0] - primary_vertex[2]));
+                        z_Vertices_individual->Fill(primary_vertex[2]);
+                        z_Vertices_hdf5->Fill(event_data_out[0][0]);
+                        
+                        float multiplicity_sum = 0;
+                        for (int k = 0; k < 64; k++)  multiplicity_sum += multiplicity_v0[k];
+                        //std::cout << "Multiplicity difference " << TMath::Abs(event_data_out[0][1] - multiplicity_sum) << std::endl;
+                        Multiplicity->Fill(TMath::Abs(event_data_out[0][1] - multiplicity_sum));
+                        Multiplicity_individual->Fill(multiplicity_sum);
+                        Multiplicity_hdf5->Fill(event_data_out[0][1]);
                     }
                     
-                    if(cluster_lambda_square[icluster][0] > 0.5) {
+                    if((cluster_lambda_square[icluster][0] > 0.4) && (cluster_lambda_square[icluster][0] < 1.0)) {
                         BKGcluster_pt_dist->Fill(cluspT);
                         BKGjet_pt_dist->Fill(jet_pT);
                         BKGpt_diff_dist->Fill(TMath::Abs(cluspT-jet_pT));
@@ -562,6 +672,7 @@ int main(int argc, char *argv[])
                         BKGXj->Fill(jet_pT/cluspT);
                         BKGpTD->Fill(jet_pTD);
                         BKGMultiplicity->Fill(jet_multiplicity);
+                        
                     }
                     
                 }
@@ -574,42 +685,43 @@ int main(int argc, char *argv[])
     
     //very particular about file names to ease scripting
     // Write to fout
+    
     std::string rawname = ((std::string)root_file).substr(((std::string)root_file).find_last_of("/")+1, ((std::string)root_file).find_last_of(".")-((std::string)root_file).find_last_of("/")-1);
     //std::string rawname = std::string(argv[1]);
     TFile* fout = new TFile(Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin),"RECREATE");
-    
+    std::cout<< "Created datafile: " << Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin) << std::endl;
     // Normalize
-    SIGcluster_pt_dist->Scale(1.0/num_of_triggers);
-    SIGjet_pt_dist->Scale(1.0/num_of_triggers);
-    SIGpt_diff_dist->Scale(1.0/num_of_triggers);
+    SIGcluster_pt_dist->Scale(1.0/(num_of_triggers*SIGcluster_pt_dist_binwidth));
+    SIGjet_pt_dist->Scale(1.0/(num_of_triggers*SIGjet_pt_dist_binwidth));
+    SIGpt_diff_dist->Scale(1.0/(num_of_triggers*SIGpt_diff_dist_binwidth));
     
-    SIGdPhi->Scale(1.0/num_of_triggers);
-    SIGclusterPhi->Scale(1.0/num_of_triggers);
-    SIGjetPhi->Scale(1.0/num_of_triggers);
+    SIGdPhi->Scale(1.0/(num_of_triggers*SIGdPhi_binwidth));
+    SIGclusterPhi->Scale(1.0/(num_of_triggers*SIGclusterPhi_binwidth));
+    SIGjetPhi->Scale(1.0/(num_of_triggers*SIGjetPhi_binwidth));
     
-    SIGdEta->Scale(1.0/num_of_triggers);
-    SIGclusterEta->Scale(1.0/num_of_triggers);
-    SIGjetEta->Scale(1.0/num_of_triggers);
+    SIGdEta->Scale(1.0/(num_of_triggers*SIGdEta_binwidth));
+    SIGclusterEta->Scale(1.0/(num_of_triggers*SIGclusterEta_binwidth));
+    SIGjetEta->Scale(1.0/(num_of_triggers*SIGjetEta_binwidth));
     
-    SIGXj->Scale(1.0/num_of_triggers);
-    SIGpTD->Scale(1.0/num_of_triggers);
-    SIGMultiplicity->Scale(1.0/num_of_triggers);
+    SIGXj->Scale(1.0/(num_of_triggers*SIGXj_binwidth));
+    SIGpTD->Scale(1.0/(num_of_triggers*SIGpTD_binwidth));
+    SIGMultiplicity->Scale(1.0/(num_of_triggers*SIGMultiplicity_binwidth));
     
-    BKGcluster_pt_dist->Scale(1.0/num_of_triggers);
-    BKGjet_pt_dist->Scale(1.0/num_of_triggers);
-    BKGpt_diff_dist->Scale(1.0/num_of_triggers);
+    BKGcluster_pt_dist->Scale(1.0/(num_of_triggers*BKGcluster_pt_dist_binwidth));
+    BKGjet_pt_dist->Scale(1.0/(num_of_triggers*BKGjet_pt_dist_binwidth));
+    BKGpt_diff_dist->Scale(1.0/(num_of_triggers*BKGpt_diff_dist_binwidth));
     
-    BKGdPhi->Scale(1.0/num_of_triggers);
-    BKGclusterPhi->Scale(1.0/num_of_triggers);
-    BKGjetPhi->Scale(1.0/num_of_triggers);
+    BKGdPhi->Scale(1.0/(num_of_triggers*BKGdPhi_binwidth));
+    BKGclusterPhi->Scale(1.0/(num_of_triggers*BKGclusterPhi_binwidth));
+    BKGjetPhi->Scale(1.0/(num_of_triggers*BKGjetPhi_binwidth));
     
-    BKGdEta->Scale(1.0/num_of_triggers);
-    BKGclusterEta->Scale(1.0/num_of_triggers);
-    BKGjetEta->Scale(1.0/num_of_triggers);
+    BKGdEta->Scale(1.0/(num_of_triggers*BKGdEta_binwidth));
+    BKGclusterEta->Scale(1.0/(num_of_triggers*BKGclusterEta_binwidth));
+    BKGjetEta->Scale(1.0/(num_of_triggers*BKGjetEta_binwidth));
     
-    BKGXj->Scale(1.0/num_of_triggers);
-    BKGpTD->Scale(1.0/num_of_triggers);
-    BKGMultiplicity->Scale(1.0/num_of_triggers);
+    BKGXj->Scale(1.0/(num_of_triggers*BKGXj_binwidth));
+    BKGpTD->Scale(1.0/(num_of_triggers*BKGpTD_binwidth));
+    BKGMultiplicity->Scale(1.0/(num_of_triggers*BKGMultiplicity_binwidth));
     
     // Set minima
     SIGcluster_pt_dist->SetMinimum(0);
@@ -678,6 +790,15 @@ int main(int argc, char *argv[])
     BKGpTD->Write();
     BKGMultiplicity->Write();
     
+    z_Vertices->Write();
+    Multiplicity->Write();
+    z_Vertices_individual->Write();
+    z_Vertices_hdf5->Write();
+    Multiplicity_individual->Write();
+    Multiplicity_hdf5->Write();
+    
+    // Commented out due to segfaults
+    /*
     SIGcluster_pt_dist->Draw();
     canvas.SaveAs(Form("signal_cluster_pT_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
@@ -758,10 +879,34 @@ int main(int argc, char *argv[])
     canvas.SaveAs(Form("background_multiplicity_distribution_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.png",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin));
     canvas.Clear();
     
+    z_Vertices->Draw();
+   
+    std::string filepath = argv[1];
+    std::string opened_files = "_" + filepath.substr(filepath.find_last_of("/")+1, filepath.find_last_of(".")-filepath.find_last_of("/")-1);
+    //std::string rawname = std::string(argv[1]);
+    canvas.SaveAs(Form("z_Vertices_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.Clear();
+    Multiplicity->Draw();
+    canvas.SaveAs(Form("Multiplicity_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
+    //Signal_pT_Dist->Write();
+    canvas.Clear();
+    z_Vertices_individual->Draw();
+    canvas.SaveAs(Form("z_Vertices_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.Clear();
+    z_Vertices_hdf5->Draw();
+    canvas.SaveAs(Form("z_Vertices_hdf5l_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.Clear();
+    Multiplicity_individual->Draw();
+    canvas.SaveAs(Form("Multiplicity_individual_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.Clear();
+    Multiplicity_hdf5->Draw();
+    canvas.SaveAs(Form("Multiplicity_hdf5_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu.png",opened_files.c_str(),GeV_Track_Skim,mix_start,mix_end));
+    canvas.Clear(); */
+    
     canvas.Close();
     
     fout->Close();
     
-    std::cout << " ending " << std::endl;
+    std::cout << " ending; num of triggers is " << num_of_triggers << std::endl;
     return EXIT_SUCCESS;
 }
