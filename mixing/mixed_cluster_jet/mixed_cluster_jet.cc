@@ -562,7 +562,8 @@ int main(int argc, char *argv[])
     //MONEY MAKING LOOP
     Long64_t nentries = _tree_event->GetEntries();
     
-    int num_of_triggers = 0;
+    int N_SR = 0;
+    int N_BR = 0;
     
     for(Long64_t ievent = 0; ievent < nentries ; ievent++){
         _tree_event->GetEntry(ievent);
@@ -605,7 +606,12 @@ int main(int argc, char *argv[])
                 while(clusphi <= -TMath::Pi()) clusphi += (2*TMath::Pi());
                 
                // After cluster cuts, increment number of triggers and loop over jets
-                num_of_triggers++;
+                if((cluster_lambda_square[icluster][0] > 0.05) && (cluster_lambda_square[icluster][0] < 0.3)) {
+                    N_SR++;
+                }
+                if((cluster_lambda_square[icluster][0] > 0.4) && (cluster_lambda_square[icluster][0] < 1.0)) {
+                    N_BR++;
+                }
                 for(Long64_t ijet = 0; ijet < njet_ak04its; ijet++){
                     if(not(jet_data_out[0][ijet][0] > jetpTmin)) {continue;}
                     // After the jet cuts, fill histograms
@@ -688,40 +694,40 @@ int main(int argc, char *argv[])
     
     std::string rawname = ((std::string)root_file).substr(((std::string)root_file).find_last_of("/")+1, ((std::string)root_file).find_last_of(".")-((std::string)root_file).find_last_of("/")-1);
     //std::string rawname = std::string(argv[1]);
-    TFile* fout = new TFile(Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin),"RECREATE");
-    std::cout<< "Created datafile: " << Form("%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin) << std::endl;
+    TFile* fout = new TFile(Form("New_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin),"RECREATE");
+    std::cout<< "Created datafile: " << Form("New_%s_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.root",rawname.data(),GeV_Track_Skim,mix_start,mix_end, cluspTmin, cluspTmax, jetpTmin) << std::endl;
     // Normalize
-    SIGcluster_pt_dist->Scale(1.0/(num_of_triggers*SIGcluster_pt_dist_binwidth));
-    SIGjet_pt_dist->Scale(1.0/(num_of_triggers*SIGjet_pt_dist_binwidth));
-    SIGpt_diff_dist->Scale(1.0/(num_of_triggers*SIGpt_diff_dist_binwidth));
+    SIGcluster_pt_dist->Scale(1.0/(N_SR*SIGcluster_pt_dist_binwidth));
+    SIGjet_pt_dist->Scale(1.0/(N_SR*SIGjet_pt_dist_binwidth));
+    SIGpt_diff_dist->Scale(1.0/(N_SR*SIGpt_diff_dist_binwidth));
     
-    SIGdPhi->Scale(1.0/(num_of_triggers*SIGdPhi_binwidth));
-    SIGclusterPhi->Scale(1.0/(num_of_triggers*SIGclusterPhi_binwidth));
-    SIGjetPhi->Scale(1.0/(num_of_triggers*SIGjetPhi_binwidth));
+    SIGdPhi->Scale(1.0/(N_SR*SIGdPhi_binwidth));
+    SIGclusterPhi->Scale(1.0/(N_SR*SIGclusterPhi_binwidth));
+    SIGjetPhi->Scale(1.0/(N_SR*SIGjetPhi_binwidth));
     
-    SIGdEta->Scale(1.0/(num_of_triggers*SIGdEta_binwidth));
-    SIGclusterEta->Scale(1.0/(num_of_triggers*SIGclusterEta_binwidth));
-    SIGjetEta->Scale(1.0/(num_of_triggers*SIGjetEta_binwidth));
+    SIGdEta->Scale(1.0/(N_SR*SIGdEta_binwidth));
+    SIGclusterEta->Scale(1.0/(N_SR*SIGclusterEta_binwidth));
+    SIGjetEta->Scale(1.0/(N_SR*SIGjetEta_binwidth));
     
-    SIGXj->Scale(1.0/(num_of_triggers*SIGXj_binwidth));
-    SIGpTD->Scale(1.0/(num_of_triggers*SIGpTD_binwidth));
-    SIGMultiplicity->Scale(1.0/(num_of_triggers*SIGMultiplicity_binwidth));
+    SIGXj->Scale(1.0/(N_SR*SIGXj_binwidth));
+    SIGpTD->Scale(1.0/(N_SR*SIGpTD_binwidth));
+    SIGMultiplicity->Scale(1.0/(N_SR*SIGMultiplicity_binwidth));
     
-    BKGcluster_pt_dist->Scale(1.0/(num_of_triggers*BKGcluster_pt_dist_binwidth));
-    BKGjet_pt_dist->Scale(1.0/(num_of_triggers*BKGjet_pt_dist_binwidth));
-    BKGpt_diff_dist->Scale(1.0/(num_of_triggers*BKGpt_diff_dist_binwidth));
+    BKGcluster_pt_dist->Scale(1.0/(N_BR*BKGcluster_pt_dist_binwidth));
+    BKGjet_pt_dist->Scale(1.0/(N_BR*BKGjet_pt_dist_binwidth));
+    BKGpt_diff_dist->Scale(1.0/(N_BR*BKGpt_diff_dist_binwidth));
     
-    BKGdPhi->Scale(1.0/(num_of_triggers*BKGdPhi_binwidth));
-    BKGclusterPhi->Scale(1.0/(num_of_triggers*BKGclusterPhi_binwidth));
-    BKGjetPhi->Scale(1.0/(num_of_triggers*BKGjetPhi_binwidth));
+    BKGdPhi->Scale(1.0/(N_BR*BKGdPhi_binwidth));
+    BKGclusterPhi->Scale(1.0/(N_BR*BKGclusterPhi_binwidth));
+    BKGjetPhi->Scale(1.0/(N_BR*BKGjetPhi_binwidth));
     
-    BKGdEta->Scale(1.0/(num_of_triggers*BKGdEta_binwidth));
-    BKGclusterEta->Scale(1.0/(num_of_triggers*BKGclusterEta_binwidth));
-    BKGjetEta->Scale(1.0/(num_of_triggers*BKGjetEta_binwidth));
+    BKGdEta->Scale(1.0/(N_BR*BKGdEta_binwidth));
+    BKGclusterEta->Scale(1.0/(N_BR*BKGclusterEta_binwidth));
+    BKGjetEta->Scale(1.0/(N_BR*BKGjetEta_binwidth));
     
-    BKGXj->Scale(1.0/(num_of_triggers*BKGXj_binwidth));
-    BKGpTD->Scale(1.0/(num_of_triggers*BKGpTD_binwidth));
-    BKGMultiplicity->Scale(1.0/(num_of_triggers*BKGMultiplicity_binwidth));
+    BKGXj->Scale(1.0/(N_BR*BKGXj_binwidth));
+    BKGpTD->Scale(1.0/(N_BR*BKGpTD_binwidth));
+    BKGMultiplicity->Scale(1.0/(N_BR*BKGMultiplicity_binwidth));
     
     // Set minima
     SIGcluster_pt_dist->SetMinimum(0);
@@ -907,6 +913,6 @@ int main(int argc, char *argv[])
     
     fout->Close();
     
-    std::cout << " ending; num of triggers is " << num_of_triggers << std::endl;
+    std::cout << " ending; num of signal triggers is " << N_SR << " background " << N_BR << std::endl;
     return EXIT_SUCCESS;
 }
