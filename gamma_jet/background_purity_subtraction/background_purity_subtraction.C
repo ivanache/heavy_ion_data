@@ -96,8 +96,9 @@ void background_purity_subtraction(std::string fdataname, std::string outfilenam
     for (TObject* keyAsObj : *fdata->GetListOfKeys()){
         auto key = dynamic_cast<TKey*>(keyAsObj);
         TObject* transferobj = NULL;
+        auto name = key->GetName();
         fdata->GetObject(key->GetName(), transferobj);
-        transferobj->Write();
+        transferobj->Write(key->GetName());
     }
     
     fdata->Close();

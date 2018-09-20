@@ -10,18 +10,18 @@ void truthseparator(std::string fdataname, std::string outfilename) {
     TH1D* Xj_truth_sig = 0;
     TH1D* Xj_truth_bkg = 0;
 
-    fdata->GetObject("hSR_XobsPb_truth", XobsPb_truth_sig);
-    fdata->GetObject("hBR_XobsPb_truth", XobsPb_truth_bkg);
+    fdata->GetObject("sig_XobsPb_truth", XobsPb_truth_sig);
+    fdata->GetObject("bkg_XobsPb_truth", XobsPb_truth_bkg);
     
-    fdata->GetObject("hSR_Xj_truth", Xj_truth_sig);
-    fdata->GetObject("hBR_Xj_truth", Xj_truth_bkg);
+    fdata->GetObject("sig_Xj_truth", Xj_truth_sig);
+    fdata->GetObject("bkg_Xj_truth", Xj_truth_bkg);
     
     TFile *fout = new TFile(Form("%s", outfilename.c_str()), "RECREATE");
     
-    XobsPb_truth_sig->Write("hSR_XobsPb");
-    XobsPb_truth_bkg->Write("hBR_XobsPb");
-    Xj_truth_sig->Write("hSR_Xj");
-    Xj_truth_bkg->Write("hBR_Xj");
+    XobsPb_truth_sig->Write("sig_XobsPb");
+    XobsPb_truth_bkg->Write("bkg_XobsPb");
+    Xj_truth_sig->Write("sig_Xj");
+    Xj_truth_bkg->Write("bkg_Xj");
     
     fdata->Close();
     fout->Close();

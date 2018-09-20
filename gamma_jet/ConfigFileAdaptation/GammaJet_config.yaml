@@ -1,4 +1,4 @@
-clus_pT_min:                   15
+clus_pT_min:                   20
 clus_pT_max:                   30
 track_pT_max:                  1.0
 jet_pT_min:                    8.0
@@ -19,7 +19,7 @@ Eta_max:                       0.5
 Cluster_ncell_min:             2
 Cluster_locmaxima_max:         2.0
 Cluster_distobadchannel:       2.0
-EcrossoverE_min:               0.05
+EcrossoverE_min:               0.03
 iso_max:                       1.0
 noniso_min:                    2.0
 noniso_max:                    15.0

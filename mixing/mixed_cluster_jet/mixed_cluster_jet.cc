@@ -594,7 +594,7 @@ int main(int argc, char *argv[])
                 if(not(cluster_pt[icluster] > cluspTmin)) {continue;}
                 if(not(cluster_pt[icluster] < cluspTmax)) {continue;}
                 if( not(cluster_ncell[icluster]>2)) {continue;}   //removes clusters with 1 or 2 cells
-                if( not(cluster_e_cross[icluster]/cluster_e[icluster]>0.05)) {continue;} //removes "spiky" clusters
+                if( not(cluster_e_cross[icluster]/cluster_e[icluster]>0.03)) {continue;} //removes "spiky" clusters
                 if( not(cluster_nlocal_maxima[icluster]<= 2)) {continue;} //require to have at most 2 local maxima.
                 if( not(cluster_distance_to_bad_channel[icluster]>=2.0)) {continue;}
                 
