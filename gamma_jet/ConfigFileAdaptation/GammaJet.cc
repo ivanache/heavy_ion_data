@@ -47,33 +47,33 @@ int main(int argc, char *argv[])
     if (config == NULL)  std::cout<<"no config"<<std::endl;
     // Default values of various variables used in the file (actual values are to be determined by the configuration file)
     // Cut variables
-    double primary_vertex_max = 10.0;
-    double SIG_DNN_min = 0.55;
-    double SIG_DNN_max = 0.85;
+    double primary_vertex_max = 0.0;
+    double SIG_DNN_min = 0.0;
+    double SIG_DNN_max = 0.0;
     double BKG_DNN_min = 0.0;
-    double BKG_DNN_max = 0.3;
+    double BKG_DNN_max = 0.0;
     double SIG_lambda_min = 0.0;
-    double SIG_lambda_max = 0.4;
-    double BKG_lambda_min = 0.5;
-    double BKG_lambda_max = 2.0;
+    double SIG_lambda_max = 0.0;
+    double BKG_lambda_min = 0.0;
+    double BKG_lambda_max = 0.0;
     double SIG_Emax_over_Ecluster_min = 0.0;
-    double SIG_Emax_over_Ecluster_max = 0.5;
-    double BKG_Emax_over_Ecluster_min = 0.5;
-    double BKG_Emax_over_Ecluster_max = 1.0;
-    double clus_pT_min = 10;
-    double clus_pT_max = 16;
-    double track_pT_max = 1;
-    double jet_pT_min = 10.0;
-    double Eta_max = 0.5;
-    double Cluster_ncell_min = 2;
-    double Cluster_locmaxima_max = 2.0;
-    double Cluster_distobadchannel = 2.0;
-    double EcrossoverE_min = 0.05;
+    double SIG_Emax_over_Ecluster_max = 0.0;
+    double BKG_Emax_over_Ecluster_min = 0.0;
+    double BKG_Emax_over_Ecluster_max = 0.0;
+    double clus_pT_min = 0;
+    double clus_pT_max = 0;
+    double track_pT_max = 0;
+    double jet_pT_min = 0.0;
+    double Eta_max = 0.0;
+    double Cluster_ncell_min = 0;
+    double Cluster_locmaxima_max = 0.0;
+    double Cluster_distobadchannel = 0.0;
+    double EcrossoverE_min = 0.00;
     
     // The bounds for the events to fal into the isolation and nonisolation areas
-    double iso_max = 1.0;
-    double noniso_min = 2.0;
-    double noniso_max = 10.0;
+    double iso_max = 0.0;
+    double noniso_min = 0.0;
+    double noniso_max = 0.0;
     
     // Delta eta
     double deta_max = 0.5;
@@ -652,7 +652,7 @@ int main(int argc, char *argv[])
     Float_t cluster_lambda_square[NTRACK_MAX][2];
     Float_t cell_e[17664];
 
-    //Jets reco 
+    //Jets reco (ak04)
     UInt_t njet_ak04its;
     Float_t jet_ak04its_pt_raw[NTRACK_MAX];
     Float_t jet_ak04its_eta_raw[NTRACK_MAX];
@@ -661,6 +661,16 @@ int main(int argc, char *argv[])
     Float_t jet_ak04its_pt_truth[NTRACK_MAX];
     Float_t jet_ak04its_eta_truth[NTRACK_MAX];
     Float_t jet_ak04its_phi_truth[NTRACK_MAX];
+      
+    // Jets reco (ak03)
+    UInt_t njet_ak03its;
+    Float_t jet_ak03its_pt_raw[NTRACK_MAX];
+    Float_t jet_ak03its_eta_raw[NTRACK_MAX];
+    Float_t jet_ak03its_phi[NTRACK_MAX];
+      
+    Float_t jet_ak03its_pt_truth[NTRACK_MAX];
+    Float_t jet_ak03its_eta_truth[NTRACK_MAX];
+    Float_t jet_ak03its_phi_truth[NTRACK_MAX];
   
     //The z_reco is defined as the fraction of the true jet that ended up in this reco jet 
     //There are two entries and indices, the first is the best. 
@@ -670,11 +680,13 @@ int main(int argc, char *argv[])
     Float_t jet_ak04its_width_sigma[NTRACK_MAX][2];
     UShort_t jet_ak04its_multiplicity[NTRACK_MAX];
 
-    //Truth Jets
+    //Truth Jets (ak04)
     UInt_t njet_truth_ak04;
     Float_t jet_truth_ak04_pt[NTRACK_MAX];
     Float_t jet_truth_ak04_eta[NTRACK_MAX];
     Float_t jet_truth_ak04_phi[NTRACK_MAX];
+      
+    
    
     //Int_t eg_ntrial;
 
@@ -754,6 +766,16 @@ int main(int argc, char *argv[])
     
 
     //jets
+      //ak03
+    _tree_event->SetBranchAddress("njet_ak03its", &njet_ak03its);
+    _tree_event->SetBranchAddress("jet_ak03its_pt_raw", jet_ak03its_pt_raw);
+    _tree_event->SetBranchAddress("jet_ak03its_eta_raw", jet_ak03its_eta_raw);
+    _tree_event->SetBranchAddress("jet_ak03its_phi", jet_ak03its_phi);
+    _tree_event->SetBranchAddress("jet_ak03its_pt_truth", jet_ak03its_pt_truth);
+    _tree_event->SetBranchAddress("jet_ak03its_eta_truth", jet_ak03its_eta_truth);
+    _tree_event->SetBranchAddress("jet_ak03its_phi_truth", jet_ak03its_phi_truth);
+      
+      //ak04
     _tree_event->SetBranchAddress("njet_ak04its", &njet_ak04its);
     _tree_event->SetBranchAddress("jet_ak04its_pt_raw", jet_ak04its_pt_raw);
     _tree_event->SetBranchAddress("jet_ak04its_eta_raw", jet_ak04its_eta_raw);
