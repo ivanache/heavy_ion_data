@@ -4,6 +4,7 @@
 
 #include <TH1.h>
 #include <TFile.h>
+#include <TMath.h>
 #include <iostream>
 
 const int num_of_datatypes = 2;
@@ -16,8 +17,8 @@ const std::string Idvar_identifiers[num_of_id_vars] = {"lambda_0", "DNN", "Emax_
 // Cluster pT intervals looked at
 const int num_of_pt_intervals = 8;
 const double cluspT_intervals[num_of_pt_intervals + 1] = {12.5, 13.5, 14.0, 16.0, 18.0, 20.0, 25.0, 30.0, 40.0};
-const double purities[num_of_datatypes][num_of_id_vars][num_of_pt_intervals] = {{{27, 35, 33, 45, 54, 55, 57, 59}, {34, 41, 42, 50, 53, 56, 57, 48}, {30, 36, 36, 44, 46, 46, 53, 45}}, {{28, 31, 34, 44, 48, 52, 58, 61}, {35, 39, 41, 46, 50, 58, 60, 57}, {30, 32, 33, 41, 41, 49, 55, 61}}}
-const double purityerrors[num_of_datatypes][num_of_id_vars][num_of_pt_intervals] = {{{2, 3, 2, 2, 2, 2, 4, 3}, {2, 2, 2, 2, 2, 2, 1, 4}, {2, 3, 2, 2, 2, 3, 3, 6}}, {{2, 2, 1, 2, 2, 1, 2, 2}, {1, 2, 2, 1, 2, 1, 2, 2}, {1 ,1, 1, 2, 2, 2, 3, 3}}}
+const double purities[num_of_datatypes][num_of_id_vars][num_of_pt_intervals] = {{{27, 35, 33, 45, 54, 55, 57, 59}, {34, 41, 42, 50, 53, 56, 57, 48}, {30, 36, 36, 44, 46, 46, 53, 45}}, {{28, 31, 34, 44, 48, 52, 58, 61}, {35, 39, 41, 46, 50, 58, 60, 57}, {30, 32, 33, 41, 41, 49, 55, 61}}};
+const double purityerrors[num_of_datatypes][num_of_id_vars][num_of_pt_intervals] = {{{2, 3, 2, 2, 2, 2, 4, 3}, {2, 2, 2, 2, 2, 2, 1, 4}, {2, 3, 2, 2, 2, 3, 3, 6}}, {{2, 2, 1, 2, 2, 1, 2, 2}, {1, 2, 2, 1, 2, 1, 2, 2}, {1 ,1, 1, 2, 2, 2, 3, 3}}};
 
 /*
 const double purities_pp[num_of_id_vars][num_of_pt_intervals + 1] = {{27, 35, 33, 45, 54, 55, 57, 59}, {34, 41, 42, 50, 53, 56, 57, 48}, {30, 36, 36, 44, 46, 46, 53, 45}}
@@ -45,10 +46,10 @@ const double purityerrors_Emax_Ecluster_pPb[num_of_pt_intervals] = {1 ,1, 1, 2, 
 // The cutting function
 void SetCut(TH1* h, double min, double max){
     //make a selection on the chosen variable
-    double width = h->GetXAxis()->GetBinWidth(1);
-    int binmin = h->GetXAxis()->FindBin(min);
-    int binmax = h->GetXAxis()->FindBin(max);
-    h->GetXAxis()->SetRange(binmin, binmax - 1);
+    double width = h->GetXaxis()->GetBinWidth(1);
+    int binmin = h->GetXaxis()->FindBin(min);
+    int binmax = h->GetXaxis()->FindBin(max);
+    h->GetXaxis()->SetRange(binmin, binmax - 1);
     return;
 }
 
@@ -100,8 +101,8 @@ int main(int argc, char *argv[]) {
     
     // Set the data type used
     std::string name_of_datatype = (std::string)argv[4];
-    int datatype_index = -1
-    for (i = 0; i < num_of_datatypes, i++) {
+    int datatype_index = -1;
+    for (int i = 0; i < num_of_datatypes; i++) {
         if(name_of_datatype == datatype_identifiers[i]) {
             datatype_index = i;
             break;
@@ -114,8 +115,8 @@ int main(int argc, char *argv[]) {
     
     // Set the variable specifying the shower-shape variable used
     std::string name_of_showershapevar = (std::string)argv[5];
-    int showershape_index = -1
-    for (i = 0; i < num_of_id_vars, i++) {
+    int showershape_index = -1;
+    for (int i = 0; i < num_of_id_vars; i++) {
         if(name_of_showershapevar == Idvar_identifiers[i]) {
             showershape_index = i;
             break;
@@ -129,18 +130,18 @@ int main(int argc, char *argv[]) {
     // Caluculate the purity and its uncertainty
     double total_purity = 0;
     double total_delta_purity = 0;
-    double minval = (double)argv[2];
-    double maxval = (double)argv[3];
+    double minval = atof(argv[2]);
+    double maxval = atof(argv[3]);
     
     int i = 1;
     
     // Quit the program if the minimum cluster pT submitted is smaller than the minimum of the pT intervals or larger than the maximum of the pT intervals
     if (minval < cluspT_intervals[0]) {
-        std::cout << "ERROR: minimum cluster p_{T} value must be at least " << cluspT_intervals[0] " GeV" << std::endl;
+        std::cout << "ERROR: minimum cluster p_{T} value must be at least " << cluspT_intervals[0] << " GeV" << std::endl;
         exit(EXIT_FAILURE);
     }
     if (maxval > cluspT_intervals[num_of_pt_intervals]) {
-        std::cout << "ERROR: maximum cluster p_{T} value must be at most " << cluspT_intervals[num_of_pt_intervals] " GeV" << std::endl;
+        std::cout << "ERROR: maximum cluster p_{T} value must be at most " << cluspT_intervals[num_of_pt_intervals] << " GeV" << std::endl;
         exit(EXIT_FAILURE);
     }
     // A failsafe, in case submitted min pt is not smaller than submitted max pt
@@ -154,34 +155,34 @@ int main(int argc, char *argv[]) {
         i++;
     
     if (cluspT_intervals[i] < maxval) {
-        double num_in_interval = Integrate(filename, "TOT_clusterpt", minval, cluspT_intervals[i]);
+        double num_in_interval = integrate(filename, "TOT_clusterpt", minval, cluspT_intervals[i]);
         total_purity += (num_in_interval*purities[datatype_index][showershape_index][i-1]);
         total_delta_purity += (num_in_interval*purityerrors[datatype_index][showershape_index][i-1])*(num_in_interval*purityerrors[datatype_index][showershape_index][i-1]);
         i++;
         
         while(cluspT_intervals[i] < maxval) {
-            num_in_interval = Integrate(filename, "TOT_clusterpt", cluspT_intervals[i - 1], cluspT_intervals[i]);
+            num_in_interval = integrate(filename, "TOT_clusterpt", cluspT_intervals[i - 1], cluspT_intervals[i]);
             total_purity += (num_in_interval*purities[datatype_index][showershape_index][i-1]);
             total_delta_purity += (num_in_interval*purityerrors[datatype_index][showershape_index][i-1])*(num_in_interval*purityerrors[datatype_index][showershape_index][i-1]);
             i++;
         }
-        num_in_interval = Integrate(filename, "TOT_clusterpt", cluspT_intervals[i - 1], maxval);
+        num_in_interval = integrate(filename, "TOT_clusterpt", cluspT_intervals[i - 1], maxval);
         total_purity += (num_in_interval*purities[datatype_index][showershape_index][i-1]);
         total_delta_purity += (num_in_interval*purityerrors[datatype_index][showershape_index][i-1])*(num_in_interval*purityerrors[datatype_index][showershape_index][i-1]);
         i++;
     }
     else {
-        double num_in_interval = Integrate(filename, "TOT_clusterpt", minval, maxval);
+        double num_in_interval = integrate(filename, "TOT_clusterpt", minval, maxval);
         total_purity += (num_in_interval*purities[datatype_index][showershape_index][i-1]);
         total_delta_purity += (num_in_interval*purityerrors[datatype_index][showershape_index][i-1])*(num_in_interval*purityerrors[datatype_index][showershape_index][i-1]);
         i++;
     }
     
     // Now, normalize the total purity and the error (and take a square root of the latter before doing so, because we're adding in quadrature)
-    total_delta_purity = Math::Sqrt(total_delta_purity);
-    double num_total = Integrate(filename, "TOT_clusterpt", minval, maxval);
+    total_delta_purity = TMath::Sqrt(total_delta_purity);
+    double num_total = integrate(filename, "TOT_clusterpt", minval, maxval);
     total_purity = total_purity/num_total;
-    total_delta_purity = total_delta_purity/num_total
+    total_delta_purity = total_delta_purity/num_total;
     
     // Now print out the results
     std::cout << "Resultant purity for dataset " << filename << " with " << name_of_datatype << " data processed by the " << name_of_showershapevar << " shower-shape cut over cluster pT range " << minval << " to " << maxval << " is: " << total_purity << " +/- " << total_delta_purity << std::endl;
