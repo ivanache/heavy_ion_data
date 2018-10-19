@@ -504,7 +504,6 @@ int main(int argc, char *argv[])
     
     //define space in memory for hyperslab, then write from file to memory
     event_memspace.selectHyperslab( H5S_SELECT_SET, event_count_out, event_offset_out );
-    std::cout << "Made it to line 394" <<  std::endl;
     event_dataset.read( event_data_out, PredType::NATIVE_FLOAT, event_memspace, event_dataspace );
     fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "event dataset read into array: OK");
     

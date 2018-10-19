@@ -784,9 +784,11 @@ int main(int argc, char *argv[]) {
     
     TCanvas canvas2("canvas2", "");
     canvas2.SetLogz();
+    hSR_cluspT_ak04_jetpT.SetStats(0);
     hSR_cluspT_ak04_jetpT.Draw("COLZ");
     canvas2.SaveAs(Form("hSR_cluspT_ak04_jetpT_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_%s_PHOTONSELECT_%s.pdf", clus_pT_min, clus_pT_max, jet_pT_min, opened_files.c_str(), photonselectionvar.c_str()));
     canvas2.Clear();
+    hBR_cluspT_ak04_jetpT.SetStats(0);
     hBR_cluspT_ak04_jetpT.Draw("COLZ");
     canvas2.SaveAs(Form("hBR_cluspT_ak04_jetpT_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_%s_PHOTONSELECT_%s.pdf", clus_pT_min, clus_pT_max, jet_pT_min, opened_files.c_str(), photonselectionvar.c_str()));
     canvas2.Clear();
