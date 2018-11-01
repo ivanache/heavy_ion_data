@@ -462,14 +462,14 @@ int main(int argc, char *argv[])
     double hSR_AvgEta_truth_binwidth = calculatebinwidth(2*etabins, -1.2, 1.2);
     double hBR_AvgEta_truth_binwidth = calculatebinwidth(2*etabins, -1.2, 1.2);
 
-  TH1D hSR_XobsPb("hSR_XobsPb", "x_{pPb}^{obs} distribution: signal region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0.004, 0.024);
-  TH1D hBR_XobsPb("hBR_XobsPb", "x_{pPb}^{obs} distribution: background region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0.004, 0.024);
-  TH1D hSR_XobsPb_truth("hSR_XobsPb_truth", "x_{pPb}^{obs} distribution: signal region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0.004, 0.024);
-  TH1D hBR_XobsPb_truth("hBR_XobsPb_truth", "x_{pPb}^{obs} distribution: background region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 15, 0.004, 0.024);
-    double hSR_XobsPb_binwidth = calculatebinwidth(15, 0.004, 0.024);
-    double hBR_XobsPb_binwidth = calculatebinwidth(15, 0.004, 0.024);
-    double hSR_XobsPb_truth_binwidth = calculatebinwidth(15, 0.004, 0.024);
-    double hBR_XobsPb_truth_binwidth = calculatebinwidth(15, 0.004, 0.024);
+  TH1D hSR_XobsPb("hSR_XobsPb", "x_{pPb}^{obs} distribution: signal region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 7, 0.004, 0.024);
+  TH1D hBR_XobsPb("hBR_XobsPb", "x_{pPb}^{obs} distribution: background region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 7, 0.004, 0.024);
+  TH1D hSR_XobsPb_truth("hSR_XobsPb_truth", "x_{pPb}^{obs} distribution: signal region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 7, 0.004, 0.024);
+  TH1D hBR_XobsPb_truth("hBR_XobsPb_truth", "x_{pPb}^{obs} distribution: background region, truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 7, 0.004, 0.024);
+    double hSR_XobsPb_binwidth = calculatebinwidth(7, 0.004, 0.024);
+    double hBR_XobsPb_binwidth = calculatebinwidth(7, 0.004, 0.024);
+    double hSR_XobsPb_truth_binwidth = calculatebinwidth(7, 0.004, 0.024);
+    double hBR_XobsPb_truth_binwidth = calculatebinwidth(7, 0.004, 0.024);
 
   TH1D h_dPhi_truth("h_dPhi_truth", "delta phi gamma-jet truth MC", phibins, 0, TMath::Pi());
     double h_dPhi_truth_binwidth = calculatebinwidth(phibins, 0, TMath::Pi());
