@@ -24,6 +24,9 @@
 #include <vector>
 #include <math.h>
 
+// Energy of lead, in GeV
+const double EPb = 1560;
+
 const int MAX_INPUT_LENGTH = 200;
 
 enum isolationDet {CLUSTER_ISO_TPC_04, CLUSTER_ISO_ITS_04, CLUSTER_FRIXIONE_TPC_04_02, CLUSTER_FRIXIONE_ITS_04_02};
@@ -82,12 +85,12 @@ int main(int argc, char *argv[])
     SIGjet_pt_dist->Sumw2();
     SIGpt_diff_dist->Sumw2();
     
-    TH1D* SIGdPhi = new TH1D("sig_dPhi", "Signal #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, TMath::Pi());
-    TH1D* SIGclusterPhi = new TH1D("sig_clusterPhi", "Signal #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
-    TH1D* SIGjetPhi = new TH1D("sig_jetPhi", "Signal #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
-    double SIGdPhi_binwidth = calculatebinwidth(20, 0, TMath::Pi());
-    double SIGclusterPhi_binwidth = calculatebinwidth(40, -TMath::Pi(), TMath::Pi());
-    double SIGjetPhi_binwidth = calculatebinwidth(40, -TMath::Pi(), TMath::Pi());
+    TH1D* SIGdPhi = new TH1D("sig_dPhi", "Signal #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 7, 0, TMath::Pi());
+    TH1D* SIGclusterPhi = new TH1D("sig_clusterPhi", "Signal #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 14, -TMath::Pi(), TMath::Pi());
+    TH1D* SIGjetPhi = new TH1D("sig_jetPhi", "Signal #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 14, -TMath::Pi(), TMath::Pi());
+    double SIGdPhi_binwidth = calculatebinwidth(7, 0, TMath::Pi());
+    double SIGclusterPhi_binwidth = calculatebinwidth(14, -TMath::Pi(), TMath::Pi());
+    double SIGjetPhi_binwidth = calculatebinwidth(14, -TMath::Pi(), TMath::Pi());
     SIGdPhi->Sumw2();
     SIGclusterPhi->Sumw2();
     SIGjetPhi->Sumw2();
@@ -102,15 +105,18 @@ int main(int argc, char *argv[])
     SIGclusterEta->Sumw2();
     SIGjetEta->Sumw2();
     
-    TH1D* SIGXj = new TH1D("sig_Xj", "Signal Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, 0.0,2.0);
-    TH1D* SIGpTD = new TH1D("sig_pTD", "Signal Jet pTD distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 60, 0.0,1.0);
-    TH1D* SIGMultiplicity = new TH1D("sig_Multiplicity", "Signal Jet Multiplicity; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0.0 , 20.0);
-    double SIGXj_binwidth = calculatebinwidth(40, 0.0,2.0);
-    double SIGpTD_binwidth = calculatebinwidth(60, 0.0,1.0);
-    double SIGMultiplicity_binwidth = calculatebinwidth(20, 0.0 , 20.0);
+    TH1D* SIGXj = new TH1D("sig_Xj", "Signal Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 10, 0.0,2.0);
+    TH1D* SIGpTD = new TH1D("sig_pTD", "Signal Jet pTD distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 5, 0.0,1.0);
+    TH1D* SIGMultiplicity = new TH1D("sig_Multiplicity", "Signal Jet Multiplicity; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 10, 0.0 , 20.0);
+    TH1D* SIGXobsPb = new TH1D("sig_XobsPb", "x_{pPb}^{obs} distribution: signal region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 5, 0.004, 0.024);
+    double SIGXj_binwidth = calculatebinwidth(10, 0.0,2.0);
+    double SIGpTD_binwidth = calculatebinwidth(5, 0.0,1.0);
+    double SIGMultiplicity_binwidth = calculatebinwidth(10, 0.0 , 20.0);
+    double SIGXobsPb_binwidth = calculatebinwidth(5, 0.004, 0.024);
     SIGXj->Sumw2();
     SIGpTD->Sumw2();
     SIGMultiplicity->Sumw2();
+    SIGXobsPb->Sumw2();
     
     TH1D* BKGcluster_pt_dist = new TH1D("bkg_Cluster_pT", "Background Cluster p_{T} distribution; cluster p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 7, cluspTmin, cluspTmax);
     TH1D* BKGjet_pt_dist = new TH1D("bkg_Jet_pT", "Background Jet p_{T} distribution; jet p_{T} (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 25, 5, 30);
@@ -122,12 +128,12 @@ int main(int argc, char *argv[])
     BKGjet_pt_dist->Sumw2();
     BKGpt_diff_dist->Sumw2();
     
-    TH1D* BKGdPhi = new TH1D("bkg_dPhi", "Background #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0, TMath::Pi());
-    TH1D* BKGclusterPhi = new TH1D("bkg_clusterPhi", "Background #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
-    TH1D* BKGjetPhi = new TH1D("bkg_jetPhi", "Background #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 40, -TMath::Pi(), TMath::Pi());
-    double BKGdPhi_binwidth = calculatebinwidth(20, 0, TMath::Pi());
-    double BKGclusterPhi_binwidth = calculatebinwidth(40, -TMath::Pi(), TMath::Pi());
-    double BKGjetPhi_binwidth = calculatebinwidth(40, -TMath::Pi(), TMath::Pi());
+    TH1D* BKGdPhi = new TH1D("bkg_dPhi", "Background #Delta #phi distribution; #Delta #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 7, 0, TMath::Pi());
+    TH1D* BKGclusterPhi = new TH1D("bkg_clusterPhi", "Background #phi_{cluster} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 14, -TMath::Pi(), TMath::Pi());
+    TH1D* BKGjetPhi = new TH1D("bkg_jetPhi", "Background #phi_{jet} distribution; #phi (rads); #frac{dN}{N_{#gamma}*N_{minbias}}", 14, -TMath::Pi(), TMath::Pi());
+    double BKGdPhi_binwidth = calculatebinwidth(7, 0, TMath::Pi());
+    double BKGclusterPhi_binwidth = calculatebinwidth(14, -TMath::Pi(), TMath::Pi());
+    double BKGjetPhi_binwidth = calculatebinwidth(14, -TMath::Pi(), TMath::Pi());
     BKGdPhi->Sumw2();
     BKGclusterPhi->Sumw2();
     BKGjetPhi->Sumw2();
@@ -142,15 +148,18 @@ int main(int argc, char *argv[])
     BKGclusterEta->Sumw2();
     BKGjetEta->Sumw2();
     
-    TH1D* BKGXj = new TH1D("bkg_Xj", "Background Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 40, 0.0,2.0);
-    TH1D* BKGpTD = new TH1D("bkg_pTD", "Background Jet pTD distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 60, 0.0,1.0);
-    TH1D* BKGMultiplicity = new TH1D("bkg_Multiplicity", "Background Jet Multiplicity distribution; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 20, 0.0 , 20.0);
-    double BKGXj_binwidth = calculatebinwidth(40, 0.0,2.0);
-    double BKGpTD_binwidth = calculatebinwidth(60, 0.0,1.0);
-    double BKGMultiplicity_binwidth = calculatebinwidth(20, 0.0 , 20.0);
+    TH1D* BKGXj = new TH1D("bkg_Xj", "Background Xj distribution; Xj; #frac{dN}{N_{#gamma}*N_{minbias}}", 10, 0.0,2.0);
+    TH1D* BKGpTD = new TH1D("bkg_pTD", "Background Jet pTD distribution; p_{T}D (GeV); #frac{dN}{N_{#gamma}*N_{minbias}}", 5, 0.0,1.0);
+    TH1D* BKGMultiplicity = new TH1D("bkg_Multiplicity", "Background Jet Multiplicity distribution; Multiplicity; #frac{dN}{N_{#gamma}*N_{minbias}}", 10, 0.0 , 20.0);
+    TH1D* BKGXobsPb = new TH1D("bkg_XobsPb", "x_{pPb}^{obs} distribution: background region; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 5, 0.004, 0.024);
+    double BKGXj_binwidth = calculatebinwidth(10, 0.0,2.0);
+    double BKGpTD_binwidth = calculatebinwidth(5, 0.0,1.0);
+    double BKGMultiplicity_binwidth = calculatebinwidth(10, 0.0 , 20.0);
+    double BKGXobsPb_binwidth = calculatebinwidth(5, 0.004, 0.024);
     BKGXj->Sumw2();
     BKGpTD->Sumw2();
     BKGMultiplicity->Sumw2();
+    BKGXobsPb->Sumw2();
     
     TH1D* z_Vertices_individual = new TH1D("z_Vertices_individual", "Z-vertex (ROOT)", 50, 0, 25);
     TH1D* z_Vertices_hdf5 = new TH1D("z_Vertices_hdf5", "Z-vertex (hdf5)", 50, 0, 25);
@@ -370,7 +379,7 @@ int main(int argc, char *argv[])
     
     TTree *_tree_event = dynamic_cast<TTree *>(file->Get("_tree_event"));
     if (_tree_event == NULL) {
-        _tree_event = dynamic_cast<TTree *>(file->Get("AliAnalysisTaskNTGJ/_tree_event"));
+        _tree_event = dynamic_cast<TTree *> (dynamic_cast<TDirectoryFile *>   (file->Get("AliAnalysisTaskNTGJ"))->Get("_tree_event"));
         if (_tree_event == NULL) {
             std::cout << " tree fail " << std::endl;
             exit(EXIT_FAILURE);
@@ -504,6 +513,7 @@ int main(int argc, char *argv[])
     
     //define space in memory for hyperslab, then write from file to memory
     event_memspace.selectHyperslab( H5S_SELECT_SET, event_count_out, event_offset_out );
+    std::cout << "Made it to line 394" <<  std::endl;
     event_dataset.read( event_data_out, PredType::NATIVE_FLOAT, event_memspace, event_dataspace );
     fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "event dataset read into array: OK");
     
@@ -612,7 +622,9 @@ int main(int argc, char *argv[])
                     N_BR++;
                 }
                 for(Long64_t ijet = 0; ijet < njet_ak04its; ijet++){
+                    if(TMath::IsNaN(jet_data_out[0][ijet][0])) continue;
                     if(not(jet_data_out[0][ijet][0] > jetpTmin)) {continue;}
+                    std::cout << "icluster " << icluster << " ijet " << ijet << " has jet pT " << jet_data_out[0][ijet][0] << std::endl;
                     // After the jet cuts, fill histograms
                     jet_pT = jet_data_out[0][ijet][0];
                     jet_phi = jet_data_out[0][ijet][2];
@@ -620,6 +632,8 @@ int main(int argc, char *argv[])
                     jet_pTD = jet_data_out[0][ijet][3];
                     jet_multiplicity = jet_data_out[0][ijet][4];
                     if (not(TMath::Abs(jet_eta) < 0.5)) {continue;}
+                    
+                    std::cout << "icluster " << icluster << " ijet " << ijet << " passed all jet cuts " << std::endl;
                     
                     while(jet_phi >= TMath::Pi()) jet_phi -= (2*TMath::Pi());
                     while(jet_phi <= -TMath::Pi()) jet_phi += (2*TMath::Pi());
@@ -644,6 +658,7 @@ int main(int argc, char *argv[])
                         SIGXj->Fill(jet_pT/cluspT);
                         SIGpTD->Fill(jet_pTD);
                         SIGMultiplicity->Fill(jet_multiplicity);
+                        SIGXobsPb->Fill(((cluspT*TMath::Exp(-cluseta))+(jet_pT*TMath::Exp(-jet_eta)))/(2*EPb));
                         
                         z_Vertices->Fill(TMath::Abs(event_data_out[0][0] - primary_vertex[2]));
                         z_Vertices_individual->Fill(primary_vertex[2]);
@@ -677,6 +692,7 @@ int main(int argc, char *argv[])
                         BKGXj->Fill(jet_pT/cluspT);
                         BKGpTD->Fill(jet_pTD);
                         BKGMultiplicity->Fill(jet_multiplicity);
+                        BKGXobsPb->Fill(((cluspT*TMath::Exp(-cluseta))+(jet_pT*TMath::Exp(-jet_eta)))/(2*EPb));
                         
                     }
                     
@@ -711,6 +727,7 @@ int main(int argc, char *argv[])
     SIGXj->Scale(1.0/(N_SR*SIGXj_binwidth));
     SIGpTD->Scale(1.0/(N_SR*SIGpTD_binwidth));
     SIGMultiplicity->Scale(1.0/(N_SR*SIGMultiplicity_binwidth));
+    SIGXobsPb->Scale(1.0/(N_SR*SIGXobsPb_binwidth));
     
     BKGcluster_pt_dist->Scale(1.0/(N_BR*BKGcluster_pt_dist_binwidth));
     BKGjet_pt_dist->Scale(1.0/(N_BR*BKGjet_pt_dist_binwidth));
@@ -727,6 +744,7 @@ int main(int argc, char *argv[])
     BKGXj->Scale(1.0/(N_BR*BKGXj_binwidth));
     BKGpTD->Scale(1.0/(N_BR*BKGpTD_binwidth));
     BKGMultiplicity->Scale(1.0/(N_BR*BKGMultiplicity_binwidth));
+    BKGXobsPb->Scale(1.0/(N_BR*BKGXobsPb_binwidth));
     
     // Set minima
     SIGcluster_pt_dist->SetMinimum(0);
@@ -744,6 +762,7 @@ int main(int argc, char *argv[])
     SIGXj->SetMinimum(0);
     SIGpTD->SetMinimum(0);
     SIGMultiplicity->SetMinimum(0);
+    SIGXobsPb->SetMinimum(0);
     
     BKGcluster_pt_dist->SetMinimum(0);
     BKGjet_pt_dist->SetMinimum(0);
@@ -760,6 +779,7 @@ int main(int argc, char *argv[])
     BKGXj->SetMinimum(0);
     BKGpTD->SetMinimum(0);
     BKGMultiplicity->SetMinimum(0);
+    BKGXobsPb->SetMinimum(0);
     
     //Write histograms here
     
@@ -778,6 +798,7 @@ int main(int argc, char *argv[])
     SIGXj->Write();
     SIGpTD->Write();
     SIGMultiplicity->Write();
+    SIGXobsPb->Write();
     
     BKGcluster_pt_dist->Write();
     BKGjet_pt_dist->Write();
@@ -794,6 +815,7 @@ int main(int argc, char *argv[])
     BKGXj->Write();
     BKGpTD->Write();
     BKGMultiplicity->Write();
+    BKGXobsPb->Write();
     
     z_Vertices->Write();
     Multiplicity->Write();

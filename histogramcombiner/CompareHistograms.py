@@ -155,7 +155,7 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
     if (multi.GetListOfGraphs().GetSize() == 0):
         print "Multigraph is empty; aborting"
         return
-    cluslabel = Legend("20 GeV < p_{T_{trigger}} < 30 GeV")
+    cluslabel = Legend("15 GeV < p_{T_{trigger}} < 30 GeV")
     jetlabel = Legend("p_{T}^{jet} > 10 GeV ; R=0.4")
 
     #multi.SetMaximum(15)
@@ -180,7 +180,7 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
 
     label.Draw(0.6,.96)
     cluslabel.Draw(0.2, 0.9)
-    jetlabel.Draw(0.2, 0.85)
+    jetlabel.Draw(0.2, 0.80)
 
     if ly==True:
         ROOT.gPad.SetLogy(1)
