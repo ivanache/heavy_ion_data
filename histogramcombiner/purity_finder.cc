@@ -8,17 +8,17 @@
 #include <iostream>
 
 const int num_of_datatypes = 2;
-const int num_of_id_vars = 3;
+const int num_of_id_vars = 2;
 //enum photon_IDVARS {LAMBDA_0, DNN, EMAX_OVER_ECLUSTER};
 //photon_IDVARS ID_possibilities[num_of_id_vars] = {LAMBDA_0, DNN, EMAX_OVER_ECLUSTER}
 const std::string datatype_identifiers[num_of_datatypes] = {"pp", "pPb"};
-const std::string Idvar_identifiers[num_of_id_vars] = {"lambda_0", "DNN", "Emax_over_Ecluster"};
+const std::string Idvar_identifiers[num_of_id_vars] = {"lambda_0", "DNN"};
 
 // Cluster pT intervals looked at
 const int num_of_pt_intervals = 8;
 const double cluspT_intervals[num_of_pt_intervals + 1] = {12.5, 13.5, 14.0, 16.0, 18.0, 20.0, 25.0, 30.0, 40.0};
-const double purities[num_of_datatypes][num_of_id_vars][num_of_pt_intervals] = {{{27, 35, 33, 45, 54, 55, 57, 59}, {34, 41, 42, 50, 53, 56, 57, 48}, {30, 36, 36, 44, 46, 46, 53, 45}}, {{28, 31, 34, 44, 48, 52, 58, 61}, {35, 39, 41, 46, 50, 58, 60, 57}, {30, 32, 33, 41, 41, 49, 55, 61}}};
-const double purityerrors[num_of_datatypes][num_of_id_vars][num_of_pt_intervals] = {{{2, 3, 2, 2, 2, 2, 4, 3}, {2, 2, 2, 2, 2, 2, 1, 4}, {2, 3, 2, 2, 2, 3, 3, 6}}, {{2, 2, 1, 2, 2, 1, 2, 2}, {1, 2, 2, 1, 2, 1, 2, 2}, {1 ,1, 1, 2, 2, 2, 3, 3}}};
+const double purities[num_of_datatypes][num_of_id_vars][num_of_pt_intervals] = {{{22.7, 30.7, 27.6, 39.6, 48.6, 47.1, 49.1, 51.1}, {24.8, 31.8, 33.1, 41.1, 44.1, 45.1, 46.1, 37.1}}, {{23.7, 26.7, 28.6, 38.6, 42.6, 44.1, 50.1, 53.1}, {25.8, 29.8, 32.1, 37.1, 41.1, 47.1, 49.1, 46.1}}};
+const double purityerrors[num_of_datatypes][num_of_id_vars][num_of_pt_intervals] = {{{2, 3, 2, 2, 2, 2, 4, 3}, {2, 2, 2, 2, 2, 2, 1, 4}}, {{2, 2, 1, 2, 2, 1, 2, 2}, {1, 2, 2, 1, 2, 1, 2, 2}}};
 
 /*
 const double purities_pp[num_of_id_vars][num_of_pt_intervals + 1] = {{27, 35, 33, 45, 54, 55, 57, 59}, {34, 41, 42, 50, 53, 56, 57, 48}, {30, 36, 36, 44, 46, 46, 53, 45}}
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
         }
     }
     if (showershape_index == -1) {
-        std::cout << "ERROR: Shower shape selection variable must be: \"" << Idvar_identifiers[0] << "\", \"" << Idvar_identifiers[1] << "\", or \"" << Idvar_identifiers[2] << std::endl;
+        std::cout << "ERROR: Shower shape selection variable must be: \"" << Idvar_identifiers[0] << "\" or \"" << Idvar_identifiers[2] << std::endl;
         exit(EXIT_FAILURE);
     }
         
