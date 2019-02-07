@@ -1363,10 +1363,10 @@ int main(int argc, char *argv[])
     else {
         photonselectionvar = "EmaxOverEcluster";
     }
-    TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_%s_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, opened_files.c_str(), photonselectionvar.c_str()),"RECREATE");
+    //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_%s_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, opened_files.c_str(), photonselectionvar.c_str()),"RECREATE");
     //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MC17g6a1_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
     //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MCdijet_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
-    //TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MCgammajet_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
+    TFile* fout = new TFile(Form("GammaJet_config_clusptmin%2.1f_clusptmax%2.1f_JETPTMIN_%2.1f_DATANAME_MCgammajet_PHOTONSELECT_%s.root", clus_pT_min, clus_pT_max, jet_pT_min, photonselectionvar.c_str()),"RECREATE");
     fout->Print();
 
     //Save the sum of weights 
