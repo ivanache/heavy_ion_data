@@ -33,6 +33,9 @@ op.add_option("-m","--legendname",dest="legendname",
               default="",
               help="legend name")
 
+op.add_option("-w","--graphtitle",dest="graphtitle",
+              default="",
+              help="graph label")
 op.add_option("-x","--xaxislabel",dest="xaxislabel",
               default="",
               help="x axis label")
@@ -163,7 +166,7 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
     multi.Draw("ALP")
     ROOT.gStyle.SetErrorX(0.0001);
     multi.SetMaximum(1.02*multi.GetHistogram().GetMaximum())
-    multi.SetTitle(title)
+    multi.SetTitle(p_ops.graphtitle)
     multi.GetXaxis().SetTitle(xtitle)
     multi.GetYaxis().SetTitle(ytitle)
     #multi.GetXaxis().SetTitle('x_{obs}^{Pb}:= #frac{p_{T}^{#gamma}e^{-#eta^{#gamma}} + p_{T}^{jet}e^{-#eta^{jet}}}{2E_{Pb}}')
