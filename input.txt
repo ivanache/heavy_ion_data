@@ -1,2 +1,0 @@
-monte_carlo/background/Pion_data/gaussian/quadratic_my_code/BackgroundMC_PionSparsesOutput_angle_17mrad.root, “MC”
-Pion_data/THnSparses_072417_output/gaussian/PionSparsesOutput_angle_17mrad.root, “ALICE”

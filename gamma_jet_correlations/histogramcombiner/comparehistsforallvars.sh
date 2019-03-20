@@ -1,0 +1,23 @@
+#!/bin/bash
+
+./loopovervariables input_showershapecompare_pp.txt pp_data
+./loopovervariables input_showershapecompare_pPb.txt pPb_data
+./loopovervariables input_showershapecompare_17g6a1.txt 17g6a1_data
+./loopovervariables input_showershapecompare_17g6a1_truth.txt 17g6a1_truths
+./loopovervariables input_showershapecompare_18b10a.txt 18b10a_data
+./loopovervariables input_showershapecompare_18g7a.txt 18g7a_data
+
+./loopovervariables input_pPb-pp_comparison_DNN.txt DNN_pPb_pp_comparison
+./loopovervariables input_pPb-pp_comparison_EmaxOverEcluster.txt Emax_over_Ecluster_pPb_pp_comparison
+./loopovervariables input_pPb-pp_comparison_Lambda0.txt Lambda0_pPb_pp_comparison
+
+./loopovervariables input_pPb-17g6a1_comparison_Lambda0.txt Lambda0_pPb_17g6a1_comparison
+./loopovervariables input_pPb-17g6a1_comparison_EmaxOverEcluster.txt EmaxOverEcluster_pPb_17g6a1_comparison
+./loopovervariables input_pPb-17g6a1_comparison_DNN.txt DNN_pPb_17g6a1_comparison
+
+./loopovervariables input_pp-18b10a_comparison_DNN.txt DNN_pp_18b10a_comparison
+./loopovervariables input_pp-18b10a_comparison_Lambda0.txt Lambda0_pp_18b10a_comparison
+./loopovervariables input_pp-18b10a_comparison_EmaxOverEcluster.txt Emax_over_Ecluster_pp_18b10a_comparison
+
+./loopovervariables input_pp_mixedeventoverlay.txt pp_data_mixedevent_comparison
+./loopovervariables input_pPb_mixedeventoverlay.txt pPb_data_mixedevent_comparison
