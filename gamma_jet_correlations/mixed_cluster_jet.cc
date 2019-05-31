@@ -389,6 +389,7 @@ int main(int argc, char *argv[])
     //variables
     UInt_t nevent;
     std::vector<Double_t> primary_vertex(3, NAN);
+    Bool_t is_pileup_from_spd_5_08;
     std::vector<Float_t> multiplicity_v0(64, NAN);//64 channels for v0 detector, to be summed
     
     UInt_t ntrack;
@@ -408,6 +409,7 @@ int main(int argc, char *argv[])
     Float_t cluster_iso_its_04[NTRACK_MAX];
     Float_t cluster_frixione_tpc_04_02[NTRACK_MAX];
     Float_t cluster_frixione_its_04_02[NTRACK_MAX];
+    Float_t cluster_iso_its_04_ue[NTRACK_MAX];
     Float_t cluster_s_nphoton[NTRACK_MAX][4];
     UChar_t cluster_nlocal_maxima[NTRACK_MAX];
     Float_t cluster_distance_to_bad_channel[NTRACK_MAX];
@@ -427,6 +429,7 @@ int main(int argc, char *argv[])
     Long64_t mix_events[300];
     
     _tree_event->SetBranchAddress("primary_vertex", &primary_vertex[0]);
+    _tree_event->SetBranchAddress("is_pileup_from_spd_5_08", &is_pileup_from_spd_5_08);
     _tree_event->SetBranchAddress("multiplicity_v0", &multiplicity_v0[0]);
     
     _tree_event->SetBranchAddress("ntrack", &ntrack);
@@ -449,6 +452,7 @@ int main(int argc, char *argv[])
     _tree_event->SetBranchAddress("cluster_iso_its_04",cluster_iso_its_04);
     _tree_event->SetBranchAddress("cluster_frixione_tpc_04_02",cluster_frixione_tpc_04_02);
     _tree_event->SetBranchAddress("cluster_frixione_its_04_02",cluster_frixione_its_04_02);
+    _tree_event->SetBranchAddress("cluster_iso_its_04_ue",cluster_iso_its_04_ue);
     _tree_event->SetBranchAddress("cluster_nlocal_maxima", cluster_nlocal_maxima);
     _tree_event->SetBranchAddress("cluster_distance_to_bad_channel", cluster_distance_to_bad_channel);
     
@@ -574,6 +578,9 @@ int main(int argc, char *argv[])
     
     for(Long64_t ievent = 0; ievent < nentries ; ievent++){
         _tree_event->GetEntry(ievent);
+        if(not( TMath::Abs(primary_vertex[2])<10)) continue; //vertex z position cut
+        if(not (primary_vertex[2]!=0.00 )) continue; //removes default of vertex z = 0
+        if(is_pileup_from_spd_5_08) continue; //removes pileup
 
         //Cuts/Variables from the ROOT file go here
         for (Long64_t imix = mix_start; imix < mix_end+1; imix++){
@@ -598,14 +605,22 @@ int main(int argc, char *argv[])
             double jet_eta = -9000;
             double jet_pTD = -9000;
             double jet_multiplicity = -9000;
-            
             for(Long64_t icluster = 0; icluster < ncluster; icluster++) {
+                double isolation;
+                // UE subtraction; choose isolation variable
+                if (determiner == CLUSTER_ISO_TPC_04) isolation = cluster_iso_tpc_04[icluster] + cluster_iso_its_04_ue[icluster];
+                else if (determiner == CLUSTER_ISO_ITS_04) isolation = cluster_iso_its_04[icluster] + cluster_iso_its_04_ue[icluster];
+                else if (determiner == CLUSTER_FRIXIONE_TPC_04_02) isolation = cluster_frixione_tpc_04_02[icluster] + cluster_iso_its_04_ue[icluster];
+                else isolation = cluster_frixione_its_04_02[icluster] + cluster_iso_its_04_ue[icluster];
+                
                 if(not(cluster_pt[icluster] > cluspTmin)) {continue;}
                 if(not(cluster_pt[icluster] < cluspTmax)) {continue;}
+                if( not(TMath::Abs(cluster_eta[icluster])<0.67)) {continue;} //select eta of photons
                 if( not(cluster_ncell[icluster]>2)) {continue;}   //removes clusters with 1 or 2 cells
                 if( not(cluster_e_cross[icluster]/cluster_e[icluster]>0.03)) {continue;} //removes "spiky" clusters
                 if( not(cluster_nlocal_maxima[icluster]<= 2)) {continue;} //require to have at most 2 local maxima.
                 if( not(cluster_distance_to_bad_channel[icluster]>=2.0)) {continue;}
+                if( not(isolation < 1)) continue;
                 
                 cluspT = cluster_pt[icluster];
                 clusphi = cluster_phi[icluster];
@@ -618,13 +633,15 @@ int main(int argc, char *argv[])
                 if((cluster_lambda_square[icluster][0] > 0.05) && (cluster_lambda_square[icluster][0] < 0.3)) {
                     N_SR++;
                 }
-                if((cluster_lambda_square[icluster][0] > 0.4) && (cluster_lambda_square[icluster][0] < 1.0)) {
+                else if((cluster_lambda_square[icluster][0] > 0.4) && (cluster_lambda_square[icluster][0] < 1.0)) {
                     N_BR++;
                 }
+                else {continue;}
+                
                 for(Long64_t ijet = 0; ijet < njet_ak04its; ijet++){
                     if(TMath::IsNaN(jet_data_out[0][ijet][0])) continue;
                     if(not(jet_data_out[0][ijet][0] > jetpTmin)) {continue;}
-                    std::cout << "icluster " << icluster << " ijet " << ijet << " has jet pT " << jet_data_out[0][ijet][0] << std::endl;
+                    //std::cout << "icluster " << icluster << " has  lambda0 " << cluster_lambda_square[icluster][0] << std::endl;
                     // After the jet cuts, fill histograms
                     jet_pT = jet_data_out[0][ijet][0];
                     jet_phi = jet_data_out[0][ijet][2];
@@ -633,12 +650,14 @@ int main(int argc, char *argv[])
                     jet_multiplicity = jet_data_out[0][ijet][4];
                     if (not(TMath::Abs(jet_eta) < 0.5)) {continue;}
                     
-                    std::cout << "icluster " << icluster << " ijet " << ijet << " passed all jet cuts " << std::endl;
+                    //std::cout << "icluster " << icluster << " ijet " << ijet << " passed all jet cuts " << std::endl;
                     
                     while(jet_phi >= TMath::Pi()) jet_phi -= (2*TMath::Pi());
                     while(jet_phi <= -TMath::Pi()) jet_phi += (2*TMath::Pi());
                     
+                    
                     if((cluster_lambda_square[icluster][0] > 0.05) && (cluster_lambda_square[icluster][0] < 0.3)) {
+                        //std::cout << "SIG icluster " << icluster << " has  lambda0 " << cluster_lambda_square[icluster][0] << std::endl;
                         SIGcluster_pt_dist->Fill(cluspT);
                         SIGjet_pt_dist->Fill(jet_pT);
                         SIGpt_diff_dist->Fill(TMath::Abs(cluspT-jet_pT));
@@ -673,6 +692,7 @@ int main(int argc, char *argv[])
                     }
                     
                     if((cluster_lambda_square[icluster][0] > 0.4) && (cluster_lambda_square[icluster][0] < 1.0)) {
+                        //std::cout << "BKG icluster " << icluster << " has  lambda0 " << cluster_lambda_square[icluster][0] << std::endl;
                         BKGcluster_pt_dist->Fill(cluspT);
                         BKGjet_pt_dist->Fill(jet_pT);
                         BKGpt_diff_dist->Fill(TMath::Abs(cluspT-jet_pT));
@@ -695,7 +715,9 @@ int main(int argc, char *argv[])
                         BKGXobsPb->Fill(((cluspT*TMath::Exp(-cluseta))+(jet_pT*TMath::Exp(-jet_eta)))/(2*EPb));
                         
                     }
-                    
+                    //else {
+                        //std::cout << "icluster " << icluster << " has  lambda0 " << cluster_lambda_square[icluster][0] << std::endl;
+                    //}
                 }
             }
             
@@ -935,5 +957,11 @@ int main(int argc, char *argv[])
     fout->Close();
     
     std::cout << " ending; num of signal triggers is " << N_SR << " background " << N_BR << std::endl;
+    
+    // Write out number of triggers to a text-file, for permanence
+    std::ofstream outfile_ntrigger;
+    outfile_ntrigger.open(Form("Ntriggercount_%luGeVTracks_Correlation_%1.1lu_to_%1.1lu_cluspT_%1.1f_to_%1.1f_minjetpT_%2.1f.txt", GeV_Track_Skim, mix_start, mix_end, cluspTmin, cluspTmax, jetpTmin));
+    outfile_ntrigger << "num of signal triggers is " << N_SR << " background " << N_BR << std::endl;
+    outfile_ntrigger.close();
     return EXIT_SUCCESS;
 }

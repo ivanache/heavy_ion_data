@@ -65,7 +65,8 @@ int main(int argc, char *argv[])
     double clus_pT_max = 16;
     double track_pT_max = 1;  // Track pT cut
     double jet_pT_min = 10.0;  // Jet pT cut
-    double Eta_max = 0.5;  // Jet pT cut
+    double Cluster_Eta_max = 0.67;
+    double Jet_Eta_max = 0.5;  // Jet eta cut
     double Cluster_ncell_min = 2;
     double Cluster_locmaxima_max = 2.0;
     double Cluster_distobadchannel = 2.0;
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
     double noniso_min = 2.0;
     double noniso_max = 10.0;
     
-    // Delta eta cut (difference between the photon's eta and the jet's eta, in a gamma-jet pair)
+    // Delta eta cut (difference between the photon's eta and the jet's eta, in a gamma-jet pair) (currently not used)
     double deta_max = 0.5;
     
     // Number of bins in correlation functions
@@ -193,9 +194,13 @@ int main(int argc, char *argv[])
             jet_pT_min = atof(value);
             std::cout << "jet_pT_min is " << jet_pT_min << std::endl;
         }
-        else if (strcmp(key, "Eta_max") == 0) {
-            Eta_max = atof(value);
-            std::cout << "Eta_max is " << Eta_max << std::endl;
+        else if (strcmp(key, "Cluster_Eta_max") == 0) {
+            Cluster_Eta_max = atof(value);
+            std::cout << "Cluster_Eta_max is " << Jet_Eta_max << std::endl;
+        }
+        else if (strcmp(key, "Jet_Eta_max") == 0) {
+            Jet_Eta_max = atof(value);
+            std::cout << "Jet_Eta_max is " << Jet_Eta_max << std::endl;
         }
         else if (strcmp(key, "Cluster_ncell_min") == 0) {
             Cluster_ncell_min = atof(value);
@@ -853,6 +858,7 @@ int main(int argc, char *argv[])
 
                 if( not(cluster_pt[n]>clus_pT_min)) continue; //select pt of photons
                 if( not(cluster_pt[n]<clus_pT_max)) continue;
+                if( not(TMath::Abs(cluster_eta[n])<Cluster_Eta_max)) continue; //select eta of photons
                 if( not(cluster_ncell[n]>Cluster_ncell_min)) continue;   //removes clusters with 1 or 2 cells
                 if( not(cluster_e_cross[n]/cluster_e[n]>EcrossoverE_min)) continue; //removes "spiky" clusters
                 if( not(cluster_nlocal_maxima[n]<= Cluster_locmaxima_max)) continue; //require to have at most 2 local maxima.
@@ -894,14 +900,15 @@ int main(int argc, char *argv[])
     std::cout<<" About to start looping over events" << std::endl;
     h_cutflow.GetXaxis()->SetBinLabel(1, "All");
     h_cutflow.GetXaxis()->SetBinLabel(2, Form("%2.2f<pt<%2.2f GeV", clus_pT_min, clus_pT_max));
-    h_cutflow.GetXaxis()->SetBinLabel(3, Form("N_{cell}>%2.2f", Cluster_ncell_min));
-    h_cutflow.GetXaxis()->SetBinLabel(4, "E_{cross}/E_{cell}");
-    h_cutflow.GetXaxis()->SetBinLabel(5, Form("NLM <%2.2f", Cluster_locmaxima_max));
-    h_cutflow.GetXaxis()->SetBinLabel(6, Form("Distance-to-bad chanel>=%2.2f", Cluster_distobadchannel));
-    h_cutflow.GetXaxis()->SetBinLabel(7, "Isolation < 2 GeV");
-    h_cutflow.GetXaxis()->SetBinLabel(8, Form("Isolation < %2.2f GeV", iso_max));
-    h_cutflow.GetXaxis()->SetBinLabel(9, "In Signal Region");
-    h_cutflow.GetXaxis()->SetBinLabel(10, "In Background Region");
+    h_cutflow.GetXaxis()->SetBinLabel(3, Form("|#eta|<%2.2f", Cluster_Eta_max));
+    h_cutflow.GetXaxis()->SetBinLabel(4, Form("N_{cell}>%2.2f", Cluster_ncell_min));
+    h_cutflow.GetXaxis()->SetBinLabel(5, "E_{cross}/E_{cell}");
+    h_cutflow.GetXaxis()->SetBinLabel(6, Form("NLM <%2.2f", Cluster_locmaxima_max));
+    h_cutflow.GetXaxis()->SetBinLabel(7, Form("Distance-to-bad chanel>=%2.2f", Cluster_distobadchannel));
+    h_cutflow.GetXaxis()->SetBinLabel(8, "Isolation < 2 GeV");
+    h_cutflow.GetXaxis()->SetBinLabel(9, Form("Isolation < %2.2f GeV", iso_max));
+    h_cutflow.GetXaxis()->SetBinLabel(10, "In Signal Region");
+    h_cutflow.GetXaxis()->SetBinLabel(11, "In Background Region");
 
     h_evtcutflow.GetXaxis()->SetBinLabel(1, "All");
     h_evtcutflow.GetXaxis()->SetBinLabel(2, "Vertex |z| < 10 cm");
@@ -916,7 +923,7 @@ int main(int argc, char *argv[])
       
     h_jetcutflow.GetXaxis()->SetBinLabel(1, "All");
     h_jetcutflow.GetXaxis()->SetBinLabel(2, Form("Jet p_{T}>%2.2f", jet_pT_min));
-    h_jetcutflow.GetXaxis()->SetBinLabel(3, Form("Jet eta<%2.2f", Eta_max));
+    h_jetcutflow.GetXaxis()->SetBinLabel(3, Form("Jet eta<%2.2f", Jet_Eta_max));
     h_jetcutflow.GetXaxis()->SetBinLabel(4, "In Signal Region");
     h_jetcutflow.GetXaxis()->SetBinLabel(5, "In Background Region");
       
@@ -1063,7 +1070,7 @@ int main(int argc, char *argv[])
       //loop over jets
       for (ULong64_t ijet = 0; ijet < njet_ak04its; ijet++) { //start loop over jets
 	if(not (jet_ak04its_pt_raw[ijet]>jet_pT_min)) continue;
-	if(not (TMath::Abs(jet_ak04its_eta_raw[ijet]) <Eta_max)) continue;
+	if(not (TMath::Abs(jet_ak04its_eta_raw[ijet]) < Jet_Eta_max)) continue;
         h_jetphi.Fill(jet_ak04its_phi[ijet], weight);
       }
 
@@ -1103,29 +1110,31 @@ int main(int argc, char *argv[])
         if( not(cluster_pt[n]>clus_pT_min)) continue; //select pt of photons
         if( not(cluster_pt[n]<clus_pT_max)) continue;
         h_cutflow.Fill(1);
-        if( not(cluster_ncell[n]>Cluster_ncell_min)) continue;   //removes clusters with 1 or 2 cells
+        if( not(TMath::Abs(cluster_eta[n])<Cluster_Eta_max)) continue; //select eta of photons
         h_cutflow.Fill(2);
-	if( not(cluster_e_cross[n]/cluster_e[n]>EcrossoverE_min)) continue; //removes "spiky" clusters
+        if( not(cluster_ncell[n]>Cluster_ncell_min)) continue;   //removes clusters with 1 or 2 cells
         h_cutflow.Fill(3);
-        if( not(cluster_nlocal_maxima[n]< Cluster_locmaxima_max)) continue; //require to have at most 2 local maxima.
+	if( not(cluster_e_cross[n]/cluster_e[n]>EcrossoverE_min)) continue; //removes "spiky" clusters
         h_cutflow.Fill(4);
-	if( not(cluster_distance_to_bad_channel[n]>=Cluster_distobadchannel)) continue;
+        if( not(cluster_nlocal_maxima[n]< Cluster_locmaxima_max)) continue; //require to have at most 2 local maxima.
         h_cutflow.Fill(5);
+	if( not(cluster_distance_to_bad_channel[n]>=Cluster_distobadchannel)) continue;
+        h_cutflow.Fill(6);
 	h_clusterphi.Fill(cluster_phi[n], weight);
         h_clustereta.Fill(cluster_eta[n], weight);
         if( not(isolation < 2.0)) continue;
-        h_cutflow.Fill(6);
+        h_cutflow.Fill(7);
 	if( not(isolation < iso_max)) continue;
         h_clusterphi_iso.Fill(cluster_phi[n], weight);
         h_clustereta_iso.Fill(cluster_eta[n], weight);
-        h_cutflow.Fill(7);
+        h_cutflow.Fill(8);
     h_lambda_0.Fill(cluster_lambda_square[n][0]);
     h_DNN.Fill(cluster_s_nphoton[n][1]);
           h_EmaxOverEcluster.Fill(eratio);
     if (inSignalRegion)
-        h_cutflow.Fill(8);
-    if(inBkgRegion)
         h_cutflow.Fill(9);
+    if(inBkgRegion)
+        h_cutflow.Fill(10);
         
           // For Monte-Carlo: section for obtaining the true pT, true phi, and true eta corresponding to the current cluster
 	Bool_t isTruePhoton = false;
@@ -1174,7 +1183,7 @@ int main(int argc, char *argv[])
           h_jetcutflow.Fill(0);
           if(not (jet_ak04its_pt_raw[ijet]>jet_pT_min)) continue;
           h_jetcutflow.Fill(1);
-          if(not (TMath::Abs(jet_ak04its_eta_raw[ijet]) <Eta_max)) continue;
+          if(not (TMath::Abs(jet_ak04its_eta_raw[ijet]) <Jet_Eta_max)) continue;
           h_jetcutflow.Fill(2);
           if(inSignalRegion)
               h_jetcutflow.Fill(3);
@@ -1319,20 +1328,20 @@ int main(int argc, char *argv[])
 
       //loop over truth jets
       for (ULong64_t ijet = 0; ijet < njet_truth_ak04; ijet++) {
-	if(not(TMath::Abs(jet_truth_ak04_eta[ijet])<Eta_max)) continue;
+	if(not(TMath::Abs(jet_truth_ak04_eta[ijet])<Jet_Eta_max)) continue;
          h_jetpt_truth.Fill(jet_truth_ak04_pt[ijet], weight);
       }
     
       std::set<int> temp; //to store truth indices associated with reco jets
       for (ULong64_t ijet = 0; ijet < njet_ak04its; ijet++) { 
 	if(not (jet_ak04its_pt_raw[ijet]>jet_pT_min)) continue;
-	if(not (TMath::Abs(jet_ak04its_eta_raw[ijet])  <Eta_max ) ) continue;
+	if(not (TMath::Abs(jet_ak04its_eta_raw[ijet])  <Jet_Eta_max ) ) continue;
 	h_jetpt_reco.Fill(jet_ak04its_pt_raw[ijet], weight);
 	temp.insert(jet_ak04its_truth_index_z_reco[ijet][0]);
       } //end loop over reco jets
       for(auto& index: temp){
 	if(index>0){
-	  if(not(TMath::Abs(jet_truth_ak04_eta[index])<Eta_max)) continue;
+	  if(not(TMath::Abs(jet_truth_ak04_eta[index])<Jet_Eta_max)) continue;
           h_jetpt_truthreco.Fill(jet_truth_ak04_pt[index],weight);
 	}
       }//end loop over indices of reco jets
@@ -1349,7 +1358,7 @@ int main(int argc, char *argv[])
 	  //std::cout << " number of truth jets " << njet_truth_ak04 << std::endl;
 	  for (ULong64_t ijet = 0; ijet < njet_truth_ak04; ijet++) { // Loop over jets
             if(not(jet_truth_ak04_pt[ijet]>jet_pT_min)) continue;
-	    if(not(TMath::Abs(jet_truth_ak04_eta[ijet])<Eta_max)) continue;
+	    if(not(TMath::Abs(jet_truth_ak04_eta[ijet])<Jet_Eta_max)) continue;
 	    Float_t dphi_truth = TMath::Abs(TVector2::Phi_mpi_pi(jet_truth_ak04_phi[ijet] - mc_truth_phi[nmc]));
 	    //std::cout<< dphi_truth << std::endl;
             

@@ -1,8 +1,8 @@
-clus_pT_min:                   20
+clus_pT_min:                   15
 clus_pT_max:                   30
 track_pT_max:                  1.0
-jet_pT_min:                    8.0
-photon_idvar:                  lambda_0
+jet_pT_min:                    10.0
+photon_idvar:                  Lambda0
 SIG_DNN_min:                   0.55
 SIG_DNN_max:                   0.80
 BKG_DNN_min:                   0.0
@@ -15,7 +15,8 @@ SIG_Emax_over_Ecluster_min:    0.75
 SIG_Emax_over_Ecluster_max:    0.95
 BKG_Emax_over_Ecluster_min:    0.1
 BKG_Emax_over_Ecluster_max:    0.45
-Eta_max:                       0.5
+Cluster_Eta_max:               0.67
+Jet_Eta_max:                   0.5
 Cluster_ncell_min:             2
 Cluster_locmaxima_max:         2.0
 Cluster_distobadchannel:       2.0
@@ -24,7 +25,7 @@ iso_max:                       1.0
 noniso_min:                    2.0
 noniso_max:                    15.0
 deta_max:                      0.5
-phi_func_bins:                 5
+phi_func_bins:                 7
 eta_func_bins:                 20
 xj_func_bins:                  10
 primary_vertex_max:            10
