@@ -422,8 +422,8 @@ int main(int argc, char *argv[])
 
   TH1D hSR_Xj("hSR_Xj", "Xj distribution, Signal region", xjbins, 0.0,2.0);
   TH1D hBR_Xj("hBR_Xj", "Xj distribution, BKG region", xjbins, 0.0,2.0);
-  TH1D hSR_pTD("hSR_pTD", "pTD distribution, Signal region", 5, 0.0,1.0);
-  TH1D hBR_pTD("hBR_pTD", "pTD distribution, BKG region", 5, 0.0,1.0);
+  TH1D hSR_pTD("hSR_pTD", "pTD distribution, Signal region; p_TD; #frac{d #sigma}{d p_TD}", 5, 0.0,1.0);
+  TH1D hBR_pTD("hBR_pTD", "pTD distribution, BKG region; p_TD; #frac{d #sigma}{d p_TD}", 5, 0.0,1.0);
   TH1D hSR_Multiplicity("hSR_Multiplicity", "Jet Multiplicity distribution, Signal region", 10, 0.0 , 20.0);
   TH1D hBR_Multiplicity("hBR_Multiplicity", "Jet Multiplicity distribution, BKG region", 10, 0.0, 20.0);
   TH1D hSR_jetwidth("hSR_jetwidth", "jet width distribution, Signal region", 20, -10, 0);
@@ -483,9 +483,14 @@ int main(int argc, char *argv[])
     double hSR_XobsPb_truth_binwidth = calculatebinwidth(5, 0.004, 0.024);
     double hBR_XobsPb_truth_binwidth = calculatebinwidth(5, 0.004, 0.024);
 
-  TH1D h_dPhi_truth("h_dPhi_truth", "delta phi gamma-jet truth MC", phibins, 0, TMath::Pi());
+    TH1D h_dPhi_truth("h_dPhi_truth", "delta phi gamma-jet truth MC; #Delta #phi (rads); #frac{d #sigma}{d #Delta #phi}", phibins, 0, TMath::Pi());
+    TH1D h_XobsPb_truth("h_XobsPb_truth", "x_{pPb}^{obs} distribution: gamma-jet truth; x_{pPb}^{obs}; #frac{d #sigma}{dx^{obs}_{pPb}}", 5, 0.004, 0.024);
+    TH1D h_pTD_truth("h_pTD_truth", "pTD distribution, truth; p_TD; #frac{d #sigma}{d p_TD}", 5, 0.0,1.0);
+    TH1D h_Multiplicity_truth("h_Multiplicity_truth", "Jet Multiplicity distribution, truth", 10, 0.0 , 20.0);
     double h_dPhi_truth_binwidth = calculatebinwidth(phibins, 0, TMath::Pi());
-
+    double h_XobsPb_truth_binwidth= calculatebinwidth(5, 0.004, 0.024);
+    double h_pTD_truth_binwidth = calculatebinwidth(5, 0.0,1.0);
+    double h_Multiplicity_truth_binwidth = calculatebinwidth(10, 0.0 , 20.0);
 
   TH1D h_weights("h_weights", "weights; bin1 is for SR and bin2 is for BR", 2, -0.5, 1.5);
     double h_weights_binwidth = calculatebinwidth(2, -0.5, 1.5);
@@ -610,6 +615,12 @@ int main(int argc, char *argv[])
     if((filestring == "/project/projectdirs/alice/NTuples/pPb/13d/13d.root") || (filestring == "/project/projectdirs/alice/NTuples/pPb/13e/13e.root") || (filestring == "/project/projectdirs/alice/NTuples/pPb/13d/13d_Mixing/13d_0GeVTrack_paired.root") || (filestring == "/project/projectdirs/alice/NTuples/pPb/13e/13e_Mixing/13e_0GeVTrack_paired.root")) {
         boost_adj = -0.465;
     }
+      // 17g6a1 (same direction as 13d and 13e)
+      if( (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat1_ptmin12.0_Nevent_500000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat2_ptmin12.0_Nevent_500000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat3_ptmin12.0_Nevent_500000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat4_ptmin12.0_Nevent_500000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat5_ptmin12.0_Nevent_500000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat1_ptmin12.0_Nevent_300000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat2_ptmin12.0_Nevent_300000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat3_ptmin12.0_Nevent_300000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat4_ptmin12.0_Nevent_300000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat5_ptmin12.0_Nevent_300000.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/17g6a1_pthat1.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/17g6a1_pthat2.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/17g6a1_pthat3.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/17g6a1_pthat4.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/17g6a1_pthat5.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat2_4L_allruns_ptmin15.0.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat3_4L_allruns_ptmin15.0.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat4_4L_allruns_ptmin15.0.root") || (filestring == "/project/projectdirs/alice/NTuples/MC/17g6a1/Skimmed_17g6a1_pthat5_4L_allruns_ptmin15.0.root")) {
+          boost_adj = -0.465;
+      }
+      
+    // 13f (reversed)
     if((filestring == "/project/projectdirs/alice/NTuples/pPb/13f/13f.root") || (filestring == "/project/projectdirs/alice/NTuples/pPb/13f/13f_Mixing/13f_0GeVTrack_paired.root")) {
         boost_adj = 0.465;
     }
@@ -846,7 +857,7 @@ int main(int argc, char *argv[])
             //if(triggerMask_13data & trigger_mask[0] == 0) continue; //trigger selection
 
             for (ULong64_t n = 0; n < ncluster; n++) { // Loop over variables
-            
+            //std::cout << "icluster " << n << " has  lambda0 " << cluster_lambda_square[n][0] << std::endl;
             double isolation;
             //remove UE subtraction
             if (determiner == CLUSTER_ISO_TPC_04) isolation = cluster_iso_tpc_04[n] + cluster_iso_its_04_ue[n];
@@ -858,7 +869,7 @@ int main(int argc, char *argv[])
 
                 if( not(cluster_pt[n]>clus_pT_min)) continue; //select pt of photons
                 if( not(cluster_pt[n]<clus_pT_max)) continue;
-                if( not(TMath::Abs(cluster_eta[n])<Cluster_Eta_max)) continue; //select eta of photons
+                if( not(TMath::Abs(cluster_eta[n]-boost_adj)<Cluster_Eta_max)) continue; //select eta of photons
                 if( not(cluster_ncell[n]>Cluster_ncell_min)) continue;   //removes clusters with 1 or 2 cells
                 if( not(cluster_e_cross[n]/cluster_e[n]>EcrossoverE_min)) continue; //removes "spiky" clusters
                 if( not(cluster_nlocal_maxima[n]<= Cluster_locmaxima_max)) continue; //require to have at most 2 local maxima.
@@ -869,6 +880,7 @@ int main(int argc, char *argv[])
                 Bool_t inBkgRegion;
                 
                 // Select the shower shape cut variable, and apply it
+                //std::cout << "SIG icluster " << n << " has  lambda0 " << cluster_lambda_square[n][0] << std::endl;
                 if (photon_identifier == DNN) {
                     inSignalRegion = ((cluster_s_nphoton[n][1] > SIG_DNN_min) and (cluster_s_nphoton[n][1]<SIG_DNN_max));
                     inBkgRegion    = ((cluster_s_nphoton[n][1]>BKG_DNN_min) and (cluster_s_nphoton[n][1]<BKG_DNN_max));
@@ -1110,7 +1122,7 @@ int main(int argc, char *argv[])
         if( not(cluster_pt[n]>clus_pT_min)) continue; //select pt of photons
         if( not(cluster_pt[n]<clus_pT_max)) continue;
         h_cutflow.Fill(1);
-        if( not(TMath::Abs(cluster_eta[n])<Cluster_Eta_max)) continue; //select eta of photons
+        if( not(TMath::Abs(cluster_eta[n]-boost_adj)<Cluster_Eta_max)) continue; //select eta of photons
         h_cutflow.Fill(2);
         if( not(cluster_ncell[n]>Cluster_ncell_min)) continue;   //removes clusters with 1 or 2 cells
         h_cutflow.Fill(3);
@@ -1154,7 +1166,6 @@ int main(int argc, char *argv[])
           truth_phi    =  mc_truth_phi[index];
           truth_eta    =  mc_truth_eta[index];
 	}//end loop over indices
-
         //if (not isTruePhoton){ std::cout << " photon is not true " << std::endl;} 
 	// if((not isRealData) and (not isTruePhoton) and weight!=1.0 ) continue; //17g samples don't have weight FIX ME: of course this cut only works for GJ and not JJ
 	
@@ -1202,13 +1213,13 @@ int main(int argc, char *argv[])
         // Fill the delta phi correlation histogram
           if(inSignalRegion){
 	    hSR_dPhi.Fill(dphi,weight);
-            hSR_dPhi_truth.Fill(dphi_truth,weight);
+             if (isTruePhoton) hSR_dPhi_truth.Fill(dphi_truth,weight);
               num_sig_dPhi++;
 	 
 	  }
 	  else if(inBkgRegion){
 	    hBR_dPhi.Fill(dphi,weight);
-            hBR_dPhi_truth.Fill(dphi_truth,weight);
+             if (isTruePhoton) hBR_dPhi_truth.Fill(dphi_truth,weight);
               num_bkg_dPhi++;
 	  }
         // Cut out the gamma-jet pairs that differ in phi by less that pi/2 (means they go in the same direction)
@@ -1222,7 +1233,8 @@ int main(int argc, char *argv[])
           else if(inBkgRegion){
             njets_BR =+1; 
 	  }
-          
+          //std::cout << "Truth Cluster " << n << " has pt " << truth_pt << " phi " << truth_phi << " eta " << truth_eta << std::endl;
+          //std::cout << "Truth Jet " << ijet << " has pt " << jet_ak04its_pt_truth[ijet] << " phi " << jet_ak04its_phi_truth[ijet] << " eta " << jet_ak04its_eta_truth[ijet] << std::endl;
         // Fill all of the other correlations
 	  Float_t xj = jet_ak04its_pt_raw[ijet]/cluster_pt[n];
 	  //std::cout <<"truthptjet: " << jet_ak04its_pt_truth[ijet] << "reco pt jet" << jet_ak04its_pt_raw[ijet] << std::endl;           
@@ -1243,20 +1255,20 @@ int main(int argc, char *argv[])
 	    hSR_jeteta.Fill(jet_ak04its_eta_raw[ijet], weight);
 	    hSR_jetphi.Fill(jet_ak04its_phi[ijet],weight);
 
-	    hSR_jetpt_truth.Fill(jet_ak04its_pt_truth[ijet], weight);
-            hSR_jeteta_truth.Fill(jet_ak04its_eta_truth[ijet], weight);
-            hSR_jetphi_truth.Fill(jet_ak04its_phi_truth[ijet],weight);
+	     if (isTruePhoton) hSR_jetpt_truth.Fill(jet_ak04its_pt_truth[ijet], weight);
+             if (isTruePhoton) hSR_jeteta_truth.Fill(jet_ak04its_eta_truth[ijet], weight);
+            if (isTruePhoton) hSR_jetphi_truth.Fill(jet_ak04its_phi_truth[ijet],weight);
 
-            hSR_Xj_truth.Fill(xj_truth, weight);
-            hSR_dEta_truth.Fill(deta_truth,weight);
-            hSR_AvgEta_truth.Fill(0.5*(jet_ak04its_eta_truth[ijet] +  truth_eta), weight);
+            if (isTruePhoton) hSR_Xj_truth.Fill(xj_truth, weight);
+            if (isTruePhoton) hSR_dEta_truth.Fill(deta_truth,weight);
+            if (isTruePhoton) hSR_AvgEta_truth.Fill(0.5*(jet_ak04its_eta_truth[ijet] +  truth_eta), weight);
           
           //std::cout << "Signal region Xj truth: " << xj_truth << std::endl;
           
           // Here is the correlation with xobsPb, the Bjorken-x sensitive variable
         hSR_XobsPb.Fill(((cluster_pt[n]*TMath::Exp(-(cluster_eta[n]+boost_adj)))+(jet_ak04its_pt_raw[ijet]*TMath::Exp(-(jet_ak04its_eta_raw[ijet]+boost_adj))))/(2*EPb), weight);
           
-            hSR_XobsPb_truth.Fill(((truth_pt*TMath::Exp(-(truth_eta+boost_adj)))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-(jet_ak04its_eta_truth[ijet]+boost_adj))))/(2*EPb), weight);
+            if (isTruePhoton) hSR_XobsPb_truth.Fill(((truth_pt*TMath::Exp(-(truth_eta+boost_adj)))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-(jet_ak04its_eta_truth[ijet]+boost_adj))))/(2*EPb), weight);
           
           //std::cout << "Signal region XobsPb truth: " << ((truth_pt*TMath::Exp(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-jet_ak04its_eta_truth[ijet])))/(2*EPb) << std::endl;
           
@@ -1280,20 +1292,20 @@ int main(int argc, char *argv[])
 	    hBR_jeteta.Fill(jet_ak04its_eta_raw[ijet], weight);
             hBR_jetphi.Fill(jet_ak04its_phi[ijet],weight);
 
-	    hBR_jetpt_truth.Fill(jet_ak04its_pt_truth[ijet], weight);
-            hBR_jeteta_truth.Fill(jet_ak04its_eta_truth[ijet], weight);
-            hBR_jetphi_truth.Fill(jet_ak04its_phi_truth[ijet],weight);
+	    if (isTruePhoton) hBR_jetpt_truth.Fill(jet_ak04its_pt_truth[ijet], weight);
+            if (isTruePhoton) hBR_jeteta_truth.Fill(jet_ak04its_eta_truth[ijet], weight);
+            if (isTruePhoton) hBR_jetphi_truth.Fill(jet_ak04its_phi_truth[ijet],weight);
 
-            hBR_Xj_truth.Fill(xj_truth,weight);
-	    hBR_dEta_truth.Fill(deta_truth,weight);
-	    hSR_AvgEta_truth.Fill(0.5*(jet_ak04its_eta_truth[ijet] +  truth_eta), weight);
+            if (isTruePhoton) hBR_Xj_truth.Fill(xj_truth,weight);
+	    if (isTruePhoton) hBR_dEta_truth.Fill(deta_truth,weight);
+	    if (isTruePhoton) hSR_AvgEta_truth.Fill(0.5*(jet_ak04its_eta_truth[ijet] +  truth_eta), weight);
               
               //std::cout << "Background region Xj truth: " << xj_truth << std::endl;
         
          // Here is the correlation with xobsPb, the Bjorken-x sensitive variable
         hBR_XobsPb.Fill(((cluster_pt[n]*TMath::Exp(-(cluster_eta[n]+boost_adj)))+(jet_ak04its_pt_raw[ijet]*TMath::Exp(-(jet_ak04its_eta_raw[ijet]+boost_adj))))/(2*EPb), weight);
               
-        hBR_XobsPb_truth.Fill(((truth_pt*TMath::Exp(-(truth_eta+boost_adj)))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-(jet_ak04its_eta_truth[ijet]+boost_adj))))/(2*EPb), weight);
+         if (isTruePhoton) hBR_XobsPb_truth.Fill(((truth_pt*TMath::Exp(-(truth_eta+boost_adj)))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-(jet_ak04its_eta_truth[ijet]+boost_adj))))/(2*EPb), weight);
         
         //std::cout << "Background region XobsPb truth: " << ((truth_pt*TMath::Exp(-truth_eta))+(jet_ak04its_pt_truth[ijet]*TMath::Exp(-jet_ak04its_eta_truth[ijet])))/(2*EPb) << std::endl;
               
@@ -1346,10 +1358,11 @@ int main(int argc, char *argv[])
 	}
       }//end loop over indices of reco jets
 
-    // Monte-Carlo only
+        // Monte-Carlo only: loop over truth mc particles
+        // Warning: Boosting is not adjusted for here, due to lack of need last time used (6/1/2019)
       for (ULong64_t nmc = 0; nmc < nmc_truth; nmc++) {
-        if(not(mc_truth_pt[nmc]>clus_pT_min)) continue;
-	if(not(mc_truth_pt[nmc]<clus_pT_max)) continue;
+        //if(not(mc_truth_pt[nmc]>clus_pT_min)) continue;
+	//if(not(mc_truth_pt[nmc]<clus_pT_max)) continue;
 	if(mc_truth_pdg_code[nmc]==rightpdgcode && int(mc_truth_status[nmc])>0 &&  mc_truth_first_parent_pdg_code[nmc]==rightparentpdgcode){
 	  //std::cout << mc_truth_pt[nmc] << "phi " << mc_truth_phi[nmc] << " eta " << mc_truth_eta[nmc] << 
 	  //  " code: " << mc_truth_pdg_code[nmc] << " status " << int(mc_truth_status[nmc]) << " parentpdg " << mc_truth_first_parent_pdg_code[nmc] << std::endl;    
@@ -1357,8 +1370,8 @@ int main(int argc, char *argv[])
           N_truth +=1;
 	  //std::cout << " number of truth jets " << njet_truth_ak04 << std::endl;
 	  for (ULong64_t ijet = 0; ijet < njet_truth_ak04; ijet++) { // Loop over jets
-            if(not(jet_truth_ak04_pt[ijet]>jet_pT_min)) continue;
-	    if(not(TMath::Abs(jet_truth_ak04_eta[ijet])<Jet_Eta_max)) continue;
+            //if(not(jet_truth_ak04_pt[ijet]>jet_pT_min)) continue;
+	    //if(not(TMath::Abs(jet_truth_ak04_eta[ijet])<Jet_Eta_max)) continue;
 	    Float_t dphi_truth = TMath::Abs(TVector2::Phi_mpi_pi(jet_truth_ak04_phi[ijet] - mc_truth_phi[nmc]));
 	    //std::cout<< dphi_truth << std::endl;
             
@@ -1367,6 +1380,7 @@ int main(int argc, char *argv[])
             if( not(dphi_truth>TMath::Pi()/2.0)) continue;
 	    Float_t xj_truth = jet_truth_ak04_pt[ijet]/mc_truth_pt[nmc];
             h_Xj_truth.Fill(xj_truth,weight);
+          h_XobsPb_truth.Fill(((mc_truth_pt[nmc]*TMath::Exp(-(mc_truth_eta[nmc])))+(jet_truth_ak04_pt[ijet]*TMath::Exp(-(jet_truth_ak04_eta[ijet]))))/(2*EPb), weight);
 	  }//end loop over truth jets
 	}
       }//end loop over mc particles
@@ -1497,10 +1511,13 @@ int main(int argc, char *argv[])
 
 
 
-
+    std::cout << "N_truth: " << N_truth << std::endl;
 
     h_dPhi_truth.Scale(1.0/(N_truth*h_dPhi_truth_binwidth));
     h_Xj_truth.Scale(1.0/(N_truth*h_Xj_truth_binwidth));
+    h_XobsPb_truth.Scale(1.0/(N_truth*h_XobsPb_truth_binwidth));
+    h_pTD_truth.Scale(1.0/(N_truth*h_pTD_truth_binwidth));
+    h_Multiplicity_truth.Scale(1.0/(N_truth*h_Multiplicity_truth_binwidth));
     
     // Write out all histograms
     h_evtcutflow.Write("EventCutFlow");
@@ -1605,6 +1622,7 @@ int main(int argc, char *argv[])
     //MC truth
     if (not isRealData) {
         h_dPhi_truth.Write("h_dPhi_truth");
+        h_truth.Write("h_truth");
     }
     h_Xj_Matrix.Write("xj_matrix");    
     h_Xj_truth.Write("h_Xj_truth");

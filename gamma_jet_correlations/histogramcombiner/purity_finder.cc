@@ -1,4 +1,4 @@
-// This program outputs the purity of a given data set, in the form of a ROOT output file
+\// This program outputs the purity of a given data set, in the form of a ROOT output file
 // Requires that the data posesses a TOT_clusterpt histogram, which contains a distribution of all of the purities of the data sample, and that the data's cluster pT is between 12.5 and 40 GeV
 // Author: Ivan Chernyshev; Date: 10/16/2018
 
